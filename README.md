@@ -1,5 +1,5 @@
 # UI2V: Local AI Motion Designer
-
+[English](README.md) | [中文](README_zh.md)
 > Empowering creators with privacy-first, AI-powered motion design
 
 ---
