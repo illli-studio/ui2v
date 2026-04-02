@@ -1,5 +1,5 @@
 # UI2V：本地 AI 动效设计工具
-
+[English](README.md) | [中文](README_zh.md)
 > 隐私优先，AI 驱动，赋能每一位创作者
 
 ---
