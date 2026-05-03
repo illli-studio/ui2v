@@ -24,11 +24,16 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Setup Chrome
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@v1
+
       - name: Install dependencies
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: "true"
         run: bun install --frozen-lockfile
 
-      - name: Install Chromium for Puppeteer
-        run: npx puppeteer browsers install chrome
-
       - name: Run full test suite
+        env:
+          PUPPETEER_EXECUTABLE_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
         run: bun run test

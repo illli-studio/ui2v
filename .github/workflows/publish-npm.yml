@@ -1,13 +1,10 @@
 name: Publish to npm
 
 on:
-  push:
-    tags:
-      - "v*"
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to publish, for example 1.0.2. Tag v<version> must already exist."
+        description: "Version to publish, for example 1.0.2. package.json files must already use this version."
         required: true
         type: string
 
@@ -26,31 +23,23 @@ jobs:
         id: version
         shell: bash
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            VERSION="${{ inputs.version }}"
-            VERSION="${VERSION#v}"
-            REF="refs/tags/v${VERSION}"
-          else
-            VERSION="${GITHUB_REF_NAME#v}"
-            REF="${GITHUB_REF}"
-          fi
+          VERSION="${{ inputs.version }}"
+          VERSION="${VERSION#v}"
 
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "ref=${REF}" >> "$GITHUB_OUTPUT"
-          echo "Resolved version=${VERSION} ref=${REF}"
+          echo "Resolved version=${VERSION}"
 
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ steps.version.outputs.ref }}
 
       - name: Validate checkout
         run: |
           pwd
           ls -la
           test -f package.json || {
-            echo "::error::package.json was not found after checkout. Make sure tag v${{ steps.version.outputs.version }} points to the release commit."
+            echo "::error::package.json was not found after checkout. Run this workflow from the branch that contains the npm workspace."
             exit 1
           }
 
@@ -65,11 +54,14 @@ jobs:
           node-version: "22"
           registry-url: "https://registry.npmjs.org"
 
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
+      - name: Setup Chrome
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@v1
 
-      - name: Install Chromium for Puppeteer
-        run: npx puppeteer browsers install chrome
+      - name: Install dependencies
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: "true"
+        run: bun install --frozen-lockfile
 
       - name: Validate release version
         env:
@@ -126,6 +118,8 @@ jobs:
           NODE
 
       - name: Run full test suite
+        env:
+          PUPPETEER_EXECUTABLE_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
         run: bun run test
 
       - name: Publish packages
