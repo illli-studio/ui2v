@@ -1,0 +1,57 @@
+{
+  "name": "@ui2v/runtime-core",
+  "version": "1.0.1",
+  "description": "Runtime core for ui2v scene graphs, timelines, schedulers, and engine adapters",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "clean": "rimraf dist",
+    "test": "bun run build && node test/runtime-core.test.mjs"
+  },
+  "keywords": [
+    "ui2v",
+    "runtime",
+    "scene-graph",
+    "timeline",
+    "animation"
+  ],
+  "author": "ui2v",
+  "license": "MIT",
+  "homepage": "https://github.com/ui2v/ui2v/tree/main/packages/runtime-core#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ui2v/ui2v.git",
+    "directory": "packages/runtime-core"
+  },
+  "bugs": {
+    "url": "https://github.com/ui2v/ui2v/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@ui2v/core": "1.0.1"
+  },
+  "devDependencies": {
+    "rimraf": "^6.0.1",
+    "tsup": "^8.0.0",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

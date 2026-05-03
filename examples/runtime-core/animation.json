@@ -1,0 +1,71 @@
+{
+  "schema": "uiv-runtime",
+  "id": "runtime-core-demo",
+  "name": "Runtime Core Demo",
+  "version": "0.1.0",
+  "duration": 4,
+  "fps": 30,
+  "resolution": { "width": 960, "height": 540 },
+  "backgroundColor": "#070b12",
+  "variables": {
+    "accent": "#f2aa4c"
+  },
+  "dependencies": ["canvas2d"],
+  "markers": [
+    { "id": "intro", "time": 0, "label": "Intro" },
+    { "id": "orbit-start", "time": 0.4, "label": "Orbit starts" },
+    { "id": "settle", "time": 2.8, "label": "Settle" }
+  ],
+  "timeline": {
+    "segments": [
+      { "id": "intro", "startTime": 0, "endTime": 0.4, "label": "Intro" },
+      { "id": "main-motion", "startTime": 0.4, "endTime": 3.8, "label": "Main motion" },
+      { "id": "outro", "startTime": 3.8, "endTime": 4, "label": "Outro" }
+    ]
+  },
+  "scene": {
+    "root": {
+      "id": "root",
+      "type": "root",
+      "children": [
+        {
+          "id": "title",
+          "type": "custom-code",
+          "name": "Runtime title",
+          "zIndex": 10,
+          "startTime": 0,
+          "duration": 4,
+          "opacity": 1,
+          "transform": { "x": 0, "y": 0 },
+          "properties": {
+            "code": "function createRenderer() {\n  function render(t, context) {\n    const ctx = context.mainContext;\n    const w = context.width;\n    const h = context.height;\n    ctx.fillStyle = '#070b12';\n    ctx.fillRect(0, 0, w, h);\n    ctx.save();\n    ctx.translate(w / 2, h / 2);\n    ctx.textAlign = 'center';\n    ctx.textBaseline = 'middle';\n    ctx.font = '800 64px Arial, sans-serif';\n    ctx.fillStyle = '#f2aa4c';\n    ctx.fillText('UIV Runtime Core', 0, -28);\n    ctx.font = '24px Arial, sans-serif';\n    ctx.fillStyle = '#dfe9f5';\n    ctx.fillText('scene graph + timeline + adapter system', 0, 40);\n    ctx.restore();\n  }\n  return { render };\n}"
+          },
+          "motion": [
+            {
+              "property": "opacity",
+              "from": 0,
+              "to": 1,
+              "startTime": 0,
+              "duration": 0.8,
+              "easing": "easeOutCubic",
+              "loop": false,
+              "yoyo": false
+            }
+          ]
+        },
+        {
+          "id": "orbit",
+          "type": "custom-code",
+          "name": "Runtime scheduled orbit",
+          "zIndex": 20,
+          "startTime": 0.4,
+          "duration": 3.4,
+          "dependencies": ["animejs", "gsap"],
+          "properties": {
+            "code": "function createRenderer() {\n  function render(t, context) {\n    const ctx = context.mainContext;\n    const w = context.width;\n    const h = context.height;\n    const cx = w / 2;\n    const cy = h / 2 + 4;\n    ctx.save();\n    ctx.globalAlpha = 0.95;\n    for (let i = 0; i < 18; i++) {\n      const a = t * 1.7 + i * Math.PI * 2 / 18;\n      const rx = 260 + Math.sin(t + i) * 26;\n      const ry = 96 + Math.cos(t * 0.7 + i) * 18;\n      const x = cx + Math.cos(a) * rx;\n      const y = cy + Math.sin(a) * ry;\n      ctx.fillStyle = i % 3 === 0 ? '#00d4ff' : (i % 3 === 1 ? '#7bd88f' : '#ff5c8a');\n      ctx.beginPath();\n      ctx.arc(x, y, 4 + (i % 4), 0, Math.PI * 2);\n      ctx.fill();\n    }\n    ctx.restore();\n  }\n  return { render };\n}"
+          }
+        }
+      ]
+    }
+  }
+}

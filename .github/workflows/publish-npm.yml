@@ -1,0 +1,171 @@
+name: Publish to npm
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish, for example 1.0.2. Tag v<version> must already exist."
+        required: true
+        type: string
+
+jobs:
+  publish:
+    name: Publish npm packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: npm-publish
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Resolve version
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.version }}"
+            VERSION="${VERSION#v}"
+            REF="refs/tags/v${VERSION}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+            REF="${GITHUB_REF}"
+          fi
+
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "ref=${REF}" >> "$GITHUB_OUTPUT"
+          echo "Resolved version=${VERSION} ref=${REF}"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ steps.version.outputs.ref }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install Chromium for Puppeteer
+        run: npx puppeteer browsers install chrome
+
+      - name: Validate release version
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+
+          const version = process.env.VERSION;
+          const root = process.cwd();
+          const packages = [
+            ['.', '@ui2v/workspace'],
+            ['packages/core', '@ui2v/core'],
+            ['packages/runtime-core', '@ui2v/runtime-core'],
+            ['packages/engine', '@ui2v/engine'],
+            ['packages/producer', '@ui2v/producer'],
+            ['packages/cli', '@ui2v/cli'],
+          ];
+          const localPackageNames = new Set(packages.slice(1).map(([, name]) => name));
+          const failures = [];
+
+          for (const [dir, expectedName] of packages) {
+            const pkgPath = path.join(root, dir, 'package.json');
+            const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+            const label = dir === '.' ? 'package.json' : `${dir}/package.json`;
+
+            if (pkg.name !== expectedName) {
+              failures.push(`${label}: expected name ${expectedName}, got ${pkg.name}`);
+            }
+
+            if (pkg.version !== version) {
+              failures.push(`${label}: expected version ${version}, got ${pkg.version}`);
+            }
+
+            for (const section of ['dependencies', 'optionalDependencies', 'peerDependencies']) {
+              for (const [name, range] of Object.entries(pkg[section] ?? {})) {
+                if (localPackageNames.has(name) && range !== version) {
+                  failures.push(`${label}: ${section}.${name} must be ${version}, got ${range}`);
+                }
+                if (typeof range === 'string' && range.startsWith('workspace:')) {
+                  failures.push(`${label}: ${section}.${name} uses workspace protocol, which cannot be published`);
+                }
+              }
+            }
+          }
+
+          if (failures.length > 0) {
+            console.error(failures.join('\n'));
+            process.exit(1);
+          }
+
+          console.log(`Release version validation passed: ${version}`);
+          NODE
+
+      - name: Run full test suite
+        run: bun run test
+
+      - name: Publish packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          publish_pkg() {
+            local dir="$1"
+            local name="$2"
+
+            if npm view "${name}@${VERSION}" version >/dev/null 2>&1; then
+              echo "${name}@${VERSION} already exists, skipping"
+              return
+            fi
+
+            echo "Publishing ${name}@${VERSION}"
+            (cd "$dir" && npm publish --access public --provenance)
+          }
+
+          publish_pkg "packages/core" "@ui2v/core"
+          publish_pkg "packages/runtime-core" "@ui2v/runtime-core"
+          publish_pkg "packages/engine" "@ui2v/engine"
+          publish_pkg "packages/producer" "@ui2v/producer"
+          publish_pkg "packages/cli" "@ui2v/cli"
+
+      - name: Verify npm registry
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for name in \
+            "@ui2v/core" \
+            "@ui2v/runtime-core" \
+            "@ui2v/engine" \
+            "@ui2v/producer" \
+            "@ui2v/cli"
+          do
+            published="$(npm view "${name}@${VERSION}" version)"
+            latest="$(npm view "${name}@latest" version)"
+            echo "${name}@${published} latest=${latest}"
+
+            if [ "$published" != "$VERSION" ]; then
+              echo "::error::Expected ${name}@${VERSION}, got ${published}"
+              exit 1
+            fi
+          done

@@ -1,0 +1,52 @@
+{
+  "name": "@ui2v/core",
+  "version": "1.0.1",
+  "description": "Core types, parsers, and utilities for ui2v",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "clean": "rimraf dist"
+  },
+  "keywords": [
+    "ui2v",
+    "video",
+    "animation",
+    "rendering"
+  ],
+  "author": "ui2v",
+  "license": "MIT",
+  "homepage": "https://github.com/ui2v/ui2v/tree/main/packages/core#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ui2v/ui2v.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/ui2v/ui2v/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.8.3",
+    "rimraf": "^6.0.1"
+  }
+}

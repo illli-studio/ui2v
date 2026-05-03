@@ -1,0 +1,62 @@
+{
+  "schema": "uiv-runtime",
+  "id": "segmented-custom-code",
+  "name": "Segmented Custom Code UI Video",
+  "version": "0.2.0",
+  "duration": 9,
+  "fps": 30,
+  "resolution": { "width": 1280, "height": 720 },
+  "backgroundColor": "#080a0f",
+  "dependencies": ["canvas2d"],
+  "timeline": {
+    "segments": [
+      {
+        "id": "opening",
+        "label": "Opening",
+        "startTime": 0,
+        "endTime": 3,
+        "dependencies": ["animejs"],
+        "code": "function render(t, context) {\n  const { ctx, width: w, height: h, progress } = context;\n  ctx.fillStyle = '#080a0f';\n  ctx.fillRect(0, 0, w, h);\n  ctx.save();\n  ctx.translate(w / 2, h / 2);\n  ctx.globalAlpha = Math.min(1, progress * 1.4);\n  ctx.fillStyle = '#f6f1de';\n  ctx.font = '800 76px Arial, sans-serif';\n  ctx.textAlign = 'center';\n  ctx.fillText('UI Video', 0, -20);\n  ctx.font = '28px Arial, sans-serif';\n  ctx.fillStyle = '#79d9ff';\n  ctx.fillText('segment authored custom-code', 0, 44);\n  ctx.restore();\n}"
+      },
+      {
+        "id": "system",
+        "label": "Runtime System",
+        "startTime": 3,
+        "endTime": 6,
+        "dependencies": ["gsap", "d3"],
+        "layers": [
+          {
+            "id": "system-grid",
+            "type": "custom-code",
+            "properties": {
+              "code": "function render(t, context) {\n  const { ctx, width: w, height: h, progress } = context;\n  ctx.fillStyle = '#0d1117';\n  ctx.fillRect(0, 0, w, h);\n  ctx.save();\n  ctx.translate(w / 2, h / 2);\n  for (let i = 0; i < 48; i++) {\n    const angle = i / 48 * Math.PI * 2 + t * 0.6;\n    const radius = 90 + i * 4 + Math.sin(t + i) * 12;\n    const x = Math.cos(angle) * radius;\n    const y = Math.sin(angle) * radius * 0.52;\n    ctx.fillStyle = i % 2 ? '#7bd88f' : '#ff5c8a';\n    ctx.globalAlpha = 0.25 + progress * 0.7;\n    ctx.beginPath();\n    ctx.arc(x, y, 4 + (i % 5), 0, Math.PI * 2);\n    ctx.fill();\n  }\n  ctx.restore();\n}"
+            }
+          }
+        ]
+      },
+      {
+        "id": "resolve",
+        "label": "Resolve",
+        "startTime": 6,
+        "endTime": 9,
+        "dependencies": ["rough"],
+        "nodes": [
+          {
+            "id": "resolve-code",
+            "type": "custom-code",
+            "properties": {
+              "code": "export default {\n  render(t, context) {\n    const { ctx, width: w, height: h, progress } = context;\n    ctx.fillStyle = '#111318';\n    ctx.fillRect(0, 0, w, h);\n    ctx.save();\n    ctx.translate(w / 2, h / 2);\n    ctx.strokeStyle = '#f2aa4c';\n    ctx.lineWidth = 8;\n    ctx.globalAlpha = 0.5 + progress * 0.5;\n    ctx.beginPath();\n    ctx.roundRect(-260, -110, 520, 220, 28);\n    ctx.stroke();\n    ctx.fillStyle = '#ffffff';\n    ctx.font = '700 48px Arial, sans-serif';\n    ctx.textAlign = 'center';\n    ctx.fillText('Runtime Core', 0, -8);\n    ctx.font = '24px Arial, sans-serif';\n    ctx.fillStyle = '#dfe9f5';\n    ctx.fillText('timeline + code + video export', 0, 48);\n    ctx.restore();\n  }\n}"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "scene": {
+    "root": {
+      "id": "root",
+      "type": "root",
+      "children": []
+    }
+  }
+}

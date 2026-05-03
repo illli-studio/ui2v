@@ -1,0 +1,25 @@
+{
+  "id": "basic-text",
+  "mode": "template",
+  "duration": 2,
+  "fps": 30,
+  "resolution": { "width": 640, "height": 360 },
+  "backgroundColor": "#101820",
+  "template": {
+    "layers": [
+      {
+        "id": "text-layer",
+        "name": "Animated text",
+        "type": "custom-code",
+        "zIndex": 1,
+        "startTime": 0,
+        "endTime": 2,
+        "visible": true,
+        "opacity": 1,
+        "properties": {
+          "code": "function createRenderer() {\n  function render(t, context) {\n    const ctx = context.mainContext;\n    const w = context.width;\n    const h = context.height;\n    const p = Math.min(1, t / 1.2);\n    ctx.fillStyle = '#101820';\n    ctx.fillRect(0, 0, w, h);\n    const x = w / 2;\n    const y = h / 2;\n    ctx.save();\n    ctx.translate(x, y);\n    ctx.scale(0.85 + p * 0.15, 0.85 + p * 0.15);\n    ctx.globalAlpha = p;\n    ctx.textAlign = 'center';\n    ctx.textBaseline = 'middle';\n    ctx.font = '700 54px Arial, sans-serif';\n    ctx.fillStyle = '#f2aa4c';\n    ctx.fillText('ui2v', 0, -18);\n    ctx.font = '24px Arial, sans-serif';\n    ctx.fillStyle = '#ffffff';\n    ctx.fillText('browser rendered video', 0, 42);\n    ctx.restore();\n  }\n  return { render };\n}"
+        }
+      }
+    ]
+  }
+}

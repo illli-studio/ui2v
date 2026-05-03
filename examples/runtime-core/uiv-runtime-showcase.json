@@ -1,0 +1,70 @@
+{
+  "schema": "uiv-runtime",
+  "id": "uiv-runtime-showcase",
+  "name": "UIV Runtime Showcase",
+  "version": "0.3.0",
+  "duration": 12,
+  "fps": 30,
+  "resolution": { "width": 1280, "height": 720 },
+  "backgroundColor": "#07090f",
+  "dependencies": ["canvas2d"],
+  "timeline": {
+    "segments": [
+      {
+        "id": "identity",
+        "label": "Identity",
+        "startTime": 0,
+        "endTime": 3,
+        "dependencies": ["animejs"],
+        "code": "function render(t, context) {\n  const { ctx, width: w, height: h, progress } = context;\n  const ease = 1 - Math.pow(1 - progress, 3);\n  ctx.fillStyle = '#07090f';\n  ctx.fillRect(0, 0, w, h);\n  ctx.save();\n  ctx.translate(w / 2, h / 2);\n  for (let i = 0; i < 36; i++) {\n    const a = i / 36 * Math.PI * 2 + t * 0.35;\n    const r = 110 + i * 5 + Math.sin(t * 1.2 + i) * 18;\n    const x = Math.cos(a) * r;\n    const y = Math.sin(a) * r * 0.42;\n    ctx.globalAlpha = 0.18 + ease * 0.45;\n    ctx.fillStyle = i % 3 === 0 ? '#7bd88f' : i % 3 === 1 ? '#79d9ff' : '#ff5c8a';\n    ctx.beginPath();\n    ctx.arc(x, y, 3 + (i % 4), 0, Math.PI * 2);\n    ctx.fill();\n  }\n  ctx.globalAlpha = 1;\n  ctx.textAlign = 'center';\n  ctx.textBaseline = 'middle';\n  ctx.fillStyle = '#f7f1df';\n  ctx.font = '800 82px Arial, sans-serif';\n  ctx.fillText('UIV Runtime', 0, -32 + (1 - ease) * 28);\n  ctx.fillStyle = '#9fb6c9';\n  ctx.font = '26px Arial, sans-serif';\n  ctx.fillText('custom-code video, timed by segments', 0, 48);\n  ctx.restore();\n}"
+      },
+      {
+        "id": "timeline",
+        "label": "Timeline",
+        "startTime": 3,
+        "endTime": 6,
+        "dependencies": ["gsap"],
+        "layers": [
+          {
+            "id": "timeline-code",
+            "type": "custom-code",
+            "properties": {
+              "code": "function render(t, context) {\n  const { ctx, width: w, height: h, progress } = context;\n  ctx.fillStyle = '#0b1018';\n  ctx.fillRect(0, 0, w, h);\n  const left = 130;\n  const right = w - 130;\n  const y = h / 2;\n  ctx.strokeStyle = '#1d3045';\n  ctx.lineWidth = 2;\n  for (let i = 0; i < 9; i++) {\n    const x = left + (right - left) * i / 8;\n    ctx.beginPath();\n    ctx.moveTo(x, 120);\n    ctx.lineTo(x, h - 120);\n    ctx.stroke();\n  }\n  ctx.strokeStyle = '#f2aa4c';\n  ctx.lineWidth = 8;\n  ctx.lineCap = 'round';\n  ctx.beginPath();\n  ctx.moveTo(left, y);\n  ctx.lineTo(left + (right - left) * progress, y);\n  ctx.stroke();\n  const labels = ['0s', '3s', '6s', '9s', '12s'];\n  ctx.font = '18px Arial, sans-serif';\n  ctx.fillStyle = '#9fb6c9';\n  ctx.textAlign = 'center';\n  for (let i = 0; i < labels.length; i++) {\n    const x = left + (right - left) * i / (labels.length - 1);\n    ctx.fillText(labels[i], x, y + 52);\n  }\n  const blocks = [\n    ['identity', '#79d9ff'], ['timeline', '#f2aa4c'], ['orchestration', '#7bd88f'], ['export', '#ff5c8a']\n  ];\n  ctx.font = '700 28px Arial, sans-serif';\n  blocks.forEach((block, i) => {\n    const x = left + (right - left) * (i + 0.5) / blocks.length;\n    ctx.fillStyle = block[1];\n    ctx.globalAlpha = progress > i / blocks.length ? 1 : 0.25;\n    ctx.fillText(block[0], x, y - 54);\n  });\n  ctx.globalAlpha = 1;\n  ctx.fillStyle = '#f7f1df';\n  ctx.font = '800 46px Arial, sans-serif';\n  ctx.fillText('Segmented Timeline Engine', w / 2, 116);\n}"
+            }
+          }
+        ]
+      },
+      {
+        "id": "orchestration",
+        "label": "Orchestration",
+        "startTime": 6,
+        "endTime": 9,
+        "dependencies": ["d3", "rough"],
+        "nodes": [
+          {
+            "id": "orchestration-code",
+            "type": "custom-code",
+            "properties": {
+              "code": "function render(t, context) {\n  const { ctx, width: w, height: h, progress } = context;\n  ctx.fillStyle = '#09110f';\n  ctx.fillRect(0, 0, w, h);\n  const cx = w / 2;\n  const cy = h / 2;\n  const nodes = [\n    ['scene graph', -310, -80, '#79d9ff'],\n    ['timeline', 0, -150, '#f2aa4c'],\n    ['scheduler', 310, -80, '#7bd88f'],\n    ['adapters', -210, 120, '#ff5c8a'],\n    ['export frames', 210, 120, '#c7a6ff']\n  ];\n  ctx.lineWidth = 3;\n  ctx.strokeStyle = 'rgba(223,233,245,.32)';\n  for (let i = 0; i < nodes.length; i++) {\n    for (let j = i + 1; j < nodes.length; j++) {\n      const a = nodes[i];\n      const b = nodes[j];\n      ctx.globalAlpha = 0.15 + progress * 0.45;\n      ctx.beginPath();\n      ctx.moveTo(cx + a[1], cy + a[2]);\n      ctx.lineTo(cx + b[1], cy + b[2]);\n      ctx.stroke();\n    }\n  }\n  ctx.globalAlpha = 1;\n  ctx.textAlign = 'center';\n  ctx.textBaseline = 'middle';\n  nodes.forEach((node, i) => {\n    const pulse = 1 + Math.sin(t * 3 + i) * 0.04;\n    const x = cx + node[1];\n    const y = cy + node[2];\n    ctx.fillStyle = node[3];\n    ctx.beginPath();\n    ctx.roundRect(x - 108 * pulse, y - 31 * pulse, 216 * pulse, 62 * pulse, 16);\n    ctx.fill();\n    ctx.fillStyle = '#061014';\n    ctx.font = '700 22px Arial, sans-serif';\n    ctx.fillText(node[0], x, y + 1);\n  });\n  ctx.fillStyle = '#f7f1df';\n  ctx.font = '800 44px Arial, sans-serif';\n  ctx.fillText('Multi-Library Orchestration', cx, 94);\n}"
+            }
+          }
+        ]
+      },
+      {
+        "id": "export",
+        "label": "Export",
+        "startTime": 9,
+        "endTime": 12,
+        "dependencies": ["animejs"],
+        "code": "export default {\n  render(t, context) {\n    const { ctx, width: w, height: h, progress } = context;\n    const ease = 1 - Math.pow(1 - progress, 4);\n    ctx.fillStyle = '#090a12';\n    ctx.fillRect(0, 0, w, h);\n    ctx.save();\n    ctx.translate(w / 2, h / 2);\n    ctx.strokeStyle = '#f2aa4c';\n    ctx.lineWidth = 6;\n    ctx.globalAlpha = 0.45 + ease * 0.55;\n    ctx.beginPath();\n    ctx.roundRect(-310, -142, 620, 284, 34);\n    ctx.stroke();\n    for (let i = 0; i < 24; i++) {\n      const p = (i / 24 + progress) % 1;\n      const x = -280 + p * 560;\n      const y = -94 + Math.sin(p * Math.PI * 2 + t * 2) * 54;\n      ctx.fillStyle = i % 2 ? '#79d9ff' : '#7bd88f';\n      ctx.globalAlpha = 0.18 + p * 0.65;\n      ctx.fillRect(x, y, 18, 18);\n    }\n    ctx.globalAlpha = 1;\n    ctx.textAlign = 'center';\n    ctx.textBaseline = 'middle';\n    ctx.fillStyle = '#f7f1df';\n    ctx.font = '800 58px Arial, sans-serif';\n    ctx.fillText('Deterministic Video Export', 0, -18);\n    ctx.fillStyle = '#9fb6c9';\n    ctx.font = '24px Arial, sans-serif';\n    ctx.fillText('segment-aware frames + custom-code diagnostics', 0, 50);\n    ctx.restore();\n  }\n}"
+      }
+    ]
+  },
+  "scene": {
+    "root": {
+      "id": "root",
+      "type": "root",
+      "children": []
+    }
+  }
+}

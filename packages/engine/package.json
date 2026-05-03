@@ -1,0 +1,87 @@
+{
+  "name": "@ui2v/engine",
+  "version": "1.0.1",
+  "description": "Rendering engine for ui2v",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "clean": "rimraf dist"
+  },
+  "keywords": [
+    "ui2v",
+    "rendering",
+    "canvas",
+    "animation"
+  ],
+  "author": "ui2v",
+  "license": "MIT",
+  "homepage": "https://github.com/ui2v/ui2v/tree/main/packages/engine#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ui2v/ui2v.git",
+    "directory": "packages/engine"
+  },
+  "bugs": {
+    "url": "https://github.com/ui2v/ui2v/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@ui2v/core": "1.0.1",
+    "@ui2v/runtime-core": "1.0.1",
+    "@emotion/css": "^11.13.5",
+    "@tsparticles/engine": "^3.9.1",
+    "@tweenjs/tween.js": "^25.0.0",
+    "animejs": "^4.2.2",
+    "cannon-es": "^0.20.0",
+    "d3": "^7.9.0",
+    "fabric": "^6.9.1",
+    "globe.gl": "^2.45.0",
+    "gsap": "^3.14.2",
+    "html2canvas": "^1.4.1",
+    "katex": "^0.16.21",
+    "konva": "^9.3.22",
+    "lottie-web": "^5.13.0",
+    "matter-js": "^0.20.0",
+    "mathjs": "^14.9.1",
+    "mediabunny": "^1.25.1",
+    "opentype.js": "^1.3.4",
+    "p5": "^1.11.11",
+    "paper": "^0.12.18",
+    "pixi.js": "^8.15.0",
+    "postprocessing": "^6.38.2",
+    "roughjs": "^4.6.6",
+    "simplex-noise": "^4.0.3",
+    "split-type": "^0.3.4",
+    "three": "^0.182.0",
+    "tsparticles": "^3.9.1"
+  },
+  "devDependencies": {
+    "@types/animejs": "^3.1.13",
+    "@types/d3": "^7.4.3",
+    "@types/matter-js": "^0.20.2",
+    "@types/node": "^22.19.5",
+    "@types/three": "^0.182.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.8.3",
+    "rimraf": "^6.0.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "name": "@ui2v/workspace",
+  "version": "1.0.1",
+  "description": "ui2v workspace",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "bun run --filter '*' build",
+    "dev": "bun run --filter '*' dev",
+    "clean": "bun run --filter '*' clean",
+    "test": "bun run build && bun run test:unit && bun run test:metadata && bun run test:surface && bun run test:pack && bun run test:examples && bun run test:validate && bun run test:cli-errors && bun run test:inspect-runtime && bun run test:smoke && bun run test:render-scale && bun run test:runtime-render && bun run test:init",
+    "test:unit": "bun run packages/runtime-core/test/runtime-core.test.mjs && bun run packages/engine/test/canvas-draw-command-executor.test.mjs && bun run packages/engine/test/custom-code-runtime.test.mjs",
+    "test:metadata": "node scripts/validate-package-metadata.mjs",
+    "test:surface": "node scripts/validate-cli-surface.mjs",
+    "test:pack": "node scripts/validate-package-packs.mjs",
+    "test:examples": "node scripts/validate-examples.mjs",
+    "test:validate": "node scripts/smoke-validate.mjs",
+    "test:cli-errors": "node scripts/smoke-cli-errors.mjs",
+    "test:inspect-runtime": "node scripts/smoke-inspect-runtime.mjs",
+    "test:smoke": "node scripts/smoke-render.mjs",
+    "test:render-scale": "node scripts/smoke-render-scale.mjs",
+    "test:runtime-render": "node scripts/smoke-runtime-render.mjs",
+    "test:init": "node scripts/smoke-init.mjs"
+  },
+  "keywords": [
+    "video",
+    "animation",
+    "rendering",
+    "canvas",
+    "webcodecs",
+    "puppeteer"
+  ],
+  "author": "ui2v",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "tsup": "^8.0.0",
+    "rimraf": "^6.0.1"
+  },
+  "engines": {
+    "node": ">=18",
+    "bun": ">=1.0"
+  }
+}

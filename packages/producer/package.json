@@ -1,0 +1,61 @@
+{
+  "name": "@ui2v/producer",
+  "version": "1.0.1",
+  "description": "Browser-backed video rendering pipeline for ui2v",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "clean": "rimraf dist"
+  },
+  "keywords": [
+    "ui2v",
+    "video",
+    "rendering",
+    "webcodecs",
+    "puppeteer"
+  ],
+  "author": "ui2v",
+  "license": "MIT",
+  "homepage": "https://github.com/ui2v/ui2v/tree/main/packages/producer#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ui2v/ui2v.git",
+    "directory": "packages/producer"
+  },
+  "bugs": {
+    "url": "https://github.com/ui2v/ui2v/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@ui2v/core": "1.0.1",
+    "@ui2v/engine": "1.0.1",
+    "@ui2v/runtime-core": "1.0.1",
+    "fs-extra": "^11.2.0",
+    "puppeteer": "^24.42.0"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "tsup": "^8.0.0",
+    "typescript": "^5.8.3",
+    "rimraf": "^6.0.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
