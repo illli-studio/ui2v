@@ -157,8 +157,18 @@ jobs:
             "@ui2v/producer" \
             "@ui2v/cli"
           do
-            published="$(npm view "${name}@${VERSION}" version)"
-            latest="$(npm view "${name}@latest" version)"
+            published=""
+            latest=""
+            for attempt in {1..12}; do
+              if published="$(npm view "${name}@${VERSION}" version 2>/dev/null)" &&
+                 latest="$(npm view "${name}@latest" version 2>/dev/null)"; then
+                break
+              fi
+
+              echo "Waiting for ${name}@${VERSION} to appear in npm registry (${attempt}/12)"
+              sleep 10
+            done
+
             echo "${name}@${published} latest=${latest}"
 
             if [ "$published" != "$VERSION" ]; then
