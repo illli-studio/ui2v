@@ -54,10 +54,6 @@ jobs:
           node-version: "22"
           registry-url: "https://registry.npmjs.org"
 
-      - name: Setup Chrome
-        id: setup-chrome
-        uses: browser-actions/setup-chrome@v1
-
       - name: Install dependencies
         env:
           PUPPETEER_SKIP_DOWNLOAD: "true"
@@ -117,10 +113,8 @@ jobs:
           console.log(`Release version validation passed: ${version}`);
           NODE
 
-      - name: Run full test suite
-        env:
-          PUPPETEER_EXECUTABLE_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
-        run: bun run test
+      - name: Run CI test suite
+        run: bun run test:ci
 
       - name: Publish packages
         env:
