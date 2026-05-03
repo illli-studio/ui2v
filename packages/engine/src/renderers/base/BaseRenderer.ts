@@ -1,6 +1,4 @@
 /**
- * 渲染器基类
- * 提供通用功能实现
  */
 
 import type { IRenderer, RendererType, RendererCapabilities, RendererConfig } from './IRenderer';
@@ -25,17 +23,15 @@ export abstract class BaseRenderer implements IRenderer {
   }
 
   reset(): void {
-    // 子类可以重写此方法
   }
 
   abstract dispose(): void;
 
   /**
-   * 检查是否已初始化
    */
   protected ensureInitialized(): void {
     if (!this.initialized || !this.config) {
-      throw new Error(`${this.type} 渲染器未初始化`);
+      throw new Error(`${this.type} renderer is not initialized`);
     }
   }
 }

@@ -1,6 +1,4 @@
 /**
- * 库管理器
- * 管理和注入允许的动画库到沙箱
  */
 
 export interface LibraryInfo {
@@ -35,7 +33,6 @@ export class LibraryManager {
   }
 
   /**
-   * 预加载所有库
    */
   async preloadAll(): Promise<void> {
     // [FIX] Use safe execution to prevent one library failure from blocking everything
@@ -169,7 +166,6 @@ export class LibraryManager {
   }
 
   /**
-   * 加载 anime.js (v4)
    */
   async loadAnime(): Promise<any> {
     if (this.libraries.has('anime')) {
@@ -198,7 +194,7 @@ export class LibraryManager {
 
         return instance;
       } catch (error) {
-        console.error('❌ anime.js 加载失败:', error);
+        console.error('❌ anime.js load failed:', error);
         this.libraries.set('anime', {
           name: 'anime.js',
           version: '4.x',
@@ -214,7 +210,6 @@ export class LibraryManager {
   }
 
   /**
-   * 加载 Three.js
    */
   async loadThree(): Promise<any> {
     if (this.libraries.has('THREE')) {
@@ -239,7 +234,7 @@ export class LibraryManager {
 
         return THREE;
       } catch (error) {
-        // console.error('❌ Three.js 加载失败:', error);
+        // console.error('❌ Three.js load failed:', error);
         this.libraries.set('THREE', {
           name: 'Three.js',
           version: '0.x',
@@ -255,7 +250,6 @@ export class LibraryManager {
   }
 
   /**
-   * 加载 Matter.js
    */
   async loadMatter(): Promise<any> {
     if (this.libraries.has('Matter')) {
@@ -280,7 +274,7 @@ export class LibraryManager {
 
         return Matter;
       } catch (error) {
-        // console.error('❌ Matter.js 加载失败:', error);
+        // console.error('❌ Matter.js load failed:', error);
         this.libraries.set('Matter', {
           name: 'Matter.js',
           version: '0.x',
@@ -296,7 +290,6 @@ export class LibraryManager {
   }
 
   /**
-   * 加载 Emotion (CSS-in-JS)
    */
   async loadEmotion(): Promise<any> {
     if (this.libraries.has('emotion')) {
@@ -320,7 +313,7 @@ export class LibraryManager {
 
         return emotion;
       } catch (error) {
-        // console.error('❌ Emotion 加载失败:', error);
+        // console.error('❌ Emotion load failed:', error);
         this.libraries.set('emotion', {
           name: 'Emotion',
           version: '11.x',
@@ -336,7 +329,6 @@ export class LibraryManager {
   }
 
   /**
-   * 加载 KaTeX (数学公式渲染)
    */
   async loadKatex(): Promise<any> {
     if (this.libraries.has('katex')) {
@@ -360,7 +352,7 @@ export class LibraryManager {
 
         return katex;
       } catch (error) {
-        // console.error('❌ KaTeX 加载失败:', error);
+        // console.error('❌ KaTeX load failed:', error);
         this.libraries.set('katex', {
           name: 'KaTeX',
           version: '0.x',
@@ -376,7 +368,6 @@ export class LibraryManager {
   }
 
   /**
-   * 加载 Math.js (数学计算库)
    */
   async loadMathjs(): Promise<any> {
     if (this.libraries.has('math')) {
@@ -426,7 +417,7 @@ export class LibraryManager {
 
         return math;
       } catch (error) {
-        // console.error('❌ Math.js 加载失败:', error);
+        // console.error('❌ Math.js load failed:', error);
         this.libraries.set('math', {
           name: 'Math.js',
           version: '12.x',
@@ -442,7 +433,6 @@ export class LibraryManager {
   }
 
   /**
-   * 加载 D3.js (数据可视化)
    */
   async loadD3(): Promise<any> {
     if (this.libraries.has('d3')) {
@@ -456,7 +446,6 @@ export class LibraryManager {
     const loadPromise = (async () => {
       try {
         const d3Module = await import('d3');
-        // D3 导出整个命名空间
         const d3 = d3Module.default || d3Module;
 
         this.libraries.set('d3', {
@@ -484,7 +473,6 @@ export class LibraryManager {
   }
 
   /**
-   * 加载 GSAP (动画引擎)
    */
   async loadGSAP(): Promise<any> {
     if (this.libraries.has('gsap')) {
@@ -498,7 +486,6 @@ export class LibraryManager {
     const loadPromise = (async () => {
       try {
         const gsapModule = await import('gsap');
-        // GSAP 默认导出整个库对象
         const gsapLib = gsapModule.default || gsapModule;
 
         this.libraries.set('gsap', {
@@ -526,7 +513,6 @@ export class LibraryManager {
   }
 
   /**
-   * 加载 P5.js (创意编程)
    */
   async loadP5(): Promise<any> {
     if (this.libraries.has('p5')) {
@@ -551,7 +537,7 @@ export class LibraryManager {
 
         return p5;
       } catch (error) {
-        // console.error('❌ P5.js 加载失败:', error);
+        // console.error('❌ P5.js load failed:', error);
         this.libraries.set('p5', {
           name: 'P5.js',
           version: '1.x',
@@ -567,7 +553,6 @@ export class LibraryManager {
   }
 
   /**
-   * 加载 Fabric.js (Canvas 对象模型)
    */
   async loadFabric(): Promise<any> {
     if (this.libraries.has('fabric')) {
@@ -608,7 +593,6 @@ export class LibraryManager {
   }
 
   /**
-   * 加载 Rough.js (手绘风格)
    */
   async loadRough(): Promise<any> {
     if (this.libraries.has('rough')) {
@@ -633,7 +617,7 @@ export class LibraryManager {
 
         return rough.default || rough;
       } catch (error) {
-        // console.error('❌ Rough.js 加载失败:', error);
+        // console.error('❌ Rough.js load failed:', error);
         this.libraries.set('rough', {
           name: 'Rough.js',
           version: '4.x',
@@ -649,7 +633,6 @@ export class LibraryManager {
   }
 
   /**
-   * 加载 PixiJS (2D WebGL渲染引擎)
    */
   async loadPixi(): Promise<any> {
     if (this.libraries.has('PIXI')) {
@@ -674,7 +657,7 @@ export class LibraryManager {
 
         return PIXI;
       } catch (error) {
-        // console.error('❌ PixiJS 加载失败:', error);
+        // console.error('❌ PixiJS load failed:', error);
         this.libraries.set('PIXI', {
           name: 'PixiJS',
           version: '8.x',
@@ -690,7 +673,6 @@ export class LibraryManager {
   }
 
   /**
-   * 加载 Tween.js (补间动画)
    */
   async loadTween(): Promise<any> {
     if (this.libraries.has('TWEEN')) {
@@ -715,7 +697,7 @@ export class LibraryManager {
 
         return TWEEN;
       } catch (error) {
-        // console.error('❌ Tween.js 加载失败:', error);
+        // console.error('❌ Tween.js load failed:', error);
         this.libraries.set('TWEEN', {
           name: 'Tween.js',
           version: '23.x',
@@ -731,7 +713,6 @@ export class LibraryManager {
   }
 
   /**
-   * 加载 Paper.js (矢量图形)
    */
   async loadPaper(): Promise<any> {
     if (this.libraries.has('paper')) {
@@ -756,7 +737,7 @@ export class LibraryManager {
 
         return paper;
       } catch (error) {
-        // console.error('❌ Paper.js 加载失败:', error);
+        // console.error('❌ Paper.js load failed:', error);
         this.libraries.set('paper', {
           name: 'Paper.js',
           version: '0.12.x',
@@ -772,7 +753,6 @@ export class LibraryManager {
   }
 
   /**
-   * 加载 Konva (2D Canvas库)
    */
   async loadKonva(): Promise<any> {
     if (this.libraries.has('Konva')) {
@@ -797,7 +777,7 @@ export class LibraryManager {
 
         return instance;
       } catch (error) {
-        // console.error('❌ Konva 加载失败:', error);
+        // console.error('❌ Konva load failed:', error);
         this.libraries.set('Konva', {
           name: 'Konva',
           version: '9.x',
@@ -813,7 +793,6 @@ export class LibraryManager {
   }
 
   /**
-   * 加载 Lottie-web (Lottie动画播放器)
    */
   async loadLottie(): Promise<any> {
     if (this.libraries.has('lottie')) {
@@ -838,7 +817,7 @@ export class LibraryManager {
 
         return instance;
       } catch (error) {
-        // console.error('❌ Lottie-web 加载失败:', error);
+        // console.error('❌ Lottie-web load failed:', error);
         this.libraries.set('lottie', {
           name: 'Lottie-web',
           version: '5.x',
@@ -854,7 +833,6 @@ export class LibraryManager {
   }
 
   /**
-   * 加载 Iconify (图标库)
    */
   async loadIconify(): Promise<any> {
     if (this.libraries.has('iconify')) {
@@ -912,7 +890,6 @@ export class LibraryManager {
   }
 
   /**
-   * 加载 Globe.gl (3D地球可视化)
    */
   async loadGlobeGL(): Promise<any> {
     if (this.libraries.has('Globe')) {
@@ -947,7 +924,6 @@ export class LibraryManager {
   }
 
   /**
-   * 加载 tsparticles (粒子系统)
    */
   async loadTsParticles(): Promise<any> {
     if (this.libraries.has('tsParticles')) {
@@ -1020,7 +996,6 @@ export class LibraryManager {
   }
 
   /**
-   * 加载 Cannon-es (3D物理引擎)
    */
   async loadCannon(): Promise<any> {
     if (this.libraries.has('CANNON')) {
@@ -1056,7 +1031,6 @@ export class LibraryManager {
   }
 
   /**
-   * 加载 Postprocessing (Three.js VFX)
    */
   async loadPostProcessing(): Promise<any> {
     if (this.libraries.has('POSTPROCESSING')) {
@@ -1091,7 +1065,6 @@ export class LibraryManager {
   }
 
   /**
-   * 加载 Opentype.js (字体解析)
    */
   async loadOpentype(): Promise<any> {
     if (this.libraries.has('opentype')) {
@@ -1127,7 +1100,6 @@ export class LibraryManager {
   }
 
   /**
-   * 加载 SimplexNoise (自然噪声)
    */
   async loadSimplexNoise(): Promise<any> {
     if (this.libraries.has('simplex')) {
@@ -1162,7 +1134,6 @@ export class LibraryManager {
   }
 
   /**
-   * 加载 SplitType (文字分割动画)
    */
   async loadSplitType(): Promise<any> {
     if (this.libraries.has('SplitType')) {
@@ -1196,7 +1167,6 @@ export class LibraryManager {
   }
 
   /**
-   * 获取库实例
    */
   getLibrary(name: string): any {
     const lib = this.libraries.get(name);
@@ -1204,7 +1174,6 @@ export class LibraryManager {
   }
 
   /**
-   * 获取所有已加载的库
    */
   getAllLibraries(): Record<string, any> {
     const result: Record<string, any> = {};
@@ -1219,7 +1188,6 @@ export class LibraryManager {
   }
 
   /**
-   * 检查库是否已加载
    */
   isLoaded(name: string): boolean {
     const lib = this.libraries.get(name);
@@ -1227,21 +1195,18 @@ export class LibraryManager {
   }
 
   /**
-   * 获取库信息
    */
   getLibraryInfo(name: string): LibraryInfo | null {
     return this.libraries.get(name) || null;
   }
 
   /**
-   * 获取所有库信息
    */
   getAllLibraryInfo(): LibraryInfo[] {
     return Array.from(this.libraries.values());
   }
 
   /**
-   * 创建安全的库代理（防止恶意修改）
    */
   createSafeProxy(libraryName: string): any {
     const library = this.getLibrary(libraryName);
@@ -1250,25 +1215,20 @@ export class LibraryManager {
       return undefined;
     }
 
-    // 创建只读代理
     return new Proxy(library, {
       set() {
-        // console.warn(`尝试修改库 ${libraryName} 被阻止`);
         return false;
       },
       deleteProperty() {
-        // console.warn(`尝试删除库 ${libraryName} 的属性被阻止`);
         return false;
       },
       defineProperty() {
-        // console.warn(`尝试定义库 ${libraryName} 的属性被阻止`);
         return false;
       }
     });
   }
 
   /**
-   * 清理所有库
    */
   dispose(): void {
     this.libraries.clear();
@@ -1276,7 +1236,6 @@ export class LibraryManager {
   }
 }
 
-// 单例模式
 let instance: LibraryManager | null = null;
 
 export function getLibraryManager(): LibraryManager {

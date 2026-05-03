@@ -1,8 +1,5 @@
-// 第三方动画与库的全局声明 - 终极精准适配版
-// 针对 Konva, P5, PIXI 的特定使用场景（Value + Type）进行修正
 
 // ============================================================================
-// 通用 Any 声明（适用于仅作为 Value 使用的库）
 // ============================================================================
 declare module 'roughjs' { const rough: any; export = rough; }
 declare module 'paper' { const paper: any; export = paper; }
@@ -31,13 +28,11 @@ declare module 'fluent-ffmpeg' { const ffmpeg: any; export = ffmpeg; }
 declare module 'ffmpeg-static' { const path: any; export = path; }
 
 // ============================================================================
-// 特定库声明（解决 Value Used as Type 或 Namespace Not Found 问题）
 // ============================================================================
 
 // 1. Konva: Used as `import Konva from 'konva'` AND `Konva.Stage` (type)
 declare module 'konva' {
     namespace Konva {
-        // 定义常用类型，确保 Konva.Stage 可以被识别为类型
         export class Stage { constructor(config: any);[key: string]: any; }
         export class Layer { constructor(config?: any);[key: string]: any; }
         export class Group { constructor(config?: any);[key: string]: any; }
@@ -45,10 +40,8 @@ declare module 'konva' {
         export class Node { constructor(config?: any);[key: string]: any; }
         export class Image { constructor(config: any);[key: string]: any; }
         export class Text { constructor(config: any);[key: string]: any; }
-        // 允许其他任意属性
         export type Any = any;
     }
-    // Konva 类本身（作为值）
     class Konva {
         static Stage: typeof Konva.Stage;
         static Layer: typeof Konva.Layer;
@@ -72,7 +65,6 @@ declare module 'konva' {
 declare module 'p5' {
     class p5 {
         constructor(sketch: (p: any) => void, node?: HTMLElement | string);
-        // p5 实例方法和属性
         [key: string]: any;
 
         static Vector: any;
@@ -90,7 +82,6 @@ declare module 'pixi.js' {
     export class Sprite { constructor(texture?: any);[key: string]: any; static from(source: any): Sprite; }
     export class Texture { static from(source: any): Texture;[key: string]: any; }
     export class Assets { static load(urls: string | string[]): Promise<any>; }
-    // 允许其他任意导出
     export const utils: any;
     export const ticker: any;
 }

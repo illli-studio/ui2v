@@ -44,7 +44,6 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
     private lastWidth = 0;
     private lastHeight = 0;
 
-    // SVG/Iconify 缓存
     private iconCache: Map<string, string> = new Map();
     private svgImageCache: Map<string, HTMLImageElement> = new Map();
     private imageCache: Map<string, HTMLImageElement> = new Map();
@@ -69,16 +68,13 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
     }
 
     /**
-     * 加载 Iconify 图标 SVG
      */
     private async loadIcon(iconName: string): Promise<string> {
-        // 检查缓存
         if (this.iconCache.has(iconName)) {
             return this.iconCache.get(iconName)!;
         }
 
         try {
-            // 使用 Iconify API 加载图标
             const [prefix, name] = iconName.split(':');
             if (!prefix || !name) {
                 throw new Error(`Invalid icon name format: ${iconName}. Expected "prefix:name" (e.g., "mdi:home")`);
@@ -106,7 +102,6 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
     }
 
     /**
-     * 绘制 SVG 到 canvas
      */
     private async drawSVG(
         ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
@@ -117,37 +112,29 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
         height: number
     ): Promise<void> {
         try {
-            // 创建缓存键
             const cacheKey = `${svgString.substring(0, 100)}_${width}_${height}`;
 
-            // 检查图片缓存
             let img = this.svgImageCache.get(cacheKey);
 
             if (!img) {
-                // 创建 Blob URL
                 const blob = new Blob([svgString], { type: 'image/svg+xml' });
                 const url = URL.createObjectURL(blob);
 
-                // 创建图片
                 img = new Image();
                 img.width = width;
                 img.height = height;
 
-                // 等待图片加载
                 await new Promise<void>((resolve, reject) => {
                     img!.onload = () => resolve();
                     img!.onerror = () => reject(new Error('Failed to load SVG image'));
                     img!.src = url;
                 });
 
-                // 清理 URL
                 URL.revokeObjectURL(url);
 
-                // 缓存图片
                 this.svgImageCache.set(cacheKey, img);
             }
 
-            // 绘制到 canvas
             ctx.drawImage(img, x, y, width, height);
         } catch (error) {
             console.error('[CustomCodeRenderer] Failed to draw SVG:', error);
@@ -410,7 +397,6 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
         }
         const properties = (layer.properties as any) || {};
         
-        // 🎯 兼容性修复：如果 properties 为空，且根节点有 code，则使用根节点 code
         let code = properties.code || (layer as any).code;
 
         if (!code) {
@@ -427,7 +413,6 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
             dependencies: Array.isArray((properties as any).dependencies) ? (properties as any).dependencies : ((layer as any).dependencies ?? []),
         });
 
-        // 使用传入的 context（可能是缓存 canvas）
         const targetCtx = context.mainContext;
         const width = context.width || 1920;
         const height = context.height || 1080;
@@ -579,7 +564,6 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
         // Update global context reference so helper functions can access it
         this.activeContextRef = activeContext;
 
-        // 如果代码发生变化或实例不存在，重新创建
         if (!instance || instance.code !== code) {
             instance = this.createInstance(code, layer, context, activeContext);
 
@@ -635,7 +619,6 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
                         instance.sdk.update(layer, context);
                     }
 
-                    // 应用图层变换（仅 scale / rotation）
                     const runtimeWorldMatrix = properties.__runtimeWorldMatrix;
                     const hasRuntimeMatrix = runtimeWorldMatrix &&
                         typeof runtimeWorldMatrix.a === 'number' &&
@@ -655,7 +638,6 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
                     if (hasTransform) {
                         targetCtx.save();
                         
-                        // 应用旋转（以度为单位，转换为弧度）
                         if (hasRuntimeMatrix) {
                             targetCtx.transform(
                                 runtimeWorldMatrix.a,
@@ -675,7 +657,6 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
                             }
                         }
                         
-                        // 应用缩放
                         if (!hasRuntimeMatrix && (properties.scaleX !== undefined || properties.scaleY !== undefined)) {
                             targetCtx.scale(
                                 properties.scaleX !== undefined ? properties.scaleX : 1,
@@ -684,7 +665,6 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
                         }
                     }
                     
-                    // 用户代码期望 render(t, context)，其中 t 是相对时间（秒）
                     const relativeTimeInSeconds = context.time;
 
                     // Render to target context (may be cache canvas)
@@ -694,7 +674,6 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
                     }
                     this.markRuntimeRendered(layer.id, context.time);
                     
-                    // 恢复变换
                     if (hasTransform) {
                         targetCtx.restore();
                     }
@@ -708,32 +687,25 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
             }
         }
 
-        // 不再需要 blit，因为已经直接渲染到目标 context
     }
 
     private createInstance(code: string, layer: TemplateLayer, context: RenderContext, activeContext: any) {
         const layerId = layer.id;
         try {
-            // [FIX] 创建真实的 LayerSDK 实例
             const sdk = new LayerSDK(layer, context);
 
-            // [FIX] 创建绑定到当前 sdk 的基类，供用户继承
             class BoundLayer extends BaseLayer {
                 constructor() {
                     super(sdk);
                 }
-                // 必须实现抽象方法，否则 TS 报错（虽然 JS 运行时不需要）
                 render(time: number, context: RenderContext): void { }
             }
-            // 导出两种别名，兼容不同代码风格
             (sdk as any).Layer = BoundLayer;
             (sdk as any).CanvasLayer = BoundLayer;
 
             // Helper to unwrap library instance from LibraryManager info objects
             const unwrap = (lib: any) => (lib && lib.instance) ? lib.instance : lib;
 
-            // [FIX] 提供模拟 require 和 CJS 环境占位符以提高兼容性
-            // 注意：库键名必须与 LibraryManager 中的键名一致
             const sandbox: Record<string, any> = {
                 lottie: unwrap(this.libraries['lottie']),
                 paper: unwrap(this.libraries['paper']),
@@ -843,7 +815,6 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
                 exports: {},
                 // [FIX] Provide dispose placeholder for user code that may reference it
                 dispose: undefined as any,
-                // 注意：库键名必须与 LibraryManager 中的键名一致
                 require: (id: string) => {
                     const lowId = id.toLowerCase();
                     const lib = (() => {
@@ -1050,9 +1021,6 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
             let exports: any;
 
             if (result.type === 'factory') {
-                // 🎯 关键修复：factory 模式需要根据参数名称或约定正确传递 container 或 canvas
-                // 许多模板代码定义为 createRenderer(container, props)
-                // 某些代码定义为 createRenderer(canvas, context)
                 const container = context.container || context.mainCanvas || this.canvas;
                 const factoryExports = result.value(container, activeContext);
 
@@ -1060,21 +1028,17 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
                     throw new Error('factory createRenderer returned null/undefined');
                 }
 
-                // 🎯 映射 init/update/render 和 destroy/dispose
                 exports = {
                     init: factoryExports.init ? (ctx: RenderContext) => {
                         factoryExports.init(ctx);
                     } : undefined,
                     render: (time: number, ctx: RenderContext) => {
-                        // 1. 调用用户定义的 update 或 render
                         if (factoryExports.update) {
                             factoryExports.update(time);
                         } else if (factoryExports.render) {
                             factoryExports.render(time, ctx);
                         }
 
-                        // 2. 检查用户是否在 container 中创建了新的 canvas
-                        // 如果有且不是主 canvas，则将其 blit 到主 context
                         if (container instanceof HTMLElement) {
                             const userCanvas = container.querySelector('canvas');
                             if (userCanvas && userCanvas !== (ctx.mainCanvas || this.canvas)) {
@@ -1093,11 +1057,9 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
                     }
                 };
             } else if (result.type === 'class') {
-                // module.exports = class 模式
                 const LayerClass = result.value;
                 const instance = new LayerClass();
 
-                // 适配 init/draw 方法到 init/render 接口
                 exports = {
                     init: (ctx: RenderContext) => {
                         if (instance.init) {
@@ -1109,9 +1071,8 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
                         }
                     },
                     render: (timestamp: number, ctx: RenderContext) => {
-                        // 支持 draw(ctx, frame, props) 或 render(timestamp, ctx)
                         if (instance.draw) {
-                            const frame = Math.floor(timestamp / (1000 / 60)); // 假设 60fps
+                            const frame = Math.floor(timestamp / (1000 / 60));
                             instance.draw(ctx.mainContext, frame, {
                                 ...ctx,
                                 width: ctx.width,
@@ -1224,7 +1185,7 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
             const instanceObj: any = {
                 code,
                 exports,
-                sdk,  // 保存 SDK 引用以便后续更新
+                sdk,
                 initialized: false,
                 initReady: true, // set to false during async init, true when sync or no init
             };
@@ -1307,15 +1268,10 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
         });
     }
 
-    // [PERF] detectAndCacheBounds 已移除 — getImageData 触发 GPU→CPU 同步回读，
-    // 在 macOS Metal 管线上造成 50-200ms 的帧卡顿。
 
     /**
-     * 重置渲染器状态
-     * 在seekTo或重新播放时调用，清理所有运行实例以便重新初始化
      */
     reset(): void {
-        // 调用每个实例的dispose方法
         this.runningInstances.forEach(instance => {
             if (instance.exports && instance.exports.dispose) {
                 try { instance.exports.dispose(); } catch (e) { }
@@ -1325,7 +1281,6 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
         this.runtimeReports.clear();
         this.imageCache.clear();
         this.assetCache.clear();
-        // [PERF] 清理方法缓存
         this.boundMethodCache.clear();
         this.lastBoundCtx = null;
     }
@@ -1339,12 +1294,10 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
         this.runningInstances.clear();
         this.runtimeReports.clear();
 
-        // 清理 SVG/Iconify 缓存
         this.iconCache.clear();
         this.svgImageCache.clear();
         this.imageCache.clear();
 
-        // [PERF] 清理 Proxy 和方法缓存
         this.cachedActiveContextProxy = null;
         this.boundMethodCache.clear();
         this.lastBoundCtx = null;

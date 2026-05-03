@@ -57,7 +57,6 @@ export class OptimizedHybridEngine {
   }
 
   /**
-   * 将 backgroundColor 转换为背景图层
    */
   private convertBackgroundToLayer(project: AnimationProject): void {
     if (project.backgroundColor && project.template?.layers) {
@@ -185,14 +184,12 @@ export class OptimizedHybridEngine {
   seekTo(timeMs: number): void {
     if (!this.currentProject) return;
 
-    // timeMs 是毫秒，转换为秒进行比较
     const timeInSeconds = timeMs / 1000;
     const maxTime = this.currentProject.duration;
     const clampedTimeInSeconds = Math.max(0, Math.min(maxTime, timeInSeconds));
 
-    this.pausedTime = clampedTimeInSeconds * 1000; // 存储为毫秒
+    this.pausedTime = clampedTimeInSeconds * 1000;
 
-    // 重置所有渲染器（清理实例状态以便重新渲染）
     this.templateRenderer?.reset();
 
     if (this.isPlaying) {
@@ -207,9 +204,9 @@ export class OptimizedHybridEngine {
 
     const currentTime = performance.now();
     const elapsed = currentTime - this.startTime;
-    const duration = this.currentProject.duration * 1000; // 转换为毫秒用于计算
+    const duration = this.currentProject.duration * 1000;
     const elapsedMs = elapsed % duration;
-    const time = elapsedMs / 1000; // 转换为秒传递给渲染器
+    const time = elapsedMs / 1000;
 
     const frameStart = performance.now();
     this.renderFrame(time);
@@ -252,10 +249,8 @@ export class OptimizedHybridEngine {
     }
 
     try {
-      // 清空主画布
       this.compositor?.clear();
 
-      // 背景现在由 zIndex 为负数的图层处理
 
       // Render the template graph, including custom-code and background layers.
       // Note: render() may return a Promise for async operations (like SVG drawing)
@@ -267,7 +262,6 @@ export class OptimizedHybridEngine {
         renderPromise.then(() => {
           const templateCanvas = this.templateRenderer?.getCanvas();
           if (templateCanvas) {
-            // 始终拉伸到主 canvas 全尺寸，支持 renderScale 低分辨率优化
             this.compositor?.drawCanvas(
               templateCanvas,
               0, 0,
@@ -282,7 +276,6 @@ export class OptimizedHybridEngine {
         // Synchronous render completed
         const templateCanvas = this.templateRenderer?.getCanvas();
         if (templateCanvas) {
-          // 始终拉伸到主 canvas 全尺寸，支持 renderScale 低分辨率优化
           this.compositor?.drawCanvas(
             templateCanvas,
             0, 0,
@@ -372,14 +365,13 @@ export class OptimizedHybridEngine {
     const elapsed = performance.now() - this.startTime;
     const duration = this.currentProject ? this.currentProject.duration * 1000 : 0;
 
-    return (elapsed % duration) / 1000; // 返回秒
+    return (elapsed % duration) / 1000;
   }
 
   setExportMode(isExporting: boolean): void {
     this.isExporting = isExporting;
     this.templateRenderer?.setExportMode(isExporting);
     
-    // 导出开始时重置缓存，确保所有图层重新渲染
     if (isExporting && this.templateRenderer) {
       this.templateRenderer.reset();
     }
@@ -433,8 +425,6 @@ export class OptimizedHybridEngine {
   }
 
   /**
-   * 热更新项目配置（不重新初始化渲染器）
-   * 用于代码变化时的快速更新
    */
   async hotUpdateProject(project: AnimationProject): Promise<void> {
     this.currentProject = project;

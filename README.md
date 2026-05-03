@@ -1,239 +1,233 @@
-# UI2V: Local AI Motion Designer
-[English](README.md) | [中文](README_zh.md)
-> Empowering creators with privacy-first, AI-powered motion design
+# ui2v
 
----
+Standalone command-line rendering tools for ui2v animation JSON projects.
 
-## 🎯 Vision
+ui2v reads structured animation project files, previews them in a local browser,
+and renders them to MP4 through a browser-backed Canvas and WebCodecs pipeline.
+The current open-source repository is focused on the renderer, runtime model,
+CLI, package APIs, documentation, and examples. It is not the full desktop
+application described by older product copy.
 
-In an era where creative tools increasingly demand cloud connectivity and subscription fees, UI2V takes a different approach. We believe that powerful motion design capabilities should be accessible, private, and entirely under your control. UI2V is a desktop application that brings professional-grade AI motion design to your local machine—no internet required, no data sent to external servers, and no vendor lock-in.
+## What This Repository Provides
 
----
+- A Bun workspace with reusable TypeScript packages.
+- A `ui2v` CLI for validating, previewing, inspecting, and rendering projects.
+- A DOM-free runtime core for scene graphs, timelines, frame sampling, render
+  plans, dependency planning, and adapter contracts.
+- A browser-first Canvas rendering engine for template and custom-code layers.
+- A Puppeteer-backed producer that launches Chrome, Edge, or Chromium, renders
+  frames in a real browser, encodes MP4 with WebCodecs, and writes the output
+  file from Node.js.
+- Example `animation.json` projects for smoke testing and experimentation.
 
-## ✨ What Makes UI2V Special
+The primary render path does not require Electron, FFmpeg, or `node-canvas`.
 
-### 🔒 Privacy-First Architecture
-Your creative work stays on your machine. Period. UI2V runs entirely locally, ensuring that your ideas, designs, and projects remain confidential. In a world where data privacy is increasingly precious, we've built UI2V from the ground up to respect your creative sovereignty.
+## Requirements
 
-### 🚀 Bring Your Own AI
-Unlike traditional tools that lock you into a single AI provider, UI2V supports multiple AI model providers. Use OpenAI, Anthropic, or any compatible API—the choice is yours. Configure your own API keys and maintain complete control over your AI infrastructure.
+- Node.js 18 or newer
+- Bun 1.0 or newer for local workspace development
+- Chrome, Edge, Chromium, or Puppeteer's bundled Chromium
 
-### ⚡ Performance Without Compromise
-Built with Electron and powered by cutting-edge rendering technologies, UI2V delivers smooth, real-time previews and high-quality exports. Whether you're creating animated videos or static posters, the application leverages your local hardware for optimal performance.
+If no browser is found, install Chrome or Edge, set
+`PUPPETEER_EXECUTABLE_PATH`, or install Puppeteer's browser:
 
-### 🎨 Comprehensive Creative Toolkit
-UI2V integrates a rich ecosystem of animation libraries and rendering engines:
-- **3D Graphics**: Three.js, Cannon.es (physics), Globe.gl
-- **2D Animation**: Anime.js, GSAP, Fabric.js, Paper.js, Konva
-- **Particle Systems**: tsParticles
-- **Data Visualization**: D3.js, Chart.js
-- **Creative Effects**: P5.js, Matter.js, Rough.js
-- **Typography**: OpenType.js, SplitType
-- **Post-Processing**: Advanced shader effects
-
----
-
-## 🎬 Core Features
-
-### AI-Powered Animation Generation
-Transform natural language descriptions into stunning motion graphics. UI2V's intelligent agents understand your creative intent and generate production-ready animations with sophisticated timing, composition, and visual effects.
-
-**Example Capabilities:**
-- 3D product showcases with dynamic camera movements
-- Data-driven visualizations with smooth transitions
-- Kinetic typography with advanced text effects
-- Particle systems and physics simulations
-- Interactive UI animations
-
-### Static Poster Creation
-Generate eye-catching static designs for social media, presentations, or print. The poster generation system creates composition-aware layouts with professional typography and visual hierarchy.
-
-### Professional Export Options
-Export your creations in multiple formats with cinema-grade quality:
-- **Video Formats**: MP4 (H.264/H.265)
-- **Quality Presets**: Low, Medium, High, Ultra, Cinema (up to 50Mbps)
-- **Image Formats**: PNG (lossless), JPG
-- **Resolution Support**: From HD to 4K and beyond
-
-### Local HTTP API
-Integrate UI2V into your workflow with a simple REST API. Generate videos and posters programmatically, perfect for automation, batch processing, or integration with other tools.
-
-```javascript
-// Generate a video via API
-const response = await fetch('http://127.0.0.1:5125/video', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    prompt: 'A rotating 3D cube with a starry background',
-    quality: 'high',
-    width: 1920,
-    height: 1080
-  })
-});
+```bash
+npx puppeteer browsers install chrome
 ```
 
----
+## Install
 
-## 🛠️ How to Use UI2V
+Install the published CLI:
 
-### Getting Started
+```bash
+npm install -g @ui2v/cli
+ui2v --version
+```
 
-1. **Download & Install**
-   - Visit [ui2v.com](https://ui2v.com) to download the application for your platform
-   - Available for macOS and Windows
-   - No sign-up or registration required
+Run without a global install:
 
-2. **Configure Your AI Model**
-   - Open Settings in the application
-   - Select your preferred AI provider (OpenAI, Anthropic, etc.)
-   - Enter your API key
-   - Choose your preferred model
+```bash
+npx @ui2v/cli --version
+```
 
-3. **Create Your First Animation**
-   - Navigate to the Story page
-   - Describe your desired animation in natural language
-   - Let the AI generate the animation code
-   - Preview in real-time and refine as needed
+Build from this workspace:
 
-4. **Export Your Work**
-   - Choose your export format and quality
-   - Select resolution and codec options
-   - Export to your local file system
+```bash
+bun install
+bun run build
+```
 
-### Advanced Workflows
+## Quick Start
 
-#### Using the Local API
-Enable the API server in Settings and integrate UI2V into your automation pipelines. Perfect for:
-- Batch video generation
-- Automated social media content creation
-- Integration with content management systems
-- Programmatic design workflows
+Check the local rendering environment:
 
-#### Custom Styles
-Create and save custom style presets to maintain consistent branding across your projects. Styles can define color palettes, typography, animation timing, and visual effects.
+```bash
+ui2v doctor
+```
 
-#### Multi-Agent System
-UI2V employs specialized AI agents for different aspects of creation:
-- **Story Agent**: Interprets your creative brief and plans the narrative structure
-- **Animation Agent**: Generates optimized animation code with proper timing and effects
-- **Editor Agent**: Refines and debugs generated code
-- **Poster Agent**: Creates static compositions with professional layout principles
+Create a starter project:
 
----
+```bash
+ui2v init my-video
+```
 
-## 🌟 Use Cases
+Validate an example:
 
-### Marketing & Social Media
-- Product launch videos
-- Social media animations
-- Promotional graphics
-- Brand storytelling content
+```bash
+ui2v validate examples/basic-text/animation.json --verbose
+```
 
-### Education & Training
-- Educational visualizations
-- Interactive diagrams
-- Concept explanations
-- Training materials
+Preview an animation in a browser:
 
-### Data Presentation
-- Animated charts and graphs
-- Data storytelling
-- Business presentations
-- Report visualizations
+```bash
+ui2v preview examples/basic-text/animation.json
+```
 
-### Creative Projects
-- Motion graphics experiments
-- Generative art
-- Visual effects
-- Kinetic typography
+Render an MP4:
 
----
+```bash
+ui2v render examples/basic-text/animation.json -o .tmp/basic-text.mp4
+```
 
-## 💡 Why Not Open Source?
+When working from a local build, use the built CLI directly:
 
-We've made a thoughtful decision to keep UI2V's source code proprietary, and we'd like to share our reasoning transparently:
+```bash
+node packages/cli/dist/cli.js doctor
+node packages/cli/dist/cli.js preview examples/basic-text/animation.json
+node packages/cli/dist/cli.js render examples/basic-text/animation.json -o .tmp/basic-text.mp4
+```
 
-### Protecting Innovation in the AI Era
-The current landscape of AI-assisted development has fundamentally changed how software is created and replicated. Open-sourcing complex applications today often means seeing your work instantly absorbed, repackaged, and redistributed—sometimes within hours. While we deeply respect the open-source community and have benefited from countless open-source projects ourselves, we believe that sustainable software development requires protecting the substantial investment of time, expertise, and resources that goes into creating polished, production-ready applications.
+## CLI Commands
 
-### Maintaining Quality & User Experience
-By keeping the codebase proprietary, we can ensure a cohesive, well-tested user experience. We can make architectural decisions that prioritize long-term maintainability and user satisfaction without the pressure of external forks fragmenting the ecosystem or diluting the brand.
+```bash
+ui2v doctor
+ui2v init [name]
+ui2v validate <input.json>
+ui2v preview <input.json>
+ui2v render <input.json> -o output.mp4
+ui2v inspect-runtime <input.json>
+ui2v info
+```
 
-### Sustainable Development
-Creating and maintaining professional software requires significant ongoing investment. A proprietary model allows us to build a sustainable business that can continue improving UI2V, providing support, and developing new features for years to come.
+Useful render options:
 
-### What We Do Share
-While the source code remains closed, we're committed to transparency where it matters:
-- **Comprehensive documentation** for all features and APIs
-- **Active community support** on Reddit ([r/Ui2vbuilders](https://www.reddit.com/r/Ui2vbuilders/))
-- **Regular updates** with new features and improvements
-- **Open standards**: We use standard formats (MP4, PNG, JSON) and don't lock your data
+```bash
+ui2v render animation.json -o output.mp4 --quality high --fps 60
+ui2v render animation.json -o output.mp4 --width 1280 --height 720 --render-scale 2
+ui2v render animation.json -o output.mp4 --codec avc --bitrate 8000000
+ui2v render animation.json -o output.mp4 --timeout 300
+```
 
----
+`--render-scale` supersamples frames before encoding. For example,
+`--width 1280 --height 720 --render-scale 2` renders internally at
+2560x1440, then downsamples to a 1280x720 video for cleaner edges and text.
 
-## 🔧 Technical Architecture
+Preview renders at a 2x canvas pixel ratio by default. Use `--pixel-ratio 1`
+for lower GPU usage or increase it up to `--pixel-ratio 4` for detail checks.
 
-### Built With Modern Technologies
-- **Framework**: Electron for cross-platform desktop deployment
-- **Frontend**: React 19 with TypeScript for type-safe UI development
-- **Rendering**: Canvas-based compositor with multi-layer architecture
-- **Database**: SQLite with Drizzle ORM for local data persistence
-- **Animation Libraries**: Comprehensive integration of industry-standard libraries
-- **Video Encoding**: FFmpeg for professional-grade video export
+## Project Format
 
-### System Requirements
-- **Operating System**: macOS 10.15+ or Windows 10+
-- **Memory**: 8GB RAM minimum (16GB recommended)
-- **Storage**: 500MB for application, additional space for projects
-- **Graphics**: Hardware acceleration recommended for optimal performance
+The main input is an `AnimationProject` JSON file:
 
----
+```json
+{
+  "id": "basic-text",
+  "mode": "template",
+  "duration": 2,
+  "fps": 30,
+  "resolution": { "width": 640, "height": 360 },
+  "template": {
+    "layers": [
+      {
+        "id": "text-layer",
+        "type": "custom-code",
+        "startTime": 0,
+        "endTime": 2,
+        "properties": {
+          "code": "function createRenderer() { return { render(t, context) { /* draw */ } }; }"
+        }
+      }
+    ]
+  }
+}
+```
 
-## 🚀 Roadmap & Future Development
+See the examples directory for complete projects:
 
-We're continuously improving UI2V with exciting features on the horizon:
+- `examples/basic-text/animation.json`
+- `examples/product-showcase/animation.json`
+- `examples/kitchen-sink/animation.json`
+- `examples/runtime-core/*.json`
 
-- **Enhanced AI Models**: Support for more AI providers and specialized models
-- **Template Library**: Pre-built animation templates for common use cases
-- **Collaboration Features**: Project sharing and team workflows
-- **Plugin System**: Extensibility for custom effects and integrations
-- **Cloud Sync** (Optional): Backup and sync across devices while maintaining privacy
-- **Advanced Physics**: More sophisticated physics simulations and interactions
+## Package Structure
 
----
+```text
+@ui2v/core          Types, parsers, validators, and shared helpers
+@ui2v/runtime-core  Scene graph, timeline, scheduler, frame plans, adapters
+@ui2v/engine        Browser Canvas rendering and WebCodecs export support
+@ui2v/producer      Puppeteer-backed preview and MP4 render pipeline
+@ui2v/cli           Command-line interface installed as ui2v
+```
 
-## 🤝 Community & Support
+## Render Flow
 
-### Join Our Community
-Connect with other UI2V users, share your creations, and get help:
-- **Website**: [ui2v.com](https://ui2v.com)
+```text
+JSON project
+  -> CLI parses and validates input
+  -> producer starts a local static server
+  -> Puppeteer launches Chrome, Edge, or Chromium
+  -> browser loads engine/runtime/core bundles
+  -> runtime evaluates frame state from the shared timeline
+  -> engine renders frames to Canvas
+  -> WebCodecs encodes MP4 in the browser
+  -> producer writes the video file to disk
+```
 
-### Getting Help
-- Check the in-app documentation and tutorials
-- Browse community discussions on Reddit
-- Review the API documentation for integration questions
+## Development
 
-### Share Your Work
-We love seeing what you create with UI2V! Share your projects in the community and inspire other creators.
+Install dependencies and build all packages:
 
----
+```bash
+bun install
+bun run build
+```
 
-## 📄 Licensing & Copyright
+Run the full test suite:
 
-**Copyright © 2026 UI2V. All rights reserved.**
+```bash
+bun run test
+```
 
-UI2V is proprietary software. The application is licensed for use, not sold. Unauthorized copying, distribution, modification, or reverse engineering is strictly prohibited. By using UI2V, you agree to respect our intellectual property rights and use the software in accordance with the End User License Agreement.
+Run selected checks:
 
----
+```bash
+bun run test:unit
+bun run test:examples
+bun run test:validate
+bun run test:smoke
+```
 
-## 🎉 Get Started Today
+## Current Constraints
 
-Ready to transform your creative workflow? Download UI2V and experience the future of AI-powered motion design—private, powerful, and entirely under your control.
+- MP4 is the primary production output.
+- AVC/H.264 is the default codec. HEVC can be requested with `--codec hevc`
+  only when the launched browser supports it.
+- Browser ESM dependencies are currently loaded through pinned CDN URLs in the
+  producer import map.
+- Long or high-resolution renders still transfer the encoded video from the
+  browser to Node as base64 before writing it to disk, which is simple but
+  memory-heavy.
+- Offline dependency vendoring, streaming output, additional formats, and
+  broader adapter coverage are future work.
 
-### [Download UI2V](https://ui2v.com/#download)
+## Documentation
 
-No sign-up required. No credit card needed. Just download and start creating.
+- [Quick Start](docs/quick-start.md)
+- [Getting Started](docs/getting-started.md)
+- [Architecture](docs/architecture.md)
+- [Runtime Core](docs/runtime-core.md)
+- [CLI README](packages/cli/README.md)
 
----
+## License
 
-*UI2V: Where creativity meets privacy, and AI meets artistry.*
+MIT

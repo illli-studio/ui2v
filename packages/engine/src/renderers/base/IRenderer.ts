@@ -1,6 +1,4 @@
 /**
- * 渲染器统一接口
- * 所有渲染器必须实现此接口
  */
 
 import type { TemplateLayer, RenderContext } from '../../types';
@@ -41,7 +39,7 @@ export interface RendererConfig {
   height: number;
   pixelRatio?: number;
   enableCache?: boolean;
-  libraries?: Record<string, any>;  // v2.1: 提供所有已加载的动画库
+  libraries?: Record<string, any>;
 }
 
 export interface IRenderer {
@@ -49,40 +47,30 @@ export interface IRenderer {
   readonly capabilities: RendererCapabilities;
 
   /**
-   * 初始化渲染器
    */
   initialize(config: RendererConfig): Promise<void>;
 
   /**
-   * 渲染单个图层
-   * @param layer 图层配置
-   * @param context 渲染上下文
-   * @param time 当前时间（秒）
    */
   render(layer: TemplateLayer, context: RenderContext, time: number): void | Promise<void>;
 
   /**
-   * 批量渲染多个图层（性能优化）
    */
   renderBatch?(layers: TemplateLayer[], context: RenderContext, timestamp: number): void;
 
   /**
-   * 预加载资源
    */
   preload?(layer: TemplateLayer): Promise<void>;
 
   /**
-   * 检查是否支持该图层类型
    */
   supports(layerType: string): boolean;
 
   /**
-   * 重置渲染器状态
    */
   reset?(): void;
 
   /**
-   * 清理资源
    */
   dispose(): void;
 }

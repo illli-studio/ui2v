@@ -1,239 +1,228 @@
-# UI2V：本地 AI 动效设计工具
-[English](README.md) | [中文](README_zh.md)
-> 隐私优先，AI 驱动，赋能每一位创作者
+# ui2v
 
----
+用于渲染 ui2v 动画 JSON 项目的独立命令行工具和运行时包。
 
-## 🎯 愿景
+ui2v 会读取结构化动画项目文件，在本地浏览器中预览，并通过基于
+Canvas 和 WebCodecs 的浏览器渲染管线导出 MP4。当前这个开源仓库聚焦
+于渲染器、运行时模型、CLI、包 API、文档和示例；它不是旧版宣传文案
+中描述的完整桌面应用源码。
 
-在创意工具日益依赖云端连接和订阅付费的时代，UI2V 选择了一条不同的道路。我们相信，强大的动效设计能力应该是可访问的、私密的，并且完全由你掌控。UI2V 是一款桌面应用程序，将专业级的 AI 动效设计能力带到你的本地机器上——无需联网，不向外部服务器发送数据，没有供应商锁定。
+## 这个仓库包含什么
 
----
+- 基于 Bun workspace 的 TypeScript monorepo。
+- 用于校验、预览、检查和渲染项目的 `ui2v` CLI。
+- 不依赖 DOM 的 Runtime Core，用于场景图、时间线、帧采样、渲染计划、
+  依赖计划和适配器契约。
+- 浏览器优先的 Canvas 渲染引擎，支持 template 和 custom-code 图层。
+- 基于 Puppeteer 的 producer：启动 Chrome、Edge 或 Chromium，在真实
+  浏览器里渲染帧，用 WebCodecs 编码 MP4，并由 Node.js 写入输出文件。
+- 用于 smoke test 和实验的 `animation.json` 示例项目。
 
-## ✨ UI2V 的独特之处
+主渲染路径不需要 Electron、FFmpeg 或 `node-canvas`。
 
-### 🔒 隐私优先架构
-你的创意作品始终保留在你的设备上。就这么简单。UI2V 完全在本地运行，确保你的想法、设计和项目保持机密。在数据隐私日益珍贵的今天，我们从底层构建 UI2V，尊重你的创作主权。
+## 环境要求
 
-### 🚀 自带 AI 模型
-与将你锁定在单一 AI 提供商的传统工具不同，UI2V 支持多个 AI 模型提供商。使用 OpenAI、Anthropic 或任何兼容的 API——选择权在你手中。配置你自己的 API 密钥，完全掌控你的 AI 基础设施。
+- Node.js 18 或更高版本
+- 本地开发需要 Bun 1.0 或更高版本
+- Chrome、Edge、Chromium，或 Puppeteer 自带的 Chromium
 
-### ⚡ 性能毫不妥协
-基于 Electron 构建，由前沿渲染技术驱动，UI2V 提供流畅的实时预览和高质量导出。无论你是创建动画视频还是静态海报，应用程序都能充分利用本地硬件实现最佳性能。
+如果没有找到浏览器，可以安装 Chrome 或 Edge，设置
+`PUPPETEER_EXECUTABLE_PATH`，或者安装 Puppeteer 浏览器：
 
-### 🎨 全面的创意工具包
-UI2V 集成了丰富的动画库和渲染引擎生态系统：
-- **3D 图形**：Three.js、Cannon.es（物理引擎）、Globe.gl
-- **2D 动画**：Anime.js、GSAP、Fabric.js、Paper.js、Konva
-- **粒子系统**：tsParticles
-- **数据可视化**：D3.js、Chart.js
-- **创意效果**：P5.js、Matter.js、Rough.js
-- **字体排版**：OpenType.js、SplitType
-- **后期处理**：高级着色器效果
-
----
-
-## 🎬 核心功能
-
-### AI 驱动的动画生成
-将自然语言描述转化为令人惊艳的动态图形。UI2V 的智能代理理解你的创意意图，生成具有精妙时序、构图和视觉效果的生产级动画。
-
-**能力示例：**
-- 带有动态相机运动的 3D 产品展示
-- 数据驱动的可视化与流畅过渡
-- 高级文本效果的动态排版
-- 粒子系统和物理模拟
-- 交互式 UI 动画
-
-### 静态海报创作
-为社交媒体、演示文稿或印刷品生成引人注目的静态设计。海报生成系统创建具有专业排版和视觉层次的构图感知布局。
-
-### 专业导出选项
-以多种格式导出你的作品，提供影院级质量：
-- **视频格式**：MP4（H.264/H.265）
-- **质量预设**：低、中、高、超高、影院级（最高 50Mbps）
-- **图片格式**：PNG（无损）、JPG
-- **分辨率支持**：从高清到 4K 及更高
-
-### 本地 HTTP API
-通过简单的 REST API 将 UI2V 集成到你的工作流程中。以编程方式生成视频和海报，非常适合自动化、批量处理或与其他工具集成。
-
-```javascript
-// 通过 API 生成视频
-const response = await fetch('http://127.0.0.1:5125/video', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    prompt: '一个旋转的 3D 立方体，背景是星空',
-    quality: 'high',
-    width: 1920,
-    height: 1080
-  })
-});
+```bash
+npx puppeteer browsers install chrome
 ```
 
----
+## 安装
 
-## 🛠️ 如何使用 UI2V
+安装已发布的 CLI：
 
-### 快速开始
+```bash
+npm install -g @ui2v/cli
+ui2v --version
+```
 
-1. **下载与安装**
-   - 访问 [ui2v.com](https://ui2v.com) 下载适合你平台的应用程序
-   - 支持 macOS 和 Windows
-   - 无需注册或登录
+不全局安装也可以运行：
 
-2. **配置 AI 模型**
-   - 在应用程序中打开设置
-   - 选择你偏好的 AI 提供商（OpenAI、Anthropic 等）
-   - 输入你的 API 密钥
-   - 选择你偏好的模型
+```bash
+npx @ui2v/cli --version
+```
 
-3. **创建你的第一个动画**
-   - 导航到故事页面
-   - 用自然语言描述你想要的动画
-   - 让 AI 生成动画代码
-   - 实时预览并根据需要优化
+从当前仓库构建：
 
-4. **导出你的作品**
-   - 选择导出格式和质量
-   - 选择分辨率和编解码器选项
-   - 导出到本地文件系统
+```bash
+bun install
+bun run build
+```
 
-### 高级工作流程
+## 快速开始
 
-#### 使用本地 API
-在设置中启用 API 服务器，将 UI2V 集成到你的自动化流程中。非常适合：
-- 批量视频生成
-- 自动化社交媒体内容创作
-- 与内容管理系统集成
-- 程序化设计工作流程
+检查本地渲染环境：
 
-#### 自定义样式
-创建并保存自定义样式预设，在项目中保持一致的品牌形象。样式可以定义调色板、排版、动画时序和视觉效果。
+```bash
+ui2v doctor
+```
 
-#### 多代理系统
-UI2V 采用专门的 AI 代理处理创作的不同方面：
-- **故事代理**：解读你的创意简报并规划叙事结构
-- **动画代理**：生成具有适当时序和效果的优化动画代码
-- **编辑代理**：优化和调试生成的代码
-- **海报代理**：使用专业布局原则创建静态构图
+创建一个起步项目：
 
----
+```bash
+ui2v init my-video
+```
 
-## 🌟 应用场景
+校验示例：
 
-### 营销与社交媒体
-- 产品发布视频
-- 社交媒体动画
-- 促销图形
-- 品牌故事内容
+```bash
+ui2v validate examples/basic-text/animation.json --verbose
+```
 
-### 教育与培训
-- 教育可视化
-- 交互式图表
-- 概念解释
-- 培训材料
+在浏览器中预览动画：
 
-### 数据展示
-- 动画图表和图形
-- 数据叙事
-- 商业演示
-- 报告可视化
+```bash
+ui2v preview examples/basic-text/animation.json
+```
 
-### 创意项目
-- 动态图形实验
-- 生成艺术
-- 视觉效果
-- 动态排版
+渲染 MP4：
 
----
+```bash
+ui2v render examples/basic-text/animation.json -o .tmp/basic-text.mp4
+```
 
-## 💡 为什么不开源？
+如果使用本地构建产物，可以直接运行：
 
-我们经过深思熟虑决定保持 UI2V 源代码的专有性，希望透明地分享我们的考量：
+```bash
+node packages/cli/dist/cli.js doctor
+node packages/cli/dist/cli.js preview examples/basic-text/animation.json
+node packages/cli/dist/cli.js render examples/basic-text/animation.json -o .tmp/basic-text.mp4
+```
 
-### 在 AI 时代保护创新
-当前 AI 辅助开发的格局从根本上改变了软件的创建和复制方式。如今开源复杂应用程序往往意味着你的工作会被瞬间吸收、重新包装和再分发——有时只需几个小时。虽然我们深深尊重开源社区，并从无数开源项目中受益，但我们相信，可持续的软件开发需要保护投入到创建精致、生产就绪应用程序中的大量时间、专业知识和资源。
+## CLI 命令
 
-### 维护质量与用户体验
-通过保持代码库的专有性，我们可以确保一致、经过充分测试的用户体验。我们可以做出优先考虑长期可维护性和用户满意度的架构决策，而不必担心外部分支分散生态系统或稀释品牌。
+```bash
+ui2v doctor
+ui2v init [name]
+ui2v validate <input.json>
+ui2v preview <input.json>
+ui2v render <input.json> -o output.mp4
+ui2v inspect-runtime <input.json>
+ui2v info
+```
 
-### 可持续发展
-创建和维护专业软件需要大量持续投入。专有模式使我们能够建立可持续的业务，继续改进 UI2V，提供支持，并在未来数年开发新功能。
+常用渲染参数：
 
-### 我们分享的内容
-虽然源代码保持封闭，但我们致力于在重要的地方保持透明：
-- **全面的文档**：涵盖所有功能和 API
-- **活跃的社区支持**：Reddit 社区 ([r/Ui2vbuilders](https://www.reddit.com/r/Ui2vbuilders/))
-- **定期更新**：持续推出新功能和改进
-- **开放标准**：我们使用标准格式（MP4、PNG、JSON），不锁定你的数据
+```bash
+ui2v render animation.json -o output.mp4 --quality high --fps 60
+ui2v render animation.json -o output.mp4 --width 1280 --height 720 --render-scale 2
+ui2v render animation.json -o output.mp4 --codec avc --bitrate 8000000
+ui2v render animation.json -o output.mp4 --timeout 300
+```
 
----
+`--render-scale` 会先用更高分辨率渲染，再缩放到目标尺寸编码。例如
+`--width 1280 --height 720 --render-scale 2` 会先以 2560x1440 渲染，
+再输出 1280x720 视频，从而得到更干净的边缘和文字。
 
-## 🔧 技术架构
+预览默认使用 2x canvas pixel ratio。可以用 `--pixel-ratio 1` 降低 GPU
+开销，也可以提高到 `--pixel-ratio 4` 检查细节。
 
-### 采用现代技术构建
-- **框架**：Electron 实现跨平台桌面部署
-- **前端**：React 19 + TypeScript 实现类型安全的 UI 开发
-- **渲染**：基于 Canvas 的多层架构合成器
-- **数据库**：SQLite + Drizzle ORM 实现本地数据持久化
-- **动画库**：全面集成行业标准库
-- **视频编码**：FFmpeg 实现专业级视频导出
+## 项目格式
 
-### 系统要求
-- **操作系统**：macOS 10.15+ 或 Windows 10+
-- **内存**：最低 8GB RAM（推荐 16GB）
-- **存储**：应用程序 500MB，项目需要额外空间
-- **图形**：推荐硬件加速以获得最佳性能
+主要输入是 `AnimationProject` JSON 文件：
 
----
+```json
+{
+  "id": "basic-text",
+  "mode": "template",
+  "duration": 2,
+  "fps": 30,
+  "resolution": { "width": 640, "height": 360 },
+  "template": {
+    "layers": [
+      {
+        "id": "text-layer",
+        "type": "custom-code",
+        "startTime": 0,
+        "endTime": 2,
+        "properties": {
+          "code": "function createRenderer() { return { render(t, context) { /* draw */ } }; }"
+        }
+      }
+    ]
+  }
+}
+```
 
-## 🚀 路线图与未来发展
+完整示例可以看：
 
-我们正在持续改进 UI2V，即将推出令人兴奋的功能：
+- `examples/basic-text/animation.json`
+- `examples/product-showcase/animation.json`
+- `examples/kitchen-sink/animation.json`
+- `examples/runtime-core/*.json`
 
-- **增强的 AI 模型**：支持更多 AI 提供商和专业模型
-- **模板库**：常见用例的预构建动画模板
-- **协作功能**：项目共享和团队工作流程
-- **插件系统**：自定义效果和集成的可扩展性
-- **云同步**（可选）：在保持隐私的同时跨设备备份和同步
-- **高级物理**：更复杂的物理模拟和交互
+## 包结构
 
----
+```text
+@ui2v/core          类型、解析器、校验器和共享工具
+@ui2v/runtime-core  场景图、时间线、调度器、帧计划和适配器契约
+@ui2v/engine        浏览器 Canvas 渲染和 WebCodecs 导出支持
+@ui2v/producer      基于 Puppeteer 的预览和 MP4 渲染管线
+@ui2v/cli           安装为 ui2v 的命令行入口
+```
 
-## 🤝 社区与支持
+## 渲染流程
 
-### 加入我们的社区
-与其他 UI2V 用户联系，分享你的创作，获取帮助：
-- **官网**：[ui2v.com](https://ui2v.com)
+```text
+JSON project
+  -> CLI 解析并校验输入
+  -> producer 启动本地静态服务器
+  -> Puppeteer 启动 Chrome、Edge 或 Chromium
+  -> 浏览器加载 engine/runtime/core bundle
+  -> runtime 从共享时间线计算帧状态
+  -> engine 将帧渲染到 Canvas
+  -> WebCodecs 在浏览器中编码 MP4
+  -> producer 将视频文件写入磁盘
+```
 
-### 获取帮助
-- 查看应用内文档和教程
-- 浏览 Reddit 上的社区讨论
-- 查阅 API 文档了解集成问题
+## 开发
 
-### 分享你的作品
-我们很乐意看到你用 UI2V 创作的内容！在社区中分享你的项目，激励其他创作者。
+安装依赖并构建全部包：
 
----
+```bash
+bun install
+bun run build
+```
 
-## 📄 许可与版权
+运行完整测试：
 
-**版权所有 © 2026 UI2V。保留所有权利。**
+```bash
+bun run test
+```
 
-UI2V 是专有软件。该应用程序是授权使用，而非出售。严禁未经授权的复制、分发、修改或逆向工程。使用 UI2V 即表示你同意尊重我们的知识产权，并按照最终用户许可协议使用该软件。
+运行部分检查：
 
----
+```bash
+bun run test:unit
+bun run test:examples
+bun run test:validate
+bun run test:smoke
+```
 
-## 🎉 立即开始
+## 当前限制
 
-准备好改变你的创意工作流程了吗？下载 UI2V，体验 AI 驱动的动效设计的未来——私密、强大，完全由你掌控。
+- MP4 是主要生产输出格式。
+- 默认编码器是 AVC/H.264。只有本地浏览器支持时，才可以通过
+  `--codec hevc` 请求 HEVC。
+- 浏览器端 ESM 依赖目前通过 producer import map 中固定的 CDN URL 加载。
+- 长视频或高分辨率视频目前会先把编码结果以 base64 从浏览器传回 Node，
+  然后再写入磁盘；实现简单，但对内存不够友好。
+- 离线依赖 vendoring、流式输出、更多格式和更多渲染适配器仍是后续工作。
 
-### [下载 UI2V](https://ui2v.com/#download)
+## 文档
 
-无需注册。无需信用卡。只需下载即可开始创作。
+- [Quick Start](docs/quick-start.md)
+- [Getting Started](docs/getting-started.md)
+- [Architecture](docs/architecture.md)
+- [Runtime Core](docs/runtime-core.md)
+- [CLI README](packages/cli/README.md)
 
----
+## 许可证
 
-*UI2V：创意与隐私相遇，AI 与艺术交融。*
+MIT
