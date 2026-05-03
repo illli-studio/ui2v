@@ -76,7 +76,7 @@ export {
   type TemplateCanvasAdapterOptions
 } from './adapters/TemplateCanvasAdapter';
 
-export const VERSION = '1.0.1';
+export const VERSION = '1.0.2';
 
 export function createEngine(canvasId: string): EngineClass {
   const canvas = document.getElementById(canvasId) as HTMLCanvasElement | null;

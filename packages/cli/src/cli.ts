@@ -14,7 +14,7 @@ const program = new Command();
 program
   .name('ui2v')
   .description('CLI for creating, previewing, and rendering ui2v video compositions')
-  .version('1.0.1');
+  .version('1.0.2');
 
 program
   .command('init')

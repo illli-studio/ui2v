@@ -122,4 +122,4 @@ export { UivRuntime, type UivRuntimeOptions } from './Runtime';
 export { RuntimeHost, type RuntimeHostOptions } from './RuntimeHost';
 export { MultiAdapterHost, type MultiAdapterHostOptions, type MultiAdapterRenderResult } from './MultiAdapterHost';
 
-export const RUNTIME_CORE_VERSION = '1.0.1';
+export const RUNTIME_CORE_VERSION = '1.0.2';
