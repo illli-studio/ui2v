@@ -76,7 +76,7 @@ jobs:
             ['packages/engine', '@ui2v/engine'],
             ['packages/producer', '@ui2v/producer'],
             ['packages/cli', '@ui2v/cli'],
-            ['packages/ui2v', 'ui2v'],
+            ['packages/ui2v', '@illli/ui2v'],
           ];
           const localPackageNames = new Set(packages.slice(1).map(([, name]) => name));
           const failures = [];
@@ -143,7 +143,7 @@ jobs:
           publish_pkg "packages/engine" "@ui2v/engine"
           publish_pkg "packages/producer" "@ui2v/producer"
           publish_pkg "packages/cli" "@ui2v/cli"
-          publish_pkg "packages/ui2v" "ui2v"
+          publish_pkg "packages/ui2v" "@illli/ui2v"
 
       - name: Verify npm registry
         env:
@@ -158,7 +158,7 @@ jobs:
             "@ui2v/engine" \
             "@ui2v/producer" \
             "@ui2v/cli" \
-            "ui2v"
+            "@illli/ui2v"
           do
             published=""
             latest=""

@@ -102,7 +102,7 @@ async function validateWorkspacePackage(packageDir) {
   requireField(pkg, 'repository', `${label}/package.json`);
   requireField(pkg, 'bugs', `${label}/package.json`);
   requireField(pkg, 'homepage', `${label}/package.json`);
-  if (pkg.name !== 'ui2v') {
+  if (pkg.name !== '@illli/ui2v') {
     requireField(pkg, 'types', `${label}/package.json`);
   }
 
@@ -110,7 +110,7 @@ async function validateWorkspacePackage(packageDir) {
     failures.push(`${label}/package.json: expected MIT license, got ${pkg.license}`);
   }
 
-  if (pkg.name !== 'ui2v' && !pkg.exports?.['.']) {
+  if (pkg.name !== '@illli/ui2v' && !pkg.exports?.['.']) {
     failures.push(`${label}/package.json: missing exports["."]`);
   }
 
@@ -120,7 +120,7 @@ async function validateWorkspacePackage(packageDir) {
 
   validateDependencyVersions(pkg, label);
 
-  const requiredFiles = pkg.name === 'ui2v' ? ['bin', 'README.md'] : ['dist', 'README.md'];
+  const requiredFiles = pkg.name === '@illli/ui2v' ? ['bin', 'README.md'] : ['dist', 'README.md'];
   if (!Array.isArray(pkg.files) || requiredFiles.some(file => !pkg.files.includes(file))) {
     failures.push(`${label}/package.json: files must include ${requiredFiles.join(' and ')}`);
   } else {
