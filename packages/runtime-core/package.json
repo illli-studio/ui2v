@@ -31,14 +31,14 @@
   ],
   "author": "ui2v",
   "license": "MIT",
-  "homepage": "https://github.com/ui2v/ui2v/tree/main/packages/runtime-core#readme",
+  "homepage": "https://github.com/illli-studio/ui2v/tree/main/packages/runtime-core#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ui2v/ui2v.git",
+    "url": "git+https://github.com/illli-studio/ui2v.git",
     "directory": "packages/runtime-core"
   },
   "bugs": {
-    "url": "https://github.com/ui2v/ui2v/issues"
+    "url": "https://github.com/illli-studio/ui2v/issues"
   },
   "publishConfig": {
     "access": "public"

@@ -29,14 +29,14 @@
   ],
   "author": "ui2v",
   "license": "MIT",
-  "homepage": "https://github.com/ui2v/ui2v/tree/main/packages/core#readme",
+  "homepage": "https://github.com/illli-studio/ui2v/tree/main/packages/core#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ui2v/ui2v.git",
+    "url": "git+https://github.com/illli-studio/ui2v.git",
     "directory": "packages/core"
   },
   "bugs": {
-    "url": "https://github.com/ui2v/ui2v/issues"
+    "url": "https://github.com/illli-studio/ui2v/issues"
   },
   "publishConfig": {
     "access": "public"
