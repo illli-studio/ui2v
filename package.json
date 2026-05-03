@@ -1,6 +1,6 @@
 {
   "name": "@ui2v/workspace",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "ui2v workspace",
   "private": true,
   "workspaces": [

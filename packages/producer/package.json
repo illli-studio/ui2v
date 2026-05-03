@@ -1,6 +1,6 @@
 {
   "name": "@ui2v/producer",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Browser-backed video rendering pipeline for ui2v",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -43,9 +43,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@ui2v/core": "1.0.3",
-    "@ui2v/engine": "1.0.3",
-    "@ui2v/runtime-core": "1.0.3",
+    "@ui2v/core": "1.0.4",
+    "@ui2v/engine": "1.0.4",
+    "@ui2v/runtime-core": "1.0.4",
     "fs-extra": "^11.2.0",
     "puppeteer": "^24.42.0"
   },
