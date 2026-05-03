@@ -1,7 +1,7 @@
 {
-  "name": "@illli/ui2v",
+  "name": "ui2v",
   "version": "1.0.4",
-  "description": "Convenience package for installing the ui2v command",
+  "description": "Convenience package for installing the ui2v CLI",
   "bin": {
     "ui2v": "bin/ui2v.js"
   },
