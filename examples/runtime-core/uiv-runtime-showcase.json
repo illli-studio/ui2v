@@ -2,17 +2,21 @@
   "schema": "uiv-runtime",
   "id": "uiv-runtime-showcase",
   "name": "UIV Runtime Showcase",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "duration": 12,
   "fps": 30,
   "resolution": {
     "width": 1920,
     "height": 1080
   },
-  "backgroundColor": "#07090f",
+  "backgroundColor": "#050914",
+  "variables": {
+    "accent": "#F2AA4C"
+  },
   "dependencies": [
     "canvas2d"
   ],
+  "markers": [],
   "timeline": {
     "segments": [
       {
@@ -21,9 +25,9 @@
         "startTime": 0,
         "endTime": 3,
         "dependencies": [
-          "animejs"
+          "canvas2d"
         ],
-        "code": "function render(t, context) {\n  const { ctx, width: w, height: h, progress } = context;\n  const ease = 1 - Math.pow(1 - progress, 3);\n  ctx.fillStyle = '#07090f';\n  ctx.fillRect(0, 0, w, h);\n  ctx.save();\n  ctx.translate(w / 2, h / 2);\n  for (let i = 0; i < 36; i++) {\n    const a = i / 36 * Math.PI * 2 + t * 0.35;\n    const r = 110 + i * 5 + Math.sin(t * 1.2 + i) * 18;\n    const x = Math.cos(a) * r;\n    const y = Math.sin(a) * r * 0.42;\n    ctx.globalAlpha = 0.18 + ease * 0.45;\n    ctx.fillStyle = i % 3 === 0 ? '#7bd88f' : i % 3 === 1 ? '#79d9ff' : '#ff5c8a';\n    ctx.beginPath();\n    ctx.arc(x, y, 3 + (i % 4), 0, Math.PI * 2);\n    ctx.fill();\n  }\n  ctx.globalAlpha = 1;\n  ctx.textAlign = 'center';\n  ctx.textBaseline = 'middle';\n  ctx.fillStyle = '#f7f1df';\n  ctx.font = '800 82px Arial, sans-serif';\n  ctx.fillText('UIV Runtime', 0, -32 + (1 - ease) * 28);\n  ctx.fillStyle = '#9fb6c9';\n  ctx.font = '26px Arial, sans-serif';\n  ctx.fillText('custom-code video, timed by segments', 0, 48);\n  ctx.restore();\n}"
+        "code": "function render(t, context) {\n  const p = Math.max(0, Math.min(1, context.progress ?? 0));\n  const ease = 1 - Math.pow(1 - p, 3);\n  const ctx = context.ctx;\n  const w = context.width;\n  const h = context.height;\n  function rr(x, y, width, height, radius) {\n    ctx.beginPath();\n    ctx.moveTo(x + radius, y);\n    ctx.lineTo(x + width - radius, y);\n    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);\n    ctx.lineTo(x + width, y + height - radius);\n    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);\n    ctx.lineTo(x + radius, y + height);\n    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);\n    ctx.lineTo(x, y + radius);\n    ctx.quadraticCurveTo(x, y, x + radius, y);\n    ctx.closePath();\n  }\n  const bg = ctx.createLinearGradient(0, 0, w, h);\n  bg.addColorStop(0, '#050914');\n  bg.addColorStop(0.55, '#0B1D34');\n  bg.addColorStop(1, '#13251A');\n  ctx.fillStyle = bg;\n  ctx.fillRect(0, 0, w, h);\n  ctx.save();\n  ctx.globalAlpha = 0.1;\n  ctx.strokeStyle = '#DFF6FF';\n  for (let x = -140; x < w + 140; x += 88) {\n    ctx.beginPath();\n    ctx.moveTo(x + (t * 18) % 88, 0);\n    ctx.lineTo(x - 280 + (t * 18) % 88, h);\n    ctx.stroke();\n  }\n  ctx.restore();\n  ctx.save();\n  ctx.globalAlpha = ease;\n  ctx.textAlign = 'center';\n  ctx.textBaseline = 'middle';\n  ctx.shadowColor = '#F2AA4C';\n  ctx.shadowBlur = 28;\n  ctx.fillStyle = '#FFFFFF';\n  ctx.font = '900 88px Arial, sans-serif';\n  ctx.fillText('UIV Runtime', w / 2, h / 2 - 58 + (1 - ease) * 40);\n  ctx.shadowBlur = 0;\n  ctx.fillStyle = '#F2AA4C';\n  ctx.font = '800 30px Arial, sans-serif';\n  ctx.fillText('segment-aware rendering for generated video', w / 2, h / 2 + 34);\n  ctx.restore();\n}"
       },
       {
         "id": "timeline",
@@ -31,17 +35,9 @@
         "startTime": 3,
         "endTime": 6,
         "dependencies": [
-          "gsap"
+          "canvas2d"
         ],
-        "layers": [
-          {
-            "id": "timeline-code",
-            "type": "custom-code",
-            "properties": {
-              "code": "function render(t, context) {\n  const { ctx, width: w, height: h, progress } = context;\n  ctx.fillStyle = '#0b1018';\n  ctx.fillRect(0, 0, w, h);\n  const left = 130;\n  const right = w - 130;\n  const y = h / 2;\n  ctx.strokeStyle = '#1d3045';\n  ctx.lineWidth = 2;\n  for (let i = 0; i < 9; i++) {\n    const x = left + (right - left) * i / 8;\n    ctx.beginPath();\n    ctx.moveTo(x, 120);\n    ctx.lineTo(x, h - 120);\n    ctx.stroke();\n  }\n  ctx.strokeStyle = '#f2aa4c';\n  ctx.lineWidth = 8;\n  ctx.lineCap = 'round';\n  ctx.beginPath();\n  ctx.moveTo(left, y);\n  ctx.lineTo(left + (right - left) * progress, y);\n  ctx.stroke();\n  const labels = ['0s', '3s', '6s', '9s', '12s'];\n  ctx.font = '18px Arial, sans-serif';\n  ctx.fillStyle = '#9fb6c9';\n  ctx.textAlign = 'center';\n  for (let i = 0; i < labels.length; i++) {\n    const x = left + (right - left) * i / (labels.length - 1);\n    ctx.fillText(labels[i], x, y + 52);\n  }\n  const blocks = [\n    ['identity', '#79d9ff'], ['timeline', '#f2aa4c'], ['orchestration', '#7bd88f'], ['export', '#ff5c8a']\n  ];\n  ctx.font = '700 28px Arial, sans-serif';\n  blocks.forEach((block, i) => {\n    const x = left + (right - left) * (i + 0.5) / blocks.length;\n    ctx.fillStyle = block[1];\n    ctx.globalAlpha = progress > i / blocks.length ? 1 : 0.25;\n    ctx.fillText(block[0], x, y - 54);\n  });\n  ctx.globalAlpha = 1;\n  ctx.fillStyle = '#f7f1df';\n  ctx.font = '800 46px Arial, sans-serif';\n  ctx.fillText('Segmented Timeline Engine', w / 2, 116);\n}"
-            }
-          }
-        ]
+        "code": "function render(t, context) {\n  const p = Math.max(0, Math.min(1, context.progress ?? 0));\n  const ease = 1 - Math.pow(1 - p, 3);\n  const ctx = context.ctx;\n  const w = context.width;\n  const h = context.height;\n  function rr(x, y, width, height, radius) {\n    ctx.beginPath();\n    ctx.moveTo(x + radius, y);\n    ctx.lineTo(x + width - radius, y);\n    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);\n    ctx.lineTo(x + width, y + height - radius);\n    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);\n    ctx.lineTo(x + radius, y + height);\n    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);\n    ctx.lineTo(x, y + radius);\n    ctx.quadraticCurveTo(x, y, x + radius, y);\n    ctx.closePath();\n  }\n  const bg = ctx.createLinearGradient(0, 0, w, h);\n  bg.addColorStop(0, '#050914');\n  bg.addColorStop(0.55, '#0B1D34');\n  bg.addColorStop(1, '#13251A');\n  ctx.fillStyle = bg;\n  ctx.fillRect(0, 0, w, h);\n  ctx.save();\n  ctx.globalAlpha = 0.1;\n  ctx.strokeStyle = '#DFF6FF';\n  for (let x = -140; x < w + 140; x += 88) {\n    ctx.beginPath();\n    ctx.moveTo(x + (t * 18) % 88, 0);\n    ctx.lineTo(x - 280 + (t * 18) % 88, h);\n    ctx.stroke();\n  }\n  ctx.restore();\n  const left = 160;\n  const right = w - 160;\n  const y = h / 2 + 40;\n  ctx.textAlign = 'center';\n  ctx.fillStyle = '#FFFFFF';\n  ctx.font = '900 62px Arial, sans-serif';\n  ctx.fillText('Segmented Timeline Engine', w / 2, 150);\n  ctx.strokeStyle = 'rgba(255,255,255,0.18)';\n  ctx.lineWidth = 2;\n  for (let i = 0; i <= 8; i++) {\n    const x = left + (right - left) * i / 8;\n    ctx.beginPath();\n    ctx.moveTo(x, 250);\n    ctx.lineTo(x, h - 210);\n    ctx.stroke();\n  }\n  ctx.strokeStyle = '#00D4FF';\n  ctx.lineWidth = 10;\n  ctx.lineCap = 'round';\n  ctx.beginPath();\n  ctx.moveTo(left, y);\n  ctx.lineTo(left + (right - left) * ease, y);\n  ctx.stroke();\n  const labels = ['identity', 'timeline', 'orchestration', 'export'];\n  for (let i = 0; i < labels.length; i++) {\n    const x = left + (right - left) * (i + 0.5) / labels.length;\n    ctx.fillStyle = i % 2 ? '#7BD88F' : '#F2AA4C';\n    ctx.font = '800 28px Arial, sans-serif';\n    ctx.globalAlpha = ease > i / labels.length ? 1 : 0.28;\n    ctx.fillText(labels[i], x, y - 58);\n  }\n}"
       },
       {
         "id": "orchestration",
@@ -49,18 +45,9 @@
         "startTime": 6,
         "endTime": 9,
         "dependencies": [
-          "d3",
-          "rough"
+          "canvas2d"
         ],
-        "nodes": [
-          {
-            "id": "orchestration-code",
-            "type": "custom-code",
-            "properties": {
-              "code": "function render(t, context) {\n  const { ctx, width: w, height: h, progress } = context;\n  ctx.fillStyle = '#09110f';\n  ctx.fillRect(0, 0, w, h);\n  const cx = w / 2;\n  const cy = h / 2;\n  const nodes = [\n    ['scene graph', -310, -80, '#79d9ff'],\n    ['timeline', 0, -150, '#f2aa4c'],\n    ['scheduler', 310, -80, '#7bd88f'],\n    ['adapters', -210, 120, '#ff5c8a'],\n    ['export frames', 210, 120, '#c7a6ff']\n  ];\n  ctx.lineWidth = 3;\n  ctx.strokeStyle = 'rgba(223,233,245,.32)';\n  for (let i = 0; i < nodes.length; i++) {\n    for (let j = i + 1; j < nodes.length; j++) {\n      const a = nodes[i];\n      const b = nodes[j];\n      ctx.globalAlpha = 0.15 + progress * 0.45;\n      ctx.beginPath();\n      ctx.moveTo(cx + a[1], cy + a[2]);\n      ctx.lineTo(cx + b[1], cy + b[2]);\n      ctx.stroke();\n    }\n  }\n  ctx.globalAlpha = 1;\n  ctx.textAlign = 'center';\n  ctx.textBaseline = 'middle';\n  nodes.forEach((node, i) => {\n    const pulse = 1 + Math.sin(t * 3 + i) * 0.04;\n    const x = cx + node[1];\n    const y = cy + node[2];\n    ctx.fillStyle = node[3];\n    ctx.beginPath();\n    ctx.roundRect(x - 108 * pulse, y - 31 * pulse, 216 * pulse, 62 * pulse, 16);\n    ctx.fill();\n    ctx.fillStyle = '#061014';\n    ctx.font = '700 22px Arial, sans-serif';\n    ctx.fillText(node[0], x, y + 1);\n  });\n  ctx.fillStyle = '#f7f1df';\n  ctx.font = '800 44px Arial, sans-serif';\n  ctx.fillText('Multi-Library Orchestration', cx, 94);\n}"
-            }
-          }
-        ]
+        "code": "function render(t, context) {\n  const p = Math.max(0, Math.min(1, context.progress ?? 0));\n  const ease = 1 - Math.pow(1 - p, 3);\n  const ctx = context.ctx;\n  const w = context.width;\n  const h = context.height;\n  function rr(x, y, width, height, radius) {\n    ctx.beginPath();\n    ctx.moveTo(x + radius, y);\n    ctx.lineTo(x + width - radius, y);\n    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);\n    ctx.lineTo(x + width, y + height - radius);\n    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);\n    ctx.lineTo(x + radius, y + height);\n    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);\n    ctx.lineTo(x, y + radius);\n    ctx.quadraticCurveTo(x, y, x + radius, y);\n    ctx.closePath();\n  }\n  const bg = ctx.createLinearGradient(0, 0, w, h);\n  bg.addColorStop(0, '#050914');\n  bg.addColorStop(0.55, '#0B1D34');\n  bg.addColorStop(1, '#13251A');\n  ctx.fillStyle = bg;\n  ctx.fillRect(0, 0, w, h);\n  ctx.save();\n  ctx.globalAlpha = 0.1;\n  ctx.strokeStyle = '#DFF6FF';\n  for (let x = -140; x < w + 140; x += 88) {\n    ctx.beginPath();\n    ctx.moveTo(x + (t * 18) % 88, 0);\n    ctx.lineTo(x - 280 + (t * 18) % 88, h);\n    ctx.stroke();\n  }\n  ctx.restore();\n  ctx.textAlign = 'center';\n  ctx.fillStyle = '#FFFFFF';\n  ctx.font = '900 70px Arial, sans-serif';\n  ctx.fillText('Runtime Orchestration', w / 2, 225);\n  const steps = [\"Scene\",\"Timeline\",\"Adapter\",\"Frame\"];\n  for (let i = 0; i < steps.length; i++) {\n    const x = w / 2 - (steps.length - 1) * 160 + i * 320;\n    const y = h / 2 + 60;\n    ctx.globalAlpha = ease;\n    ctx.fillStyle = 'rgba(5, 9, 20, 0.78)';\n    ctx.strokeStyle = i === steps.length - 1 ? '#7BD88F' : '#00D4FF';\n    ctx.lineWidth = 2;\n    rr(x - 118, y - 50, 236, 100, 18);\n    ctx.fill();\n    ctx.stroke();\n    ctx.fillStyle = '#EEF6FF';\n    ctx.font = '800 25px Arial, sans-serif';\n    ctx.fillText(steps[i], x, y + 8);\n    if (i < steps.length - 1) {\n      ctx.strokeStyle = 'rgba(255,255,255,0.34)';\n      ctx.beginPath();\n      ctx.moveTo(x + 126, y);\n      ctx.lineTo(x + 194, y);\n      ctx.stroke();\n    }\n  }\n}"
       },
       {
         "id": "export",
@@ -68,9 +55,9 @@
         "startTime": 9,
         "endTime": 12,
         "dependencies": [
-          "animejs"
+          "canvas2d"
         ],
-        "code": "export default {\n  render(t, context) {\n    const { ctx, width: w, height: h, progress } = context;\n    const ease = 1 - Math.pow(1 - progress, 4);\n    ctx.fillStyle = '#090a12';\n    ctx.fillRect(0, 0, w, h);\n    ctx.save();\n    ctx.translate(w / 2, h / 2);\n    ctx.strokeStyle = '#f2aa4c';\n    ctx.lineWidth = 6;\n    ctx.globalAlpha = 0.45 + ease * 0.55;\n    ctx.beginPath();\n    ctx.roundRect(-310, -142, 620, 284, 34);\n    ctx.stroke();\n    for (let i = 0; i < 24; i++) {\n      const p = (i / 24 + progress) % 1;\n      const x = -280 + p * 560;\n      const y = -94 + Math.sin(p * Math.PI * 2 + t * 2) * 54;\n      ctx.fillStyle = i % 2 ? '#79d9ff' : '#7bd88f';\n      ctx.globalAlpha = 0.18 + p * 0.65;\n      ctx.fillRect(x, y, 18, 18);\n    }\n    ctx.globalAlpha = 1;\n    ctx.textAlign = 'center';\n    ctx.textBaseline = 'middle';\n    ctx.fillStyle = '#f7f1df';\n    ctx.font = '800 58px Arial, sans-serif';\n    ctx.fillText('Deterministic Video Export', 0, -18);\n    ctx.fillStyle = '#9fb6c9';\n    ctx.font = '24px Arial, sans-serif';\n    ctx.fillText('segment-aware frames + custom-code diagnostics', 0, 50);\n    ctx.restore();\n  }\n}"
+        "code": "function render(t, context) {\n  const p = Math.max(0, Math.min(1, context.progress ?? 0));\n  const ease = 1 - Math.pow(1 - p, 3);\n  const ctx = context.ctx;\n  const w = context.width;\n  const h = context.height;\n  function rr(x, y, width, height, radius) {\n    ctx.beginPath();\n    ctx.moveTo(x + radius, y);\n    ctx.lineTo(x + width - radius, y);\n    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);\n    ctx.lineTo(x + width, y + height - radius);\n    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);\n    ctx.lineTo(x + radius, y + height);\n    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);\n    ctx.lineTo(x, y + radius);\n    ctx.quadraticCurveTo(x, y, x + radius, y);\n    ctx.closePath();\n  }\n  const bg = ctx.createLinearGradient(0, 0, w, h);\n  bg.addColorStop(0, '#050914');\n  bg.addColorStop(0.55, '#0B1D34');\n  bg.addColorStop(1, '#13251A');\n  ctx.fillStyle = bg;\n  ctx.fillRect(0, 0, w, h);\n  ctx.save();\n  ctx.globalAlpha = 0.1;\n  ctx.strokeStyle = '#DFF6FF';\n  for (let x = -140; x < w + 140; x += 88) {\n    ctx.beginPath();\n    ctx.moveTo(x + (t * 18) % 88, 0);\n    ctx.lineTo(x - 280 + (t * 18) % 88, h);\n    ctx.stroke();\n  }\n  ctx.restore();\n  ctx.save();\n  ctx.globalAlpha = ease;\n  ctx.textAlign = 'center';\n  ctx.textBaseline = 'middle';\n  ctx.shadowColor = '#FFFFFF';\n  ctx.shadowBlur = 28;\n  ctx.fillStyle = '#FFFFFF';\n  ctx.font = '900 88px Arial, sans-serif';\n  ctx.fillText('Deterministic Video Export', w / 2, h / 2 - 58 + (1 - ease) * 40);\n  ctx.shadowBlur = 0;\n  ctx.fillStyle = '#FFFFFF';\n  ctx.font = '800 30px Arial, sans-serif';\n  ctx.fillText('same JSON for preview, inspect, and render', w / 2, h / 2 + 34);\n  ctx.restore();\n}"
       }
     ]
   },

@@ -1,372 +1,63 @@
 {
   "schema": "uiv-runtime",
   "id": "uiv-commerce-command-center",
-  "name": "UIV Commerce Command Center",
+  "name": "Commerce Command Center",
   "version": "0.4.0",
-  "duration": 48,
+  "duration": 12,
   "fps": 30,
   "resolution": {
     "width": 1920,
     "height": 1080
   },
-  "backgroundColor": "#06080d",
+  "backgroundColor": "#050914",
+  "variables": {
+    "accent": "#7BD88F"
+  },
   "dependencies": [
     "canvas2d"
   ],
-  "theme": {
-    "font": "Arial",
-    "colors": {
-      "bg": "#06080d",
-      "panel": "#111926",
-      "text": "#f7f1df",
-      "muted": "#9fb6c9",
-      "blue": "#79d9ff",
-      "green": "#7bd88f",
-      "orange": "#f2aa4c",
-      "red": "#ff5c8a",
-      "violet": "#c7a6ff"
-    },
-    "radius": 10,
-    "grid": 8
-  },
-  "datasets": {
-    "launch": {
-      "gmv": 12800000,
-      "orders": 284000,
-      "sla": 99.94,
-      "riskHoldRate": 0.31,
-      "regions": [
-        "SHA",
-        "BJS",
-        "SZX",
-        "WUH",
-        "CDG",
-        "LAX"
-      ]
-    }
-  },
-  "assets": {
-    "logo": {
-      "src": "./assets/commerce-logo.png",
-      "type": "image",
-      "preload": false
-    },
-    "alertTone": {
-      "src": "./audio/alert.wav",
-      "type": "audio",
-      "preload": false
-    }
-  },
-  "narration": [
-    {
-      "id": "n1",
-      "time": 0,
-      "duration": 4,
-      "text": "Launch command center is live."
-    },
-    {
-      "id": "n2",
-      "time": 12,
-      "duration": 4,
-      "text": "Payment risk remains below the hold threshold."
-    },
-    {
-      "id": "n3",
-      "time": 32,
-      "duration": 4,
-      "text": "A retry storm is detected and isolated."
-    },
-    {
-      "id": "n4",
-      "time": 40,
-      "duration": 4,
-      "text": "Executive summary is ready for action."
-    }
-  ],
-  "audio": {
-    "markers": [
-      {
-        "id": "beat-01",
-        "time": 4,
-        "type": "beat"
-      },
-      {
-        "id": "beat-02",
-        "time": 8,
-        "type": "beat"
-      },
-      {
-        "id": "incident-hit",
-        "time": 32,
-        "type": "hit"
-      },
-      {
-        "id": "resolve-hit",
-        "time": 36,
-        "type": "hit"
-      }
-    ]
-  },
-  "camera": {
-    "zoom": 1,
-    "z": 0,
-    "fov": 1200,
-    "motion": [
-      {
-        "time": 0,
-        "zoom": 1,
-        "x": 0,
-        "y": 0,
-        "z": 0
-      },
-      {
-        "time": 16,
-        "zoom": 1.02,
-        "x": -20,
-        "y": 0,
-        "z": -90,
-        "easing": "easeInOutCubic"
-      },
-      {
-        "time": 32,
-        "zoom": 1.04,
-        "x": 20,
-        "y": -8,
-        "z": -180,
-        "easing": "easeInOutCubic"
-      },
-      {
-        "time": 44,
-        "zoom": 1,
-        "x": 0,
-        "y": 0,
-        "z": 0,
-        "easing": "easeOutCubic"
-      }
-    ]
-  },
+  "markers": [],
   "timeline": {
     "segments": [
       {
-        "id": "s01-war-room",
-        "label": "Launch War Room",
+        "id": "hero",
+        "label": "Hero",
         "startTime": 0,
-        "endTime": 4,
+        "endTime": 3,
         "dependencies": [
-          "animejs",
-          "gsap"
+          "canvas2d"
         ],
-        "transition": {
-          "type": "cut",
-          "duration": 0.2
-        },
-        "camera": {
-          "zoom": 1.02,
-          "z": -40,
-          "motion": [
-            {
-              "time": 0,
-              "zoom": 1.02,
-              "z": -40
-            },
-            {
-              "time": 4,
-              "zoom": 1.04,
-              "z": -120,
-              "easing": "easeOutCubic"
-            }
-          ]
-        },
-        "data": {
-          "scenario": "live-commerce",
-          "team": "ops"
-        },
-        "code": "function card(ctx,x,y,w,h,title,value,accent,alpha){ctx.globalAlpha=alpha;ctx.fillStyle='rgba(13,20,31,.92)';ctx.beginPath();ctx.roundRect(x,y,w,h,10);ctx.fill();ctx.strokeStyle='rgba(255,255,255,.12)';ctx.stroke();ctx.fillStyle=accent;ctx.font='700 13px Arial';ctx.fillText(title,x+16,y+25);ctx.fillStyle='#f7f1df';ctx.font='800 30px Arial';ctx.fillText(value,x+16,y+62);ctx.globalAlpha=1;} function render(t,c){const{ctx,width:w,height:h,progress:p}=c;ctx.fillStyle='#06080d';ctx.fillRect(0,0,w,h);const scan=(Math.sin(t*4)+1)/2;ctx.fillStyle='rgba(121,217,255,.05)';for(let y=0;y<h;y+=28){ctx.fillRect(0,y+scan*10,w,1);}ctx.textAlign='left';ctx.fillStyle='#f7f1df';ctx.font='900 54px Arial';ctx.fillText('11.11 Launch Command Center',64,86);ctx.fillStyle='#9fb6c9';ctx.font='22px Arial';ctx.fillText('real-time commerce operations, logistics, risk and support in one UI video',66,122);const stats=[['GMV','$8.42M','#79d9ff'],['Orders','184,920','#7bd88f'],['Conversion','7.8%','#f2aa4c'],['Risk','0.31%','#ff5c8a']];stats.forEach((s,i)=>card(ctx,64+i*292,170,260,112,s[0],s[1],s[2],Math.min(1,p*2-i*.16)));for(let i=0;i<34;i++){const x=86+(i%17)*66,y=360+Math.floor(i/17)*90;const q=Math.min(1,Math.max(0,p*2-i*.025));ctx.globalAlpha=q;ctx.fillStyle=i%3?'rgba(121,217,255,.18)':'rgba(123,216,143,.20)';ctx.beginPath();ctx.roundRect(x,y,44,44,8);ctx.fill();ctx.fillStyle='#dfe9f5';ctx.font='700 12px Arial';ctx.textAlign='center';ctx.fillText(['API','PAY','OMS','WMS','CDN','CRM'][i%6],x+22,y+27);}ctx.globalAlpha=1;ctx.textAlign='left';ctx.fillStyle='#9fb6c9';ctx.font='18px Arial';ctx.fillText('T+00: launch window opened, all systems synchronized',64,650);}"
+        "code": "function render(t, context) {\n  const p = Math.max(0, Math.min(1, context.progress ?? 0));\n  const ease = 1 - Math.pow(1 - p, 3);\n  const ctx = context.ctx;\n  const w = context.width;\n  const h = context.height;\n  function rr(x, y, width, height, radius) {\n    ctx.beginPath();\n    ctx.moveTo(x + radius, y);\n    ctx.lineTo(x + width - radius, y);\n    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);\n    ctx.lineTo(x + width, y + height - radius);\n    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);\n    ctx.lineTo(x + radius, y + height);\n    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);\n    ctx.lineTo(x, y + radius);\n    ctx.quadraticCurveTo(x, y, x + radius, y);\n    ctx.closePath();\n  }\n  const bg = ctx.createLinearGradient(0, 0, w, h);\n  bg.addColorStop(0, '#050914');\n  bg.addColorStop(0.55, '#0B1D34');\n  bg.addColorStop(1, '#13251A');\n  ctx.fillStyle = bg;\n  ctx.fillRect(0, 0, w, h);\n  ctx.save();\n  ctx.globalAlpha = 0.1;\n  ctx.strokeStyle = '#DFF6FF';\n  for (let x = -140; x < w + 140; x += 88) {\n    ctx.beginPath();\n    ctx.moveTo(x + (t * 18) % 88, 0);\n    ctx.lineTo(x - 280 + (t * 18) % 88, h);\n    ctx.stroke();\n  }\n  ctx.restore();\n  ctx.save();\n  ctx.globalAlpha = ease;\n  ctx.textAlign = 'center';\n  ctx.textBaseline = 'middle';\n  ctx.shadowColor = '#7BD88F';\n  ctx.shadowBlur = 28;\n  ctx.fillStyle = '#FFFFFF';\n  ctx.font = '900 88px Arial, sans-serif';\n  ctx.fillText('Commerce Command Center', w / 2, h / 2 - 58 + (1 - ease) * 40);\n  ctx.shadowBlur = 0;\n  ctx.fillStyle = '#7BD88F';\n  ctx.font = '800 30px Arial, sans-serif';\n  ctx.fillText('orders, revenue, and operations in motion', w / 2, h / 2 + 34);\n  ctx.restore();\n}"
       },
       {
-        "id": "s02-traffic",
-        "label": "Traffic Surge",
-        "startTime": 4,
-        "endTime": 8,
+        "id": "metrics",
+        "label": "Metrics",
+        "startTime": 3,
+        "endTime": 6,
         "dependencies": [
-          "d3",
-          "gsap"
+          "canvas2d"
         ],
-        "transition": {
-          "type": "wipe",
-          "duration": 0.35,
-          "direction": "left"
-        },
-        "code": "function render(t,c){const{ctx,width:w,height:h,progress:p}=c;ctx.fillStyle='#070b12';ctx.fillRect(0,0,w,h);ctx.textAlign='left';ctx.fillStyle='#f7f1df';ctx.font='900 44px Arial';ctx.fillText('Traffic Surge',56,64);ctx.fillStyle='#9fb6c9';ctx.font='19px Arial';ctx.fillText('live sessions, checkout funnel and regional heatmap',58,96);const left=70,top=140,gw=680,gh=420;ctx.strokeStyle='rgba(255,255,255,.09)';for(let i=0;i<8;i++){ctx.beginPath();ctx.moveTo(left,top+i*gh/7);ctx.lineTo(left+gw,top+i*gh/7);ctx.stroke();}for(let series=0;series<4;series++){ctx.strokeStyle=['#79d9ff','#7bd88f','#f2aa4c','#ff5c8a'][series];ctx.lineWidth=3;ctx.beginPath();for(let i=0;i<160;i++){const q=i/159;const x=left+q*gw;const amp=44+series*18;const y=top+gh-(q*.55+.22+Math.sin(q*14+series+t*1.5)*.06+Math.max(0,q-.64)*.55)*gh + Math.sin(q*44+t*2)*amp*.1; if(q>p)break; if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.stroke();}for(let i=0;i<70;i++){const x=820+(i%10)*38,y=150+Math.floor(i/10)*38;const hot=(Math.sin(i*2.1+t*2)+1)/2;ctx.fillStyle=hot>.66?'#ff5c8a':hot>.38?'#f2aa4c':'#23384d';ctx.globalAlpha=.35+hot*.55;ctx.fillRect(x,y,28,28);}ctx.globalAlpha=1;const funnel=[['Visit','1.9M'],['Product','842K'],['Cart','391K'],['Paid','184K']];funnel.forEach((f,i)=>{const x=830+i*90,y=490-i*18,bw=74,bh=96-i*12;ctx.fillStyle=['#79d9ff','#7bd88f','#f2aa4c','#ff5c8a'][i];ctx.globalAlpha=.85;ctx.beginPath();ctx.roundRect(x,y,bw,bh,8);ctx.fill();ctx.globalAlpha=1;ctx.fillStyle='#f7f1df';ctx.font='700 15px Arial';ctx.fillText(f[0],x,y+bh+24);ctx.fillText(f[1],x,y+bh+45);});}"
+        "code": "function render(t, context) {\n  const p = Math.max(0, Math.min(1, context.progress ?? 0));\n  const ease = 1 - Math.pow(1 - p, 3);\n  const ctx = context.ctx;\n  const w = context.width;\n  const h = context.height;\n  function rr(x, y, width, height, radius) {\n    ctx.beginPath();\n    ctx.moveTo(x + radius, y);\n    ctx.lineTo(x + width - radius, y);\n    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);\n    ctx.lineTo(x + width, y + height - radius);\n    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);\n    ctx.lineTo(x + radius, y + height);\n    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);\n    ctx.lineTo(x, y + radius);\n    ctx.quadraticCurveTo(x, y, x + radius, y);\n    ctx.closePath();\n  }\n  const bg = ctx.createLinearGradient(0, 0, w, h);\n  bg.addColorStop(0, '#050914');\n  bg.addColorStop(0.55, '#0B1D34');\n  bg.addColorStop(1, '#13251A');\n  ctx.fillStyle = bg;\n  ctx.fillRect(0, 0, w, h);\n  ctx.save();\n  ctx.globalAlpha = 0.1;\n  ctx.strokeStyle = '#DFF6FF';\n  for (let x = -140; x < w + 140; x += 88) {\n    ctx.beginPath();\n    ctx.moveTo(x + (t * 18) % 88, 0);\n    ctx.lineTo(x - 280 + (t * 18) % 88, h);\n    ctx.stroke();\n  }\n  ctx.restore();\n  ctx.fillStyle = '#FFFFFF';\n  ctx.font = '900 62px Arial, sans-serif';\n  ctx.textAlign = 'left';\n  ctx.fillText('Live Revenue Pulse', 120, 150);\n  ctx.fillStyle = '#A9BDD2';\n  ctx.font = '24px Arial, sans-serif';\n  ctx.fillText('clean dashboard animation for product demos', 124, 200);\n  for (let i = 0; i < 32; i++) {\n    const x = 150 + i * 48;\n    const height = (120 + Math.sin(t * 1.3 + i * 0.45) * 60 + (i % 8) * 34) * ease;\n    const color = i % 3 === 0 ? '#00D4FF' : i % 3 === 1 ? '#00D4FF' : '#F2AA4C';\n    const g = ctx.createLinearGradient(x, 830 - height, x, 830);\n    g.addColorStop(0, color);\n    g.addColorStop(1, 'rgba(255,255,255,0.12)');\n    ctx.fillStyle = g;\n    rr(x, 830 - height, 28, height, 8);\n    ctx.fill();\n  }\n  ctx.strokeStyle = '#FFFFFF';\n  ctx.globalAlpha = 0.72;\n  ctx.lineWidth = 4;\n  ctx.beginPath();\n  for (let k = 0; k < 180; k++) {\n    const x = 140 + k * (w - 280) / 179;\n    const y = 410 + Math.sin(k * 0.12 + t * 2) * 52 + Math.cos(k * 0.031 + t) * 78;\n    if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);\n  }\n  ctx.stroke();\n}"
       },
       {
-        "id": "s03-inventory",
-        "label": "Inventory Flow",
-        "startTime": 8,
+        "id": "workflow",
+        "label": "Workflow",
+        "startTime": 6,
+        "endTime": 9,
+        "dependencies": [
+          "canvas2d"
+        ],
+        "code": "function render(t, context) {\n  const p = Math.max(0, Math.min(1, context.progress ?? 0));\n  const ease = 1 - Math.pow(1 - p, 3);\n  const ctx = context.ctx;\n  const w = context.width;\n  const h = context.height;\n  function rr(x, y, width, height, radius) {\n    ctx.beginPath();\n    ctx.moveTo(x + radius, y);\n    ctx.lineTo(x + width - radius, y);\n    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);\n    ctx.lineTo(x + width, y + height - radius);\n    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);\n    ctx.lineTo(x + radius, y + height);\n    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);\n    ctx.lineTo(x, y + radius);\n    ctx.quadraticCurveTo(x, y, x + radius, y);\n    ctx.closePath();\n  }\n  const bg = ctx.createLinearGradient(0, 0, w, h);\n  bg.addColorStop(0, '#050914');\n  bg.addColorStop(0.55, '#0B1D34');\n  bg.addColorStop(1, '#13251A');\n  ctx.fillStyle = bg;\n  ctx.fillRect(0, 0, w, h);\n  ctx.save();\n  ctx.globalAlpha = 0.1;\n  ctx.strokeStyle = '#DFF6FF';\n  for (let x = -140; x < w + 140; x += 88) {\n    ctx.beginPath();\n    ctx.moveTo(x + (t * 18) % 88, 0);\n    ctx.lineTo(x - 280 + (t * 18) % 88, h);\n    ctx.stroke();\n  }\n  ctx.restore();\n  ctx.textAlign = 'center';\n  ctx.fillStyle = '#FFFFFF';\n  ctx.font = '900 70px Arial, sans-serif';\n  ctx.fillText('Ops Workflow', w / 2, 225);\n  const steps = [\"Orders\",\"Risk\",\"Inventory\",\"Dispatch\"];\n  for (let i = 0; i < steps.length; i++) {\n    const x = w / 2 - (steps.length - 1) * 160 + i * 320;\n    const y = h / 2 + 60;\n    ctx.globalAlpha = ease;\n    ctx.fillStyle = 'rgba(5, 9, 20, 0.78)';\n    ctx.strokeStyle = i === steps.length - 1 ? '#F2AA4C' : '#00D4FF';\n    ctx.lineWidth = 2;\n    rr(x - 118, y - 50, 236, 100, 18);\n    ctx.fill();\n    ctx.stroke();\n    ctx.fillStyle = '#EEF6FF';\n    ctx.font = '800 25px Arial, sans-serif';\n    ctx.fillText(steps[i], x, y + 8);\n    if (i < steps.length - 1) {\n      ctx.strokeStyle = 'rgba(255,255,255,0.34)';\n      ctx.beginPath();\n      ctx.moveTo(x + 126, y);\n      ctx.lineTo(x + 194, y);\n      ctx.stroke();\n    }\n  }\n}"
+      },
+      {
+        "id": "final",
+        "label": "Final",
+        "startTime": 9,
         "endTime": 12,
         "dependencies": [
-          "roughjs",
-          "d3"
+          "canvas2d"
         ],
-        "transition": {
-          "type": "slide",
-          "duration": 0.35,
-          "direction": "up"
-        },
-        "code": "function render(t,c){const{ctx,width:w,height:h,progress:p}=c;ctx.fillStyle='#07100e';ctx.fillRect(0,0,w,h);ctx.textAlign='left';ctx.fillStyle='#f7f1df';ctx.font='900 44px Arial';ctx.fillText('Inventory Flow',56,64);ctx.fillStyle='#9fb6c9';ctx.font='19px Arial';ctx.fillText('warehouse stock, replenishment and SKU pressure',58,96);const cols=9,rows=5,x0=90,y0=150;for(let r=0;r<rows;r++){for(let col=0;col<cols;col++){const i=r*cols+col;const stock=(Math.sin(i*.73+t*.9)+1)/2;const x=x0+col*86,y=y0+r*78;ctx.fillStyle=stock<.22?'#ff5c8a':stock<.45?'#f2aa4c':'#223a35';ctx.globalAlpha=.35+stock*.55;ctx.beginPath();ctx.roundRect(x,y,66,54,8);ctx.fill();ctx.globalAlpha=1;ctx.fillStyle='#dfe9f5';ctx.font='700 11px Arial';ctx.fillText('SKU-'+String(3100+i),x+9,y+20);ctx.fillStyle='#f7f1df';ctx.font='800 17px Arial';ctx.fillText(String(Math.round(stock*980)),x+9,y+42);}}ctx.strokeStyle='rgba(121,217,255,.55)';ctx.lineWidth=4;ctx.setLineDash([8,10]);for(let i=0;i<6;i++){const q=(p+i*.12)%1;ctx.beginPath();ctx.moveTo(130+q*620,560+Math.sin(q*8+i)*12);ctx.lineTo(210+q*620,560+Math.sin(q*8+i)*12);ctx.stroke();}ctx.setLineDash([]);const alerts=[['East WH','low stock','#ff5c8a'],['South WH','reroute','#f2aa4c'],['North WH','stable','#7bd88f']];alerts.forEach((a,i)=>{const x=890,y=170+i*125;ctx.fillStyle='rgba(13,20,31,.92)';ctx.beginPath();ctx.roundRect(x,y,300,88,10);ctx.fill();ctx.fillStyle=a[2];ctx.font='800 22px Arial';ctx.fillText(a[0],x+18,y+34);ctx.fillStyle='#dfe9f5';ctx.font='18px Arial';ctx.fillText(a[1],x+18,y+64);});}"
-      },
-      {
-        "id": "s04-payment-risk",
-        "label": "Payment Risk",
-        "startTime": 12,
-        "endTime": 16,
-        "dependencies": [
-          "animejs",
-          "mathjs"
-        ],
-        "transition": {
-          "type": "glitch",
-          "duration": 0.45
-        },
-        "code": "function render(t,c){const{ctx,width:w,height:h,progress:p}=c;ctx.fillStyle='#11090b';ctx.fillRect(0,0,w,h);ctx.textAlign='left';ctx.fillStyle='#f7f1df';ctx.font='900 44px Arial';ctx.fillText('Payment Risk Monitor',56,64);ctx.fillStyle='#9fb6c9';ctx.font='19px Arial';ctx.fillText('fraud score, auth latency, payment channel health',58,96);for(let i=0;i<38;i++){const x=70+(i%19)*58,y=150+Math.floor(i/19)*92;const risk=(Math.sin(i*1.3+t*2)+1)/2;ctx.fillStyle=risk>.74?'#ff5c8a':risk>.48?'#f2aa4c':'#1f352f';ctx.globalAlpha=.3+risk*.55;ctx.beginPath();ctx.arc(x,y,18+risk*16,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}const cx=970,cy=330;for(let ring=0;ring<4;ring++){ctx.strokeStyle=['#7bd88f','#f2aa4c','#ff5c8a','#79d9ff'][ring];ctx.lineWidth=16;ctx.globalAlpha=.85;ctx.beginPath();ctx.arc(cx,cy,70+ring*32,-Math.PI/2,-Math.PI/2+(Math.PI*2)*(0.32+0.13*ring+Math.sin(t+ring)*.04)*p);ctx.stroke();}ctx.globalAlpha=1;ctx.fillStyle='#f7f1df';ctx.textAlign='center';ctx.font='900 54px Arial';ctx.fillText('0.31%',cx,cy+12);ctx.font='18px Arial';ctx.fillStyle='#9fb6c9';ctx.fillText('risk hold rate',cx,cy+48);ctx.textAlign='left';const rows=['Visa auth 98.2%','Wallet latency 43ms','Chargeback forecast -12%','Manual review queue 91'];rows.forEach((r,i)=>{ctx.fillStyle='rgba(255,255,255,.06)';ctx.fillRect(750,520+i*34,380,24);ctx.fillStyle='#dfe9f5';ctx.font='17px Arial';ctx.fillText(r,762,539+i*34);});}"
-      },
-      {
-        "id": "s05-logistics-map",
-        "label": "Logistics Map",
-        "startTime": 16,
-        "endTime": 20,
-        "dependencies": [
-          "d3",
-          "simplex-noise"
-        ],
-        "transition": {
-          "type": "map-flyover",
-          "duration": 0.45
-        },
-        "camera": {
-          "zoom": 1.02,
-          "x": -40,
-          "y": -10,
-          "z": -160
-        },
-        "code": "function render(t,c){const{ctx,width:w,height:h,progress:p}=c;ctx.fillStyle='#061012';ctx.fillRect(0,0,w,h);ctx.textAlign='left';ctx.fillStyle='#f7f1df';ctx.font='900 44px Arial';ctx.fillText('Logistics Routing',56,64);ctx.fillStyle='#9fb6c9';ctx.font='19px Arial';ctx.fillText('multi-city routes, carrier SLA and dispatch density',58,96);const hubs=[[240,230,'SHA'],[520,170,'BJS'],[790,270,'SZX'],[430,460,'WUH'],[880,500,'CDG'],[1030,220,'LAX']];ctx.strokeStyle='rgba(121,217,255,.12)';ctx.lineWidth=1;for(let i=0;i<18;i++){ctx.beginPath();ctx.moveTo(120+i*60,140);ctx.lineTo(80+i*60,610);ctx.stroke();}for(let i=0;i<hubs.length;i++){for(let j=i+1;j<hubs.length;j++){const a=hubs[i],b=hubs[j];const q=Math.min(1,Math.max(0,p*1.6-(i+j)*.04));ctx.strokeStyle='rgba(242,170,76,.35)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.quadraticCurveTo((a[0]+b[0])/2,Math.min(a[1],b[1])-80+Math.sin(t+i)*20,a[0]+(b[0]-a[0])*q,a[1]+(b[1]-a[1])*q);ctx.stroke();}}hubs.forEach((h,i)=>{const pulse=1+Math.sin(t*3+i)*.08;ctx.fillStyle=i%2?'#79d9ff':'#7bd88f';ctx.beginPath();ctx.arc(h[0],h[1],18*pulse,0,Math.PI*2);ctx.fill();ctx.fillStyle='#071014';ctx.font='800 13px Arial';ctx.textAlign='center';ctx.fillText(h[2],h[0],h[1]+4);});for(let i=0;i<40;i++){const q=(p+i*.037+t*.02)%1;ctx.fillStyle=i%2?'#ff5c8a':'#f2aa4c';ctx.globalAlpha=.7;ctx.fillRect(120+q*980,610-Math.sin(q*9+i)*120,10,10);}ctx.globalAlpha=1;}"
-      },
-      {
-        "id": "s06-support",
-        "label": "Support Queue",
-        "startTime": 20,
-        "endTime": 24,
-        "dependencies": [
-          "split-type",
-          "animejs"
-        ],
-        "transition": {
-          "type": "dashboard-swap",
-          "duration": 0.35
-        },
-        "code": "function render(t,c){const{ctx,width:w,height:h,progress:p}=c;ctx.fillStyle='#0d0b12';ctx.fillRect(0,0,w,h);ctx.textAlign='left';ctx.fillStyle='#f7f1df';ctx.font='900 44px Arial';ctx.fillText('Customer Support Pulse',56,64);ctx.fillStyle='#9fb6c9';ctx.font='19px Arial';ctx.fillText('message classification, refund queue and sentiment',58,96);const messages=['Where is my order?','Payment failed twice','Change delivery slot','Apply coupon refund','Invoice needed','Package damaged','VIP escalation','Return pickup'];messages.forEach((m,i)=>{const x=70+(i%2)*410,y=150+Math.floor(i/2)*92;const q=Math.min(1,Math.max(0,p*2-i*.08));ctx.globalAlpha=q;ctx.fillStyle='rgba(20,28,42,.92)';ctx.beginPath();ctx.roundRect(x,y,360,64,12);ctx.fill();ctx.fillStyle=i%3===0?'#ff5c8a':i%3===1?'#79d9ff':'#7bd88f';ctx.beginPath();ctx.arc(x+28,y+32,13,0,Math.PI*2);ctx.fill();ctx.fillStyle='#dfe9f5';ctx.font='18px Arial';ctx.fillText(m,x+55,y+38);});ctx.globalAlpha=1;const cx=1040,cy=355;for(let i=0;i<64;i++){const a=i/64*Math.PI*2+t*.4;const r=90+Math.sin(i+t)*22;ctx.strokeStyle=i%2?'rgba(121,217,255,.38)':'rgba(123,216,143,.35)';ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);ctx.stroke();}ctx.fillStyle='#f7f1df';ctx.textAlign='center';ctx.font='900 52px Arial';ctx.fillText('92%',cx,cy+12);ctx.fillStyle='#9fb6c9';ctx.font='18px Arial';ctx.fillText('auto-resolved',cx,cy+48);}"
-      },
-      {
-        "id": "s07-creative-ab",
-        "label": "Creative A/B",
-        "startTime": 24,
-        "endTime": 28,
-        "dependencies": [
-          "fabric",
-          "animejs"
-        ],
-        "transition": {
-          "type": "data-morph",
-          "duration": 0.4
-        },
-        "code": "function render(t,c){const{ctx,width:w,height:h,progress:p}=c;ctx.fillStyle='#100d08';ctx.fillRect(0,0,w,h);ctx.textAlign='left';ctx.fillStyle='#f7f1df';ctx.font='900 44px Arial';ctx.fillText('Creative A/B Control',56,64);ctx.fillStyle='#9fb6c9';ctx.font='19px Arial';ctx.fillText('banner variants, offer copy and conversion lift',58,96);for(let i=0;i<6;i++){const x=86+(i%3)*382,y=150+Math.floor(i/3)*220;const lift=Math.sin(t+i)*.08+.12+i*.018;ctx.fillStyle='rgba(18,24,34,.94)';ctx.beginPath();ctx.roundRect(x,y,330,170,12);ctx.fill();ctx.fillStyle=['#79d9ff','#7bd88f','#ff5c8a','#f2aa4c','#c7a6ff','#79d9ff'][i];ctx.fillRect(x+18,y+18,294,70);ctx.fillStyle='#061014';ctx.font='900 28px Arial';ctx.fillText(['FLASH','VIP','BUNDLE','FREE SHIP','LIVE','LAST CALL'][i],x+34,y+62);ctx.fillStyle='#dfe9f5';ctx.font='18px Arial';ctx.fillText('CTR '+(3.2+i*.4+Math.sin(t+i)*.2).toFixed(1)+'%',x+22,y+122);ctx.fillStyle=lift>.18?'#7bd88f':'#f2aa4c';ctx.font='800 22px Arial';ctx.fillText('+'+(lift*100).toFixed(1)+'% lift',x+190,y+124);const bar=(.35+i*.08+p*.25)%1;ctx.fillStyle='rgba(255,255,255,.10)';ctx.fillRect(x+22,y+142,280,8);ctx.fillStyle='#79d9ff';ctx.fillRect(x+22,y+142,280*bar,8);}}"
-      },
-      {
-        "id": "s08-database",
-        "label": "Database Health",
-        "startTime": 28,
-        "endTime": 32,
-        "dependencies": [
-          "d3",
-          "roughjs"
-        ],
-        "transition": {
-          "type": "terminal-scan",
-          "duration": 0.35
-        },
-        "code": "function render(t,c){const{ctx,width:w,height:h,progress:p}=c;ctx.fillStyle='#080b10';ctx.fillRect(0,0,w,h);ctx.textAlign='left';ctx.fillStyle='#f7f1df';ctx.font='900 44px Arial';ctx.fillText('Database Health',56,64);ctx.fillStyle='#9fb6c9';ctx.font='19px Arial';ctx.fillText('replication lag, queue depth and cache pressure',58,96);const x0=120,y0=165;for(let shard=0;shard<8;shard++){const x=x0+(shard%4)*260,y=y0+Math.floor(shard/4)*190;ctx.strokeStyle='rgba(255,255,255,.16)';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x+80,y+18,80,18,0,0,Math.PI*2);ctx.stroke();ctx.fillStyle='rgba(20,28,42,.9)';ctx.fillRect(x,y+18,160,96);ctx.beginPath();ctx.ellipse(x+80,y+114,80,18,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle=shard===5&&p>.45?'#ff5c8a':'#7bd88f';ctx.font='800 18px Arial';ctx.fillText('shard-'+(shard+1),x+24,y+62);ctx.fillStyle='#dfe9f5';ctx.font='15px Arial';ctx.fillText('lag '+Math.max(1,Math.round(Math.abs(Math.sin(t+shard))*22))+'ms',x+24,y+90);}for(let i=0;i<24;i++){const q=(p+i*.041)%1;ctx.strokeStyle=i%2?'rgba(121,217,255,.36)':'rgba(242,170,76,.32)';ctx.beginPath();ctx.moveTo(180+q*840,600);ctx.lineTo(240+q*840,600+Math.sin(q*9+i)*24);ctx.stroke();}ctx.fillStyle='#f2aa4c';ctx.font='800 22px Arial';ctx.fillText('cache warmup 94%',910,586);}"
-      },
-      {
-        "id": "s09-incident",
-        "label": "Incident",
-        "startTime": 32,
-        "endTime": 36,
-        "dependencies": [
-          "matter-js",
-          "animejs"
-        ],
-        "transition": {
-          "type": "alert-zoom",
-          "duration": 0.25
-        },
-        "camera": {
-          "zoom": 1.04,
-          "x": 24,
-          "y": -12,
-          "z": -220
-        },
-        "code": "function render(t,c){const{ctx,width:w,height:h,progress:p}=c;ctx.fillStyle='#14090b';ctx.fillRect(0,0,w,h);ctx.textAlign='left';ctx.fillStyle='#f7f1df';ctx.font='900 44px Arial';ctx.fillText('Incident Detected',56,64);ctx.fillStyle='#ffb5b5';ctx.font='19px Arial';ctx.fillText('payment callback retry storm isolated in 38 seconds',58,96);const cx=650,cy=360;for(let ring=0;ring<7;ring++){ctx.strokeStyle='rgba(255,92,138,'+(0.55-ring*.06)+')';ctx.lineWidth=3;ctx.beginPath();ctx.arc(cx,cy,60+ring*42+Math.sin(t*5+ring)*8,0,Math.PI*2);ctx.stroke();}for(let i=0;i<72;i++){const a=i/72*Math.PI*2+t*.8;const r=80+(i%9)*30;ctx.fillStyle=i%4?'#ff5c8a':'#f2aa4c';ctx.globalAlpha=.35+Math.sin(t*3+i)*.2;ctx.fillRect(cx+Math.cos(a)*r,cy+Math.sin(a)*r*.62,8,8);}ctx.globalAlpha=1;const log=['13:04 retry spike','13:05 circuit open','13:05 queue drained','13:06 provider failover','13:06 checkout stable'];log.forEach((l,i)=>{ctx.fillStyle='rgba(255,255,255,.07)';ctx.fillRect(82,168+i*58,360,38);ctx.fillStyle=i<2?'#ff5c8a':'#7bd88f';ctx.font='700 18px Arial';ctx.fillText(l,100,193+i*58);});ctx.fillStyle='#f7f1df';ctx.textAlign='center';ctx.font='900 58px Arial';ctx.fillText('38s',1030,330);ctx.font='20px Arial';ctx.fillStyle='#9fb6c9';ctx.fillText('time to mitigation',1030,366);}"
-      },
-      {
-        "id": "s10-remediation",
-        "label": "Auto Remediation",
-        "startTime": 36,
-        "endTime": 40,
-        "dependencies": [
-          "gsap",
-          "d3"
-        ],
-        "transition": {
-          "type": "wipe",
-          "duration": 0.35,
-          "direction": "right"
-        },
-        "code": "function render(t,c){const{ctx,width:w,height:h,progress:p}=c;ctx.fillStyle='#07110d';ctx.fillRect(0,0,w,h);ctx.textAlign='left';ctx.fillStyle='#f7f1df';ctx.font='900 44px Arial';ctx.fillText('Auto Remediation',56,64);ctx.fillStyle='#9fb6c9';ctx.font='19px Arial';ctx.fillText('rules engine shifts traffic, drains queues and restores SLA',58,96);const steps=['Detect','Throttle','Failover','Replay','Verify','Close'];steps.forEach((s,i)=>{const x=110+i*190,y=190;const done=p>i/steps.length*.82;ctx.fillStyle=done?'#7bd88f':'rgba(255,255,255,.09)';ctx.beginPath();ctx.roundRect(x,y,136,62,12);ctx.fill();ctx.fillStyle=done?'#061014':'#dfe9f5';ctx.font='800 20px Arial';ctx.textAlign='center';ctx.fillText(s,x+68,y+39);if(i<steps.length-1){ctx.strokeStyle=done?'#7bd88f':'rgba(255,255,255,.14)';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x+136,y+31);ctx.lineTo(x+190,y+31);ctx.stroke();}});const left=130,base=592;for(let i=0;i<120;i++){const q=i/119;const before=180+Math.sin(q*18+t)*30+(q>.35&&q<.52?160:0);const after=70+Math.sin(q*12+t)*10;const mix=Math.min(1,Math.max(0,p*1.4-.25));const y=base-(before*(1-mix)+after*mix);ctx.strokeStyle='#79d9ff';ctx.lineWidth=3;if(i===0)ctx.beginPath();if(i===0)ctx.moveTo(left+q*980,y);else ctx.lineTo(left+q*980,y);}ctx.stroke();ctx.fillStyle='#f7f1df';ctx.font='800 24px Arial';ctx.textAlign='left';ctx.fillText('latency recovered to 63ms',130,640);}"
-      },
-      {
-        "id": "s11-executive",
-        "label": "Executive Summary",
-        "startTime": 40,
-        "endTime": 44,
-        "dependencies": [
-          "d3",
-          "animejs"
-        ],
-        "transition": {
-          "type": "fade",
-          "duration": 0.45
-        },
-        "camera": {
-          "zoom": 1.01,
-          "x": 0,
-          "y": 0,
-          "z": -60
-        },
-        "code": "function render(t,c){const{ctx,width:w,height:h,progress:p}=c;ctx.fillStyle='#08090f';ctx.fillRect(0,0,w,h);ctx.textAlign='left';ctx.fillStyle='#f7f1df';ctx.font='900 44px Arial';ctx.fillText('Executive Summary',56,64);ctx.fillStyle='#9fb6c9';ctx.font='19px Arial';ctx.fillText('the launch state compressed into one decision surface',58,96);const tiles=[['GMV','$12.8M','#79d9ff'],['Orders','284K','#7bd88f'],['SLA','99.94%','#f2aa4c'],['Risk','-18%','#ff5c8a'],['Refunds','1.2%','#c7a6ff'],['NPS','72','#79d9ff']];tiles.forEach((tile,i)=>{const x=76+(i%3)*388,y=150+Math.floor(i/3)*178;const q=Math.min(1,Math.max(0,p*2-i*.09));ctx.globalAlpha=q;ctx.fillStyle='rgba(17,25,38,.94)';ctx.beginPath();ctx.roundRect(x,y,336,126,12);ctx.fill();ctx.fillStyle=tile[2];ctx.font='800 16px Arial';ctx.fillText(tile[0],x+22,y+32);ctx.fillStyle='#f7f1df';ctx.font='900 46px Arial';ctx.fillText(tile[1],x+22,y+84);ctx.fillStyle='rgba(255,255,255,.10)';ctx.fillRect(x+22,y+100,290,8);ctx.fillStyle=tile[2];ctx.fillRect(x+22,y+100,290*(.45+i*.07+p*.18)%290,8);});ctx.globalAlpha=1;ctx.fillStyle='#9fb6c9';ctx.font='22px Arial';ctx.fillText('Decision: increase promo budget by 12%, keep risk policy active, expand carrier capacity.',76,648);}"
-      },
-      {
-        "id": "s12-render",
-        "label": "Render",
-        "startTime": 44,
-        "endTime": 48,
-        "dependencies": [
-          "animejs"
-        ],
-        "transition": {
-          "type": "zoom",
-          "duration": 0.5
-        },
-        "code": "export default { render(t,c){const{ctx,width:w,height:h,progress:p}=c;ctx.fillStyle='#06080d';ctx.fillRect(0,0,w,h);const cx=w/2,cy=h/2;ctx.textAlign='center';ctx.textBaseline='middle';for(let i=0;i<96;i++){const q=(i/96+p)%1;const a=q*Math.PI*2+t*.2;const r=90+q*360;ctx.strokeStyle=i%3===0?'#79d9ff':i%3===1?'#7bd88f':'#f2aa4c';ctx.globalAlpha=(1-q)*.55;ctx.lineWidth=3;ctx.beginPath();ctx.arc(cx,cy,r,a,a+.28);ctx.stroke();}ctx.globalAlpha=1;ctx.fillStyle='#f7f1df';ctx.font='900 62px Arial';ctx.fillText('UI Video Rendered',cx,cy-42);ctx.fillStyle='#9fb6c9';ctx.font='24px Arial';ctx.fillText('48 seconds, 12 real business segments, 1440 deterministic frames',cx,cy+24);ctx.strokeStyle='rgba(247,241,223,.2)';ctx.lineWidth=2;ctx.strokeRect(cx-330,cy+92,660,20);ctx.fillStyle='#79d9ff';ctx.fillRect(cx-330,cy+92,660*p,20);ctx.fillStyle='#f7f1df';ctx.font='18px Arial';ctx.fillText('export plan: segment-aware progress + browser video pipeline',cx,cy+150);} }"
+        "code": "function render(t, context) {\n  const p = Math.max(0, Math.min(1, context.progress ?? 0));\n  const ease = 1 - Math.pow(1 - p, 3);\n  const ctx = context.ctx;\n  const w = context.width;\n  const h = context.height;\n  function rr(x, y, width, height, radius) {\n    ctx.beginPath();\n    ctx.moveTo(x + radius, y);\n    ctx.lineTo(x + width - radius, y);\n    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);\n    ctx.lineTo(x + width, y + height - radius);\n    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);\n    ctx.lineTo(x + radius, y + height);\n    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);\n    ctx.lineTo(x, y + radius);\n    ctx.quadraticCurveTo(x, y, x + radius, y);\n    ctx.closePath();\n  }\n  const bg = ctx.createLinearGradient(0, 0, w, h);\n  bg.addColorStop(0, '#050914');\n  bg.addColorStop(0.55, '#0B1D34');\n  bg.addColorStop(1, '#13251A');\n  ctx.fillStyle = bg;\n  ctx.fillRect(0, 0, w, h);\n  ctx.save();\n  ctx.globalAlpha = 0.1;\n  ctx.strokeStyle = '#DFF6FF';\n  for (let x = -140; x < w + 140; x += 88) {\n    ctx.beginPath();\n    ctx.moveTo(x + (t * 18) % 88, 0);\n    ctx.lineTo(x - 280 + (t * 18) % 88, h);\n    ctx.stroke();\n  }\n  ctx.restore();\n  ctx.save();\n  ctx.globalAlpha = ease;\n  ctx.textAlign = 'center';\n  ctx.textBaseline = 'middle';\n  ctx.shadowColor = '#FFFFFF';\n  ctx.shadowBlur = 28;\n  ctx.fillStyle = '#FFFFFF';\n  ctx.font = '900 88px Arial, sans-serif';\n  ctx.fillText('Ready for the morning standup', w / 2, h / 2 - 58 + (1 - ease) * 40);\n  ctx.shadowBlur = 0;\n  ctx.fillStyle = '#FFFFFF';\n  ctx.font = '800 30px Arial, sans-serif';\n  ctx.fillText('rendered from one runtime JSON', w / 2, h / 2 + 34);\n  ctx.restore();\n}"
       }
     ]
   },

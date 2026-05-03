@@ -2,17 +2,21 @@
   "schema": "uiv-runtime",
   "id": "segmented-custom-code",
   "name": "Segmented Custom Code UI Video",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "duration": 9,
   "fps": 30,
   "resolution": {
     "width": 1920,
     "height": 1080
   },
-  "backgroundColor": "#080a0f",
+  "backgroundColor": "#050914",
+  "variables": {
+    "accent": "#00D4FF"
+  },
   "dependencies": [
     "canvas2d"
   ],
+  "markers": [],
   "timeline": {
     "segments": [
       {
@@ -21,9 +25,9 @@
         "startTime": 0,
         "endTime": 3,
         "dependencies": [
-          "animejs"
+          "canvas2d"
         ],
-        "code": "function render(t, context) {\n  const { ctx, width: w, height: h, progress } = context;\n  ctx.fillStyle = '#080a0f';\n  ctx.fillRect(0, 0, w, h);\n  ctx.save();\n  ctx.translate(w / 2, h / 2);\n  ctx.globalAlpha = Math.min(1, progress * 1.4);\n  ctx.fillStyle = '#f6f1de';\n  ctx.font = '800 76px Arial, sans-serif';\n  ctx.textAlign = 'center';\n  ctx.fillText('UI Video', 0, -20);\n  ctx.font = '28px Arial, sans-serif';\n  ctx.fillStyle = '#79d9ff';\n  ctx.fillText('segment authored custom-code', 0, 44);\n  ctx.restore();\n}"
+        "code": "function render(t, context) {\n  const p = Math.max(0, Math.min(1, context.progress ?? 0));\n  const ease = 1 - Math.pow(1 - p, 3);\n  const ctx = context.ctx;\n  const w = context.width;\n  const h = context.height;\n  function rr(x, y, width, height, radius) {\n    ctx.beginPath();\n    ctx.moveTo(x + radius, y);\n    ctx.lineTo(x + width - radius, y);\n    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);\n    ctx.lineTo(x + width, y + height - radius);\n    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);\n    ctx.lineTo(x + radius, y + height);\n    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);\n    ctx.lineTo(x, y + radius);\n    ctx.quadraticCurveTo(x, y, x + radius, y);\n    ctx.closePath();\n  }\n  const bg = ctx.createLinearGradient(0, 0, w, h);\n  bg.addColorStop(0, '#050914');\n  bg.addColorStop(0.55, '#0B1D34');\n  bg.addColorStop(1, '#13251A');\n  ctx.fillStyle = bg;\n  ctx.fillRect(0, 0, w, h);\n  ctx.save();\n  ctx.globalAlpha = 0.1;\n  ctx.strokeStyle = '#DFF6FF';\n  for (let x = -140; x < w + 140; x += 88) {\n    ctx.beginPath();\n    ctx.moveTo(x + (t * 18) % 88, 0);\n    ctx.lineTo(x - 280 + (t * 18) % 88, h);\n    ctx.stroke();\n  }\n  ctx.restore();\n  ctx.save();\n  ctx.globalAlpha = ease;\n  ctx.textAlign = 'center';\n  ctx.textBaseline = 'middle';\n  ctx.shadowColor = '#00D4FF';\n  ctx.shadowBlur = 28;\n  ctx.fillStyle = '#FFFFFF';\n  ctx.font = '900 88px Arial, sans-serif';\n  ctx.fillText('Segmented UI Video', w / 2, h / 2 - 58 + (1 - ease) * 40);\n  ctx.shadowBlur = 0;\n  ctx.fillStyle = '#00D4FF';\n  ctx.font = '800 30px Arial, sans-serif';\n  ctx.fillText('each scene owns its Canvas renderer', w / 2, h / 2 + 34);\n  ctx.restore();\n}"
       },
       {
         "id": "system",
@@ -31,18 +35,9 @@
         "startTime": 3,
         "endTime": 6,
         "dependencies": [
-          "gsap",
-          "d3"
+          "canvas2d"
         ],
-        "layers": [
-          {
-            "id": "system-grid",
-            "type": "custom-code",
-            "properties": {
-              "code": "function render(t, context) {\n  const { ctx, width: w, height: h, progress } = context;\n  ctx.fillStyle = '#0d1117';\n  ctx.fillRect(0, 0, w, h);\n  ctx.save();\n  ctx.translate(w / 2, h / 2);\n  for (let i = 0; i < 48; i++) {\n    const angle = i / 48 * Math.PI * 2 + t * 0.6;\n    const radius = 90 + i * 4 + Math.sin(t + i) * 12;\n    const x = Math.cos(angle) * radius;\n    const y = Math.sin(angle) * radius * 0.52;\n    ctx.fillStyle = i % 2 ? '#7bd88f' : '#ff5c8a';\n    ctx.globalAlpha = 0.25 + progress * 0.7;\n    ctx.beginPath();\n    ctx.arc(x, y, 4 + (i % 5), 0, Math.PI * 2);\n    ctx.fill();\n  }\n  ctx.restore();\n}"
-            }
-          }
-        ]
+        "code": "function render(t, context) {\n  const p = Math.max(0, Math.min(1, context.progress ?? 0));\n  const ease = 1 - Math.pow(1 - p, 3);\n  const ctx = context.ctx;\n  const w = context.width;\n  const h = context.height;\n  function rr(x, y, width, height, radius) {\n    ctx.beginPath();\n    ctx.moveTo(x + radius, y);\n    ctx.lineTo(x + width - radius, y);\n    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);\n    ctx.lineTo(x + width, y + height - radius);\n    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);\n    ctx.lineTo(x + radius, y + height);\n    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);\n    ctx.lineTo(x, y + radius);\n    ctx.quadraticCurveTo(x, y, x + radius, y);\n    ctx.closePath();\n  }\n  const bg = ctx.createLinearGradient(0, 0, w, h);\n  bg.addColorStop(0, '#050914');\n  bg.addColorStop(0.55, '#0B1D34');\n  bg.addColorStop(1, '#13251A');\n  ctx.fillStyle = bg;\n  ctx.fillRect(0, 0, w, h);\n  ctx.save();\n  ctx.globalAlpha = 0.1;\n  ctx.strokeStyle = '#DFF6FF';\n  for (let x = -140; x < w + 140; x += 88) {\n    ctx.beginPath();\n    ctx.moveTo(x + (t * 18) % 88, 0);\n    ctx.lineTo(x - 280 + (t * 18) % 88, h);\n    ctx.stroke();\n  }\n  ctx.restore();\n  ctx.fillStyle = '#FFFFFF';\n  ctx.font = '900 62px Arial, sans-serif';\n  ctx.textAlign = 'left';\n  ctx.fillText('Segment Runtime', 120, 150);\n  ctx.fillStyle = '#A9BDD2';\n  ctx.font = '24px Arial, sans-serif';\n  ctx.fillText('timed data cards and chart motion', 124, 200);\n  for (let i = 0; i < 32; i++) {\n    const x = 150 + i * 48;\n    const height = (120 + Math.sin(t * 1.3 + i * 0.45) * 60 + (i % 8) * 34) * ease;\n    const color = i % 3 === 0 ? '#7BD88F' : i % 3 === 1 ? '#00D4FF' : '#F2AA4C';\n    const g = ctx.createLinearGradient(x, 830 - height, x, 830);\n    g.addColorStop(0, color);\n    g.addColorStop(1, 'rgba(255,255,255,0.12)');\n    ctx.fillStyle = g;\n    rr(x, 830 - height, 28, height, 8);\n    ctx.fill();\n  }\n  ctx.strokeStyle = '#FFFFFF';\n  ctx.globalAlpha = 0.72;\n  ctx.lineWidth = 4;\n  ctx.beginPath();\n  for (let k = 0; k < 180; k++) {\n    const x = 140 + k * (w - 280) / 179;\n    const y = 410 + Math.sin(k * 0.12 + t * 2) * 52 + Math.cos(k * 0.031 + t) * 78;\n    if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);\n  }\n  ctx.stroke();\n}"
       },
       {
         "id": "resolve",
@@ -50,17 +45,9 @@
         "startTime": 6,
         "endTime": 9,
         "dependencies": [
-          "rough"
+          "canvas2d"
         ],
-        "nodes": [
-          {
-            "id": "resolve-code",
-            "type": "custom-code",
-            "properties": {
-              "code": "export default {\n  render(t, context) {\n    const { ctx, width: w, height: h, progress } = context;\n    ctx.fillStyle = '#111318';\n    ctx.fillRect(0, 0, w, h);\n    ctx.save();\n    ctx.translate(w / 2, h / 2);\n    ctx.strokeStyle = '#f2aa4c';\n    ctx.lineWidth = 8;\n    ctx.globalAlpha = 0.5 + progress * 0.5;\n    ctx.beginPath();\n    ctx.roundRect(-260, -110, 520, 220, 28);\n    ctx.stroke();\n    ctx.fillStyle = '#ffffff';\n    ctx.font = '700 48px Arial, sans-serif';\n    ctx.textAlign = 'center';\n    ctx.fillText('Runtime Core', 0, -8);\n    ctx.font = '24px Arial, sans-serif';\n    ctx.fillStyle = '#dfe9f5';\n    ctx.fillText('timeline + code + video export', 0, 48);\n    ctx.restore();\n  }\n}"
-            }
-          }
-        ]
+        "code": "function render(t, context) {\n  const p = Math.max(0, Math.min(1, context.progress ?? 0));\n  const ease = 1 - Math.pow(1 - p, 3);\n  const ctx = context.ctx;\n  const w = context.width;\n  const h = context.height;\n  function rr(x, y, width, height, radius) {\n    ctx.beginPath();\n    ctx.moveTo(x + radius, y);\n    ctx.lineTo(x + width - radius, y);\n    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);\n    ctx.lineTo(x + width, y + height - radius);\n    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);\n    ctx.lineTo(x + radius, y + height);\n    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);\n    ctx.lineTo(x, y + radius);\n    ctx.quadraticCurveTo(x, y, x + radius, y);\n    ctx.closePath();\n  }\n  const bg = ctx.createLinearGradient(0, 0, w, h);\n  bg.addColorStop(0, '#050914');\n  bg.addColorStop(0.55, '#0B1D34');\n  bg.addColorStop(1, '#13251A');\n  ctx.fillStyle = bg;\n  ctx.fillRect(0, 0, w, h);\n  ctx.save();\n  ctx.globalAlpha = 0.1;\n  ctx.strokeStyle = '#DFF6FF';\n  for (let x = -140; x < w + 140; x += 88) {\n    ctx.beginPath();\n    ctx.moveTo(x + (t * 18) % 88, 0);\n    ctx.lineTo(x - 280 + (t * 18) % 88, h);\n    ctx.stroke();\n  }\n  ctx.restore();\n  ctx.textAlign = 'center';\n  ctx.fillStyle = '#FFFFFF';\n  ctx.font = '900 70px Arial, sans-serif';\n  ctx.fillText('Custom code to MP4', w / 2, 225);\n  const steps = [\"Segment\",\"Layer\",\"Frame\",\"Encode\"];\n  for (let i = 0; i < steps.length; i++) {\n    const x = w / 2 - (steps.length - 1) * 160 + i * 320;\n    const y = h / 2 + 60;\n    ctx.globalAlpha = ease;\n    ctx.fillStyle = 'rgba(5, 9, 20, 0.78)';\n    ctx.strokeStyle = i === steps.length - 1 ? '#F2AA4C' : '#00D4FF';\n    ctx.lineWidth = 2;\n    rr(x - 118, y - 50, 236, 100, 18);\n    ctx.fill();\n    ctx.stroke();\n    ctx.fillStyle = '#EEF6FF';\n    ctx.font = '800 25px Arial, sans-serif';\n    ctx.fillText(steps[i], x, y + 8);\n    if (i < steps.length - 1) {\n      ctx.strokeStyle = 'rgba(255,255,255,0.34)';\n      ctx.beginPath();\n      ctx.moveTo(x + 126, y);\n      ctx.lineTo(x + 194, y);\n      ctx.stroke();\n    }\n  }\n}"
       }
     ]
   },
