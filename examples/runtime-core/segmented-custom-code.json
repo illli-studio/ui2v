@@ -5,9 +5,14 @@
   "version": "0.2.0",
   "duration": 9,
   "fps": 30,
-  "resolution": { "width": 1280, "height": 720 },
+  "resolution": {
+    "width": 1920,
+    "height": 1080
+  },
   "backgroundColor": "#080a0f",
-  "dependencies": ["canvas2d"],
+  "dependencies": [
+    "canvas2d"
+  ],
   "timeline": {
     "segments": [
       {
@@ -15,7 +20,9 @@
         "label": "Opening",
         "startTime": 0,
         "endTime": 3,
-        "dependencies": ["animejs"],
+        "dependencies": [
+          "animejs"
+        ],
         "code": "function render(t, context) {\n  const { ctx, width: w, height: h, progress } = context;\n  ctx.fillStyle = '#080a0f';\n  ctx.fillRect(0, 0, w, h);\n  ctx.save();\n  ctx.translate(w / 2, h / 2);\n  ctx.globalAlpha = Math.min(1, progress * 1.4);\n  ctx.fillStyle = '#f6f1de';\n  ctx.font = '800 76px Arial, sans-serif';\n  ctx.textAlign = 'center';\n  ctx.fillText('UI Video', 0, -20);\n  ctx.font = '28px Arial, sans-serif';\n  ctx.fillStyle = '#79d9ff';\n  ctx.fillText('segment authored custom-code', 0, 44);\n  ctx.restore();\n}"
       },
       {
@@ -23,7 +30,10 @@
         "label": "Runtime System",
         "startTime": 3,
         "endTime": 6,
-        "dependencies": ["gsap", "d3"],
+        "dependencies": [
+          "gsap",
+          "d3"
+        ],
         "layers": [
           {
             "id": "system-grid",
@@ -39,7 +49,9 @@
         "label": "Resolve",
         "startTime": 6,
         "endTime": 9,
-        "dependencies": ["rough"],
+        "dependencies": [
+          "rough"
+        ],
         "nodes": [
           {
             "id": "resolve-code",

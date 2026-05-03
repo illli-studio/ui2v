@@ -81,7 +81,9 @@ export interface PreviewSession {
 interface PageRenderSuccess {
   success: true;
   mimeType: string;
-  base64: string;
+  base64?: string;
+  streamed?: boolean;
+  bytes?: number;
 }
 
 interface PageRenderFailure {
@@ -100,6 +102,8 @@ declare global {
   var __ui2vRender: (project: AnimationProject, options: ReturnType<typeof normalizePageOptions>) => Promise<PageRenderResult>;
   // eslint-disable-next-line no-var
   var __ui2vPreview: (project: AnimationProject, options: ReturnType<typeof normalizePreviewOptions>) => Promise<void>;
+  // eslint-disable-next-line no-var
+  var __ui2vWriteOutputChunk: ((chunkBase64: string) => Promise<void>) | undefined;
 }
 
 const IMPORT_MAP: Record<string, string> = {
@@ -166,10 +170,13 @@ export async function renderToFile(
   const diagnostics: string[] = [];
   let server: http.Server | null = null;
   let browser: Browser | null = null;
+  const tempOutput = `${absoluteOutput}.tmp-${process.pid}-${Date.now()}`;
+  let streamedOutput = false;
 
   try {
     validateRenderOptions(options);
     await fsp.mkdir(path.dirname(absoluteOutput), { recursive: true });
+    await fsp.rm(tempOutput, { force: true });
 
     options.onProgress?.({
       phase: 'setup',
@@ -208,6 +215,10 @@ export async function renderToFile(
     await page.exposeFunction('__ui2vReportProgress', (progress: RenderProgress) => {
       options.onProgress?.(progress);
     });
+    await page.exposeFunction('__ui2vWriteOutputChunk', async (chunkBase64: string) => {
+      streamedOutput = true;
+      await fsp.appendFile(tempOutput, Buffer.from(chunkBase64, 'base64'));
+    });
     attachDiagnostics(page, options, diagnostics);
 
     try {
@@ -238,8 +249,15 @@ export async function renderToFile(
       throw new Error(formatRenderError(`${pageResult.error}${stack}`, diagnostics));
     }
 
-    const buffer = Buffer.from(pageResult.base64, 'base64');
-    await fsp.writeFile(absoluteOutput, buffer);
+    if (pageResult.streamed) {
+      await fsp.rm(absoluteOutput, { force: true });
+      await fsp.rename(tempOutput, absoluteOutput);
+    } else if (pageResult.base64) {
+      const buffer = Buffer.from(pageResult.base64, 'base64');
+      await fsp.writeFile(absoluteOutput, buffer);
+    } else {
+      throw new Error('Browser renderer completed without returning video data');
+    }
 
     const stat = await fsp.stat(absoluteOutput);
     options.onProgress?.({
@@ -257,6 +275,9 @@ export async function renderToFile(
       duration: Date.now() - startTime,
     };
   } catch (error) {
+    if (streamedOutput || fs.existsSync(tempOutput)) {
+      await fsp.rm(tempOutput, { force: true }).catch(() => {});
+    }
     return {
       success: false,
       duration: Date.now() - startTime,
@@ -693,6 +714,57 @@ function createRenderHTML(): string {
       return btoa(binary);
     };
 
+    const bytesToBase64 = (bytes) => {
+      let binary = '';
+      const chunkSize = 32768;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+      }
+      return btoa(binary);
+    };
+
+    const streamBlobToNode = async (blob, totalFrames) => {
+      if (typeof window.__ui2vWriteOutputChunk !== 'function' || typeof blob.stream !== 'function') {
+        report({
+          phase: 'finalizing',
+          progress: 96,
+          currentFrame: totalFrames,
+          totalFrames,
+          message: 'Transferring encoded video to Node',
+        });
+        return { base64: await blobToBase64(blob) };
+      }
+
+      const reader = blob.stream().getReader();
+      let written = 0;
+      let lastReported = 0;
+
+      while (true) {
+        const result = await reader.read();
+        if (result.done) break;
+
+        const chunk = result.value;
+        written += chunk.byteLength;
+        await window.__ui2vWriteOutputChunk(bytesToBase64(chunk));
+
+        if (blob.size > 0) {
+          const transferProgress = 96 + Math.min(3, (written / blob.size) * 3);
+          if (transferProgress - lastReported >= 0.25 || written === blob.size) {
+            lastReported = transferProgress;
+            report({
+              phase: 'finalizing',
+              progress: transferProgress,
+              currentFrame: totalFrames,
+              totalFrames,
+              message: 'Writing encoded video to disk',
+            });
+          }
+        }
+      }
+
+      return { streamed: true, bytes: written };
+    };
+
     window.__ui2vRender = async (project, options) => {
       let adapter;
       try {
@@ -781,10 +853,12 @@ function createRenderHTML(): string {
           }
         );
 
+        const output = await streamBlobToNode(blob, totalFrames);
+
         return {
           success: true,
           mimeType: blob.type || 'video/mp4',
-          base64: await blobToBase64(blob),
+          ...output,
         };
       } catch (error) {
         console.error(error);

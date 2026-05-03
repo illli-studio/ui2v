@@ -113,6 +113,7 @@ animation.json
 - [Roadmap](docs/roadmap.md)
 - [Renderer Notes](docs/ui2v-renderer-readme.md)
 - [Open Renderer Preview](docs/open-source-preview-article.md)
+- [Render Lab Example](examples/render-lab/README.md)
 
 Chinese versions are available next to each document with `.zh.md` suffix, or
 as `README_zh.md` at the repository root.

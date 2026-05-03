@@ -11,6 +11,7 @@ export async function loadProjectFile(inputPath: string): Promise<AnimationProje
 }
 
 export function loadProjectJson(projectJson: string): AnimationProject {
+  projectJson = stripUtf8Bom(projectJson);
   const rawProject = JSON.parse(projectJson);
   if (rawProject?.schema === 'uiv-runtime') {
     const validation = validateRuntimeProject(rawProject);
@@ -31,6 +32,7 @@ export function validateProjectJson(projectJson: string): {
   errors: ValidationError[];
   warnings: ValidationWarning[];
 } {
+  projectJson = stripUtf8Bom(projectJson);
   const rawProject = JSON.parse(projectJson);
   if (rawProject?.schema === 'uiv-runtime') {
     const result = validateRuntimeProject(rawProject);
@@ -42,6 +44,10 @@ export function validateProjectJson(projectJson: string): {
   }
 
   return validateProjectStructure(parseProject(projectJson));
+}
+
+function stripUtf8Bom(value: string): string {
+  return value.charCodeAt(0) === 0xfeff ? value.slice(1) : value;
 }
 
 export function parseOptionalPositiveInt(value: string | undefined, name: string): number | undefined {

@@ -3,7 +3,10 @@
   "mode": "template",
   "duration": 120,
   "fps": 30,
-  "resolution": { "width": 1920, "height": 1080 },
+  "resolution": {
+    "width": 1920,
+    "height": 1080
+  },
   "backgroundColor": "#071019",
   "template": {
     "layers": [

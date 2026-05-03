@@ -110,6 +110,7 @@ animation.json
 - [路线图](docs/roadmap.zh.md)
 - [渲染器说明](docs/ui2v-renderer-readme.zh.md)
 - [开源渲染器预览](docs/open-source-preview-article.zh.md)
+- [Render Lab 示例](examples/render-lab/README.zh.md)
 
 英文版本与各文档放在同一目录，根文档为 `README.md`。
 

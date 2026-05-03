@@ -5,9 +5,14 @@
   "version": "0.3.0",
   "duration": 12,
   "fps": 30,
-  "resolution": { "width": 1280, "height": 720 },
+  "resolution": {
+    "width": 1920,
+    "height": 1080
+  },
   "backgroundColor": "#07090f",
-  "dependencies": ["canvas2d"],
+  "dependencies": [
+    "canvas2d"
+  ],
   "timeline": {
     "segments": [
       {
@@ -15,7 +20,9 @@
         "label": "Identity",
         "startTime": 0,
         "endTime": 3,
-        "dependencies": ["animejs"],
+        "dependencies": [
+          "animejs"
+        ],
         "code": "function render(t, context) {\n  const { ctx, width: w, height: h, progress } = context;\n  const ease = 1 - Math.pow(1 - progress, 3);\n  ctx.fillStyle = '#07090f';\n  ctx.fillRect(0, 0, w, h);\n  ctx.save();\n  ctx.translate(w / 2, h / 2);\n  for (let i = 0; i < 36; i++) {\n    const a = i / 36 * Math.PI * 2 + t * 0.35;\n    const r = 110 + i * 5 + Math.sin(t * 1.2 + i) * 18;\n    const x = Math.cos(a) * r;\n    const y = Math.sin(a) * r * 0.42;\n    ctx.globalAlpha = 0.18 + ease * 0.45;\n    ctx.fillStyle = i % 3 === 0 ? '#7bd88f' : i % 3 === 1 ? '#79d9ff' : '#ff5c8a';\n    ctx.beginPath();\n    ctx.arc(x, y, 3 + (i % 4), 0, Math.PI * 2);\n    ctx.fill();\n  }\n  ctx.globalAlpha = 1;\n  ctx.textAlign = 'center';\n  ctx.textBaseline = 'middle';\n  ctx.fillStyle = '#f7f1df';\n  ctx.font = '800 82px Arial, sans-serif';\n  ctx.fillText('UIV Runtime', 0, -32 + (1 - ease) * 28);\n  ctx.fillStyle = '#9fb6c9';\n  ctx.font = '26px Arial, sans-serif';\n  ctx.fillText('custom-code video, timed by segments', 0, 48);\n  ctx.restore();\n}"
       },
       {
@@ -23,7 +30,9 @@
         "label": "Timeline",
         "startTime": 3,
         "endTime": 6,
-        "dependencies": ["gsap"],
+        "dependencies": [
+          "gsap"
+        ],
         "layers": [
           {
             "id": "timeline-code",
@@ -39,7 +48,10 @@
         "label": "Orchestration",
         "startTime": 6,
         "endTime": 9,
-        "dependencies": ["d3", "rough"],
+        "dependencies": [
+          "d3",
+          "rough"
+        ],
         "nodes": [
           {
             "id": "orchestration-code",
@@ -55,7 +67,9 @@
         "label": "Export",
         "startTime": 9,
         "endTime": 12,
-        "dependencies": ["animejs"],
+        "dependencies": [
+          "animejs"
+        ],
         "code": "export default {\n  render(t, context) {\n    const { ctx, width: w, height: h, progress } = context;\n    const ease = 1 - Math.pow(1 - progress, 4);\n    ctx.fillStyle = '#090a12';\n    ctx.fillRect(0, 0, w, h);\n    ctx.save();\n    ctx.translate(w / 2, h / 2);\n    ctx.strokeStyle = '#f2aa4c';\n    ctx.lineWidth = 6;\n    ctx.globalAlpha = 0.45 + ease * 0.55;\n    ctx.beginPath();\n    ctx.roundRect(-310, -142, 620, 284, 34);\n    ctx.stroke();\n    for (let i = 0; i < 24; i++) {\n      const p = (i / 24 + progress) % 1;\n      const x = -280 + p * 560;\n      const y = -94 + Math.sin(p * Math.PI * 2 + t * 2) * 54;\n      ctx.fillStyle = i % 2 ? '#79d9ff' : '#7bd88f';\n      ctx.globalAlpha = 0.18 + p * 0.65;\n      ctx.fillRect(x, y, 18, 18);\n    }\n    ctx.globalAlpha = 1;\n    ctx.textAlign = 'center';\n    ctx.textBaseline = 'middle';\n    ctx.fillStyle = '#f7f1df';\n    ctx.font = '800 58px Arial, sans-serif';\n    ctx.fillText('Deterministic Video Export', 0, -18);\n    ctx.fillStyle = '#9fb6c9';\n    ctx.font = '24px Arial, sans-serif';\n    ctx.fillText('segment-aware frames + custom-code diagnostics', 0, 50);\n    ctx.restore();\n  }\n}"
       }
     ]
