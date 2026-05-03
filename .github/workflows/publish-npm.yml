@@ -45,6 +45,15 @@ jobs:
           fetch-depth: 0
           ref: ${{ steps.version.outputs.ref }}
 
+      - name: Validate checkout
+        run: |
+          pwd
+          ls -la
+          test -f package.json || {
+            echo "::error::package.json was not found after checkout. Make sure tag v${{ steps.version.outputs.version }} points to the release commit."
+            exit 1
+          }
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
