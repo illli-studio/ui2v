@@ -1,6 +1,6 @@
 {
   "name": "@ui2v/core",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Core types, parsers, and utilities for ui2v",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

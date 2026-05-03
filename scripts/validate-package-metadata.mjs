@@ -14,7 +14,7 @@ const packageDirs = [
 const textFiles = [
   'CONTRIBUTING.md',
   'STATUS.md',
-  'docs/ui2v-renderer-readme.md',
+  'docs/renderer-notes.md',
   'docs/runtime-core.md',
   'packages/cli/src/commands/info.ts',
   'packages/cli/src/commands/init.ts',

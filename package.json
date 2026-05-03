@@ -1,6 +1,6 @@
 {
   "name": "@ui2v/workspace",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "ui2v workspace",
   "private": true,
   "workspaces": [
@@ -10,6 +10,8 @@
     "build": "bun run --filter '*' build",
     "dev": "bun run --filter '*' dev",
     "clean": "bun run --filter '*' clean",
+    "version:bump": "node scripts/bump-version.mjs",
+    "publish:packages": "bun run test && npm publish --workspaces --access public",
     "test": "bun run build && bun run test:unit && bun run test:metadata && bun run test:surface && bun run test:pack && bun run test:examples && bun run test:validate && bun run test:cli-errors && bun run test:inspect-runtime && bun run test:smoke && bun run test:render-scale && bun run test:runtime-render && bun run test:init",
     "test:ci": "bun run build && bun run test:unit && bun run test:metadata && bun run test:surface && bun run test:pack && bun run test:examples && bun run test:validate && bun run test:cli-errors && bun run test:inspect-runtime",
     "test:unit": "bun run packages/runtime-core/test/runtime-core.test.mjs && bun run packages/engine/test/canvas-draw-command-executor.test.mjs && bun run packages/engine/test/custom-code-runtime.test.mjs",

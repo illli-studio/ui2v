@@ -1,6 +1,6 @@
 {
   "name": "@ui2v/runtime-core",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Runtime core for ui2v scene graphs, timelines, schedulers, and engine adapters",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -44,7 +44,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@ui2v/core": "1.0.2"
+    "@ui2v/core": "1.0.3"
   },
   "devDependencies": {
     "rimraf": "^6.0.1",
