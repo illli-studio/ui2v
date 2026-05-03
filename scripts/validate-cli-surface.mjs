@@ -24,7 +24,7 @@ expectExcludes(renderHelp, 'prores', 'render help');
 expectExcludes(renderHelp, 'vp9', 'render help');
 
 const docs = [
-  'docs/ui2v-renderer-readme.md',
+  'docs/renderer-notes.md',
   'docs/quick-start.md',
   'docs/getting-started.md',
   'packages/cli/README.md',

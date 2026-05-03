@@ -40,6 +40,14 @@ The production path currently targets MP4. AVC/H.264 is the default codec
 because it is the most broadly available Chromium WebCodecs path. HEVC support
 depends on the launched browser.
 
+Typical CLI usage through `@ui2v/cli`:
+
+```bash
+ui2v render animation.json -o output.mp4 --quality low|medium|high|ultra|cinema
+ui2v render animation.json -o output.mp4 --render-scale 2
+ui2v preview animation.json --pixel-ratio 2
+```
+
 Encoded MP4 blobs are streamed from the browser page back to Node.js in chunks,
 then written to a temporary file and renamed into place. This avoids returning a
 single large base64 payload through Puppeteer for long or high-resolution

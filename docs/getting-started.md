@@ -3,7 +3,8 @@
 [中文](getting-started.zh.md)
 
 ui2v renders structured animation JSON through a real browser. This guide
-explains the workflow, project shape, and common troubleshooting steps.
+explains the `@ui2v/cli` workflow, project shape, and common troubleshooting
+steps.
 
 ## Workflow
 
@@ -63,6 +64,8 @@ toggled with `d`.
 
 ```bash
 ui2v render animation.json -o output.mp4 --quality high --codec avc
+ui2v render animation.json -o output.mp4 --quality low|medium|high|ultra|cinema
+ui2v render animation.json -o output.mp4 --render-scale 2
 ```
 
 MP4 with AVC/H.264 is the default production target. HEVC is available only when

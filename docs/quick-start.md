@@ -67,9 +67,11 @@ npx puppeteer browsers install chrome
 
 ```bash
 ui2v render animation.json -o output.mp4 --quality high --fps 60
+ui2v render animation.json -o output.mp4 --quality low|medium|high|ultra|cinema
 ui2v render animation.json -o output.mp4 --width 1280 --height 720 --render-scale 2
 ui2v render animation.json -o output.mp4 --codec avc --bitrate 8000000
 ui2v render animation.json -o output.mp4 --timeout 300 --no-headless
+ui2v preview animation.json --pixel-ratio 2
 ```
 
 `--render-scale` supersamples frames before encoding. For example,

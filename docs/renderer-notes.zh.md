@@ -36,6 +36,14 @@ Node.js CLI
 生产路径当前主要输出 MP4。AVC/H.264 是默认 codec，因为它是 Chromium
 WebCodecs 中最通用的路径。HEVC 支持取决于启动的浏览器。
 
+通过 `@ui2v/cli` 的常见用法：
+
+```bash
+ui2v render animation.json -o output.mp4 --quality low|medium|high|ultra|cinema
+ui2v render animation.json -o output.mp4 --render-scale 2
+ui2v preview animation.json --pixel-ratio 2
+```
+
 编码后的 MP4 Blob 会从浏览器页面分块流回 Node.js，写入临时文件后再 rename
 到目标路径。这样可以避免长视频或高分辨率导出时，把一个巨大的 base64 payload
 一次性通过 Puppeteer 返回给 Node。
