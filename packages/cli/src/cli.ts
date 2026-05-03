@@ -8,13 +8,14 @@ import { initCommand } from './commands/init';
 import { doctorCommand } from './commands/doctor';
 import { infoCommand } from './commands/info';
 import { inspectRuntimeCommand } from './commands/inspect-runtime';
+import { getCliVersion } from './version';
 
 const program = new Command();
 
 program
   .name('ui2v')
   .description('CLI for creating, previewing, and rendering ui2v video compositions')
-  .version('1.0.2');
+  .version(getCliVersion());
 
 program
   .command('init')
