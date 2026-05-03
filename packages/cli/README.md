@@ -8,14 +8,15 @@ ui2v animation JSON projects.
 ## Install
 
 ```bash
-npm install -g @ui2v/cli
+npm install -g ui2v
+# or: bun install -g ui2v
 ui2v --version
 ```
 
 Run without global install:
 
 ```bash
-npx @ui2v/cli --version
+npx ui2v --version
 ```
 
 ## Commands

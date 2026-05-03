@@ -16,8 +16,12 @@ require Electron, FFmpeg, or `node-canvas`.
 
 ## Published CLI
 
+The short `ui2v` package installs the command and depends on the implementation
+package `@ui2v/cli`.
+
 ```bash
-npm install -g @ui2v/cli
+npm install -g ui2v
+# or: bun install -g ui2v
 ui2v doctor
 ui2v validate examples/basic-text/animation.json --verbose
 ui2v preview examples/basic-text/animation.json
@@ -27,8 +31,8 @@ ui2v render examples/basic-text/animation.json -o .tmp/basic-text.mp4
 Run without a global install:
 
 ```bash
-npx @ui2v/cli --version
-npx @ui2v/cli render animation.json -o output.mp4
+npx ui2v --version
+npx ui2v render animation.json -o output.mp4
 ```
 
 ## Local Workspace

@@ -10,6 +10,7 @@ const packageDirs = [
   'packages/engine',
   'packages/producer',
   'packages/runtime-core',
+  'packages/ui2v',
 ];
 const textFiles = [
   'CONTRIBUTING.md',
@@ -101,13 +102,15 @@ async function validateWorkspacePackage(packageDir) {
   requireField(pkg, 'repository', `${label}/package.json`);
   requireField(pkg, 'bugs', `${label}/package.json`);
   requireField(pkg, 'homepage', `${label}/package.json`);
-  requireField(pkg, 'types', `${label}/package.json`);
+  if (pkg.name !== 'ui2v') {
+    requireField(pkg, 'types', `${label}/package.json`);
+  }
 
   if (pkg.license !== 'MIT') {
     failures.push(`${label}/package.json: expected MIT license, got ${pkg.license}`);
   }
 
-  if (!pkg.exports?.['.']) {
+  if (pkg.name !== 'ui2v' && !pkg.exports?.['.']) {
     failures.push(`${label}/package.json: missing exports["."]`);
   }
 
@@ -117,8 +120,9 @@ async function validateWorkspacePackage(packageDir) {
 
   validateDependencyVersions(pkg, label);
 
-  if (!Array.isArray(pkg.files) || !pkg.files.includes('dist') || !pkg.files.includes('README.md')) {
-    failures.push(`${label}/package.json: files must include dist and README.md`);
+  const requiredFiles = pkg.name === 'ui2v' ? ['bin', 'README.md'] : ['dist', 'README.md'];
+  if (!Array.isArray(pkg.files) || requiredFiles.some(file => !pkg.files.includes(file))) {
+    failures.push(`${label}/package.json: files must include ${requiredFiles.join(' and ')}`);
   } else {
     for (const file of pkg.files) {
       if (!existsSync(resolve(root, packageDir, file))) {

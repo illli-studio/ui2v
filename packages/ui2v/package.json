@@ -1,0 +1,39 @@
+{
+  "name": "ui2v",
+  "version": "1.0.3",
+  "description": "Convenience package for installing the ui2v CLI",
+  "bin": {
+    "ui2v": "bin/ui2v.js"
+  },
+  "files": [
+    "bin",
+    "README.md"
+  ],
+  "keywords": [
+    "ui2v",
+    "video",
+    "animation",
+    "rendering",
+    "cli"
+  ],
+  "author": "ui2v",
+  "license": "MIT",
+  "homepage": "https://github.com/illli-studio/ui2v#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/illli-studio/ui2v.git",
+    "directory": "packages/ui2v"
+  },
+  "bugs": {
+    "url": "https://github.com/illli-studio/ui2v/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@ui2v/cli": "1.0.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

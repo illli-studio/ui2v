@@ -33,14 +33,15 @@ The main render path does not require Electron, FFmpeg, or `node-canvas`.
 Install the published CLI:
 
 ```bash
-npm install -g @ui2v/cli
+npm install -g ui2v
+# or: bun install -g ui2v
 ui2v --version
 ```
 
 Run without a global install:
 
 ```bash
-npx @ui2v/cli --version
+npx ui2v --version
 ```
 
 Build from this workspace:
@@ -87,7 +88,8 @@ node packages/cli/dist/cli.js render examples/basic-text/animation.json -o .tmp/
 @ui2v/runtime-core  Scene graph, timeline, frame plans, adapters, commands
 @ui2v/engine        Browser Canvas renderer and WebCodecs exporter
 @ui2v/producer      Puppeteer-backed preview and MP4 render pipeline
-@ui2v/cli           Command-line interface installed as ui2v
+ui2v                Short install package for the ui2v command
+@ui2v/cli           Implementation package for the command-line interface
 ```
 
 ## Render Flow
