@@ -1,44 +1,46 @@
 # Roadmap
 
-## Done
+[中文](roadmap.zh.md)
 
-- Monorepo package structure.
-- Core JSON parser and validator.
-- Runtime core with scene graph, timeline evaluation, frame plans, and adapter
-  contracts.
-- Browser rendering engine with template canvas and custom code support.
-- Puppeteer-backed preview server.
-- Puppeteer/WebCodecs MP4 render pipeline.
-- CLI commands for `doctor`, `validate`, `preview`, `render`, `inspect-runtime`,
-  `init`, and `info`.
-- MIT license alignment.
-- Clean workspace build with declaration files.
-- CLI smoke test that renders a short MP4 and checks the output file.
-- `doctor` check for default AVC/H.264 WebCodecs encoder support.
+This roadmap describes the open renderer stack in this repository. It does not
+promise a full desktop application.
+
+## Completed
+
+- Bun workspace monorepo.
+- `@ui2v/core` parser, validator, and shared project types.
+- `@ui2v/runtime-core` scene graph, timeline, frame plans, dependency metadata,
+  adapter routing, and draw commands.
+- `@ui2v/engine` browser renderer with template canvas, custom-code layers, and
+  WebCodecs export.
+- `@ui2v/producer` Puppeteer-backed preview and MP4 render pipeline.
+- `@ui2v/cli` commands: `doctor`, `init`, `validate`, `preview`, `render`,
+  `inspect-runtime`, and `info`.
+- Workspace build and smoke-test coverage for example renders.
 
 ## Near Term
 
-- Normalize generated artifacts into `.tmp/` and keep the repository
-  root clean.
-- Improve error messages for failed browser dependency loads and codec
-  negotiation failures.
+- Improve browser dependency diagnostics.
+- Make install guidance clearer for environments that already have Chrome or
+  Edge installed.
+- Keep generated outputs under `.tmp/`.
+- Expand example coverage for runtime JSON and custom-code entrypoints.
 
 ## Rendering Reliability
 
-- Support an offline/vendor mode for browser ESM dependencies.
-- Replace base64 video return with chunked or streamed transfer from browser to
-  Node.
-- Add fixture-based render tests for multiple project formats.
-- Add metadata probing for generated MP4 files in smoke tests.
+- Add offline/vendor mode for browser ESM dependencies.
+- Replace browser-to-Node base64 transfer with streamed or chunked output.
+- Add fixture-based render tests across more project shapes.
+- Probe generated MP4 metadata in smoke tests.
 
 ## Feature Expansion
 
-- WebM output if browser support and muxing are reliable enough.
+- WebM output when browser support and muxing are reliable.
 - Batch rendering.
 - Audio mixing.
 - Template library.
 - Plugin system.
-- Distributed or cloud rendering.
+- More adapter backends for Three.js, Pixi, Lottie, DOM, and headless rendering.
 
 ## Ecosystem
 
@@ -46,7 +48,4 @@
 - Online playground.
 - Community templates.
 - VS Code extension.
-
-## Contributing
-
-See [CONTRIBUTING.md](../CONTRIBUTING.md).
+- Distributed or cloud rendering integrations.

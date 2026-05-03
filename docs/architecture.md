@@ -1,73 +1,69 @@
 # Architecture
 
-ui2v is a standalone CLI renderer for ui2v animation JSON files. It
-keeps the animation model and runtime reusable while delegating browser-native
-rendering work to Chrome or Edge through Puppeteer.
+[中文](architecture.zh.md)
 
-## Package Structure
+ui2v is organized as a browser-backed rendering pipeline with a reusable
+runtime core. Node.js owns orchestration and file output; the browser owns
+Canvas rendering and WebCodecs encoding.
 
-```
-@ui2v/core          Types, parsers, validators
-@ui2v/runtime-core  Scene graph, timeline, scheduler, adapter contracts
-@ui2v/engine        Browser rendering engine and exporters
-@ui2v/producer      Puppeteer/WebCodecs render and preview pipeline
-@ui2v/cli          Command-line interface, installed as the ui2v command
+## Packages
+
+```text
+@ui2v/core          Project types, parsing, validation, shared helpers
+@ui2v/runtime-core  Scene graph, timeline, frame plans, adapter contracts
+@ui2v/engine        Browser Canvas rendering, custom code, WebCodecs export
+@ui2v/producer      Puppeteer preview/render pipeline and local static server
+@ui2v/cli           User-facing command-line interface
 ```
 
 ## Render Flow
 
-```
+```text
 JSON project
-  -> CLI parses and validates input
-  -> producer starts a local static server
-  -> Puppeteer launches Chrome or Edge
-  -> browser loads engine/runtime/core bundles
-  -> runtime evaluates frames from the shared timeline
-  -> engine renders frames to Canvas
+  -> CLI reads and validates input
+  -> producer starts a localhost static server
+  -> Puppeteer launches Chrome, Edge, or Chromium
+  -> browser loads core/runtime/engine bundles
+  -> runtime evaluates deterministic frame state
+  -> engine renders the frame to Canvas
   -> WebCodecs encodes MP4 in the browser
-  -> producer writes the resulting video to disk
+  -> producer receives the encoded data and writes the file
 ```
 
-## Runtime Core
+## Runtime Boundary
 
-`@ui2v/runtime-core` is the shared deterministic layer. It normalizes projects
-into a composition and scene graph, evaluates timeline state at a given time,
-builds segment frame plans, and exposes dependency preload windows. Preview,
-render, and inspection commands should continue to share this layer so they
-sample the same timeline.
+`@ui2v/runtime-core` does not render pixels. It normalizes projects, evaluates
+timeline state, builds render plans, routes work to adapters, and can lower a
+frame into renderer-neutral draw commands.
 
-## CLI Commands
+This separation keeps preview, inspection, and export on one timing model.
 
-- `init` creates a starter project.
-- `validate` parses and validates a project JSON file.
-- `preview` opens an interactive browser preview.
-- `render` exports an MP4 file through the browser-backed producer.
-- `inspect-runtime` prints normalized runtime state and sampled frames.
-- `doctor` checks the local browser/rendering environment.
-- `info` prints version and environment details.
+## Browser Boundary
+
+`@ui2v/engine` expects browser APIs: DOM, Canvas, OffscreenCanvas where
+available, and WebCodecs for export. It hosts template layers, custom-code
+layers, canvas command execution, and video encoding.
+
+## Producer Boundary
+
+`@ui2v/producer` is the bridge between Node.js and the browser. It starts the
+local server, launches the browser, exposes progress callbacks, collects
+diagnostics, and writes the resulting MP4.
 
 ## Design Principles
 
-1. **Browser-first rendering** - DOM, Canvas, WebCodecs, and animation libraries
-   run in the environment they are designed for.
-2. **Type-safe boundaries** - project parsing, runtime evaluation, rendering,
-   and production are separated into packages.
-3. **Deterministic timelines** - preview and export should be driven by the
-   same frame plan.
-4. **Portable CLI** - the renderer should not require Electron or native canvas
-   bindings for the primary path.
-5. **Extensible adapters** - rendering backends can be added behind the runtime
-   adapter contracts.
+1. Browser-native rendering for browser-native animation libraries.
+2. Deterministic runtime timing shared by preview, inspect, and render.
+3. Clear package boundaries for parsing, runtime, rendering, production, and
+   CLI concerns.
+4. Portable setup without Electron, FFmpeg, or native canvas in the primary
+   path.
+5. Adapter-friendly runtime contracts for future Canvas, WebGL, DOM, Lottie,
+   Pixi, Three.js, and headless backends.
 
-## Current Constraints
+## Known Constraints
 
-- MP4 is the primary production output.
-- AVC/H.264 is the default codec; HEVC is available only when the local browser
-  supports it.
-- Browser ESM dependencies are currently loaded from pinned CDN URLs in the
-  producer import map.
-- Distributed rendering and offline dependency vendoring are future work.
-
-## License
-
-MIT
+- MP4 is the primary output.
+- AVC/H.264 is the default codec; HEVC depends on local browser support.
+- Browser ESM dependencies are currently loaded through pinned CDN URLs.
+- Large renders still transfer encoded video from browser to Node as base64.

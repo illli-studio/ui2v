@@ -1,10 +1,9 @@
 # @ui2v/engine
 
-Browser rendering engine for ui2v.
+[中文](README.zh.md)
 
-The engine runs inside a browser context and renders ui2v projects to Canvas. It
-is used by `@ui2v/producer` for preview and MP4 export through Puppeteer,
-Chromium, Canvas, and WebCodecs.
+Browser rendering engine for ui2v. It renders projects to Canvas and supports
+browser-native MP4 export through WebCodecs.
 
 ## Install
 
@@ -36,10 +35,9 @@ engine.dispose();
 
 ## Notes
 
-- This package is browser-first and expects DOM, Canvas, and WebCodecs for
-  export paths.
-- Some legacy compatibility exports remain for older ui2v integrations, but the
-  standalone CLI path does not require Electron, FFmpeg, or node-canvas.
+- This package expects browser APIs such as DOM, Canvas, and WebCodecs.
+- The standalone CLI path does not require Electron, FFmpeg, or `node-canvas`.
+- Some compatibility exports remain for older ui2v integration paths.
 
 ## License
 

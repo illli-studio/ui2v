@@ -1,99 +1,84 @@
 # Quick Start
 
-Get a ui2v render running from the published CLI or from the local workspace.
+[中文](quick-start.zh.md)
 
-## Prerequisites
+This guide gets a ui2v JSON project rendered from either the published CLI or a
+local workspace build.
 
-- Node.js >= 18
-- Bun >= 1.0 for local workspace development
-- Chrome, Edge, or Puppeteer's bundled Chromium
+## Requirements
 
-The main render path does not require Electron, FFmpeg, or node-canvas.
+- Node.js 18 or newer
+- Bun 1.0 or newer for local workspace development
+- Chrome, Edge, Chromium, or Puppeteer's installed Chromium
 
-## Install The Published CLI
+The primary render path uses Puppeteer, Canvas, and WebCodecs. It does not
+require Electron, FFmpeg, or `node-canvas`.
+
+## Published CLI
 
 ```bash
 npm install -g @ui2v/cli
 ui2v doctor
+ui2v validate examples/basic-text/animation.json --verbose
+ui2v preview examples/basic-text/animation.json
+ui2v render examples/basic-text/animation.json -o .tmp/basic-text.mp4
 ```
-
-The npm package is `@ui2v/cli`; the installed command is `ui2v`.
 
 Run without a global install:
 
 ```bash
 npx @ui2v/cli --version
+npx @ui2v/cli render animation.json -o output.mp4
 ```
 
-## Local Install And Build
+## Local Workspace
 
 ```bash
 bun install
 bun run build
+node packages/cli/dist/cli.js doctor
+node packages/cli/dist/cli.js preview examples/basic-text/animation.json
+node packages/cli/dist/cli.js render examples/basic-text/animation.json -o .tmp/basic-text.mp4
 ```
 
-## Check The Environment
+If Puppeteer browser download fails during install and you already have Chrome
+or Edge installed, you can skip the bundled browser download:
 
 ```bash
-node packages/cli/dist/cli.js doctor
+PUPPETEER_SKIP_DOWNLOAD=true bun install
 ```
 
-If no browser is found, install Chrome or Edge, set `PUPPETEER_EXECUTABLE_PATH`,
-or run:
+Windows PowerShell:
+
+```powershell
+$env:PUPPETEER_SKIP_DOWNLOAD='true'; bun install
+```
+
+## Browser Setup
+
+If `doctor` cannot find a browser, install Chrome or Edge, set
+`PUPPETEER_EXECUTABLE_PATH`, or install Puppeteer's browser:
 
 ```bash
 npx puppeteer browsers install chrome
 ```
 
-## Validate An Example
+## Useful Render Options
 
 ```bash
-ui2v validate examples/basic-text/animation.json --verbose
-```
-
-## Preview
-
-```bash
-ui2v preview examples/basic-text/animation.json
-```
-
-Open the printed preview URL in a browser. The preview UI includes play/pause,
-restart, and scrubbing controls.
-
-Preview renders at a 2x canvas pixel ratio by default for a sharper browser
-view. Use `--pixel-ratio 1` for lower GPU usage, or raise it up to
-`--pixel-ratio 4` when checking fine details:
-
-```bash
-ui2v preview examples/basic-text/animation.json --pixel-ratio 3
-```
-
-## Render MP4
-
-```bash
-ui2v render examples/basic-text/animation.json -o .tmp/basic-text.mp4
-```
-
-Useful render options:
-
-```bash
---quality low|medium|high|ultra|cinema
---fps 30
---width 1280 --height 720
---render-scale 2
---codec avc
---bitrate 8000000
---timeout 300
---no-headless
+ui2v render animation.json -o output.mp4 --quality high --fps 60
+ui2v render animation.json -o output.mp4 --width 1280 --height 720 --render-scale 2
+ui2v render animation.json -o output.mp4 --codec avc --bitrate 8000000
+ui2v render animation.json -o output.mp4 --timeout 300 --no-headless
 ```
 
 `--render-scale` supersamples frames before encoding. For example,
-`--width 1280 --height 720 --render-scale 2` renders internally at 2560x1440,
-then downsamples to a 1280x720 video for cleaner edges and text.
+`--width 1280 --height 720 --render-scale 2` renders internally at 2560x1440
+and then downsamples to 1280x720.
 
 ## Next Steps
 
+- [Getting Started](getting-started.md)
+- [Architecture](architecture.md)
+- [Runtime Core](runtime-core.md)
 - [CLI Reference](../packages/cli/README.md)
-- [Examples](../examples/)
-- [Architecture](./architecture.md)
-- [Runtime Core](./runtime-core.md)

@@ -1,78 +1,75 @@
 # Contributing to ui2v
 
-Thank you for helping improve ui2v.
+[中文](CONTRIBUTING_zh.md)
+
+Thank you for helping improve ui2v. This repository is focused on the open CLI
+renderer, runtime packages, examples, and documentation.
 
 ## Development Setup
 
-### Prerequisites
+Requirements:
 
-- Node.js >= 18
-- Bun >= 1.0
-- Chrome, Edge, or Puppeteer's bundled Chromium
+- Node.js 18 or newer
+- Bun 1.0 or newer
+- Chrome, Edge, Chromium, or Puppeteer's installed Chromium
 
-The primary renderer does not require Electron, FFmpeg, or node-canvas.
-
-### Install
+Install and build:
 
 ```bash
-git clone https://github.com/ui2v/ui2v.git
-cd ui2v
 bun install
-```
-
-### Build
-
-```bash
 bun run build
 ```
 
-### Test
+If Puppeteer cannot download Chromium and you already have Chrome or Edge:
 
 ```bash
+PUPPETEER_SKIP_DOWNLOAD=true bun install
+```
+
+## Useful Checks
+
+```bash
+bun run build
 bun run test:unit
-bun run test:metadata
 bun run test:examples
+bun run test:validate
 bun run test:smoke
-bun run test:init
 bun run test
 ```
 
-Useful CLI smoke checks:
+CLI smoke checks:
 
 ```bash
 node packages/cli/dist/cli.js doctor
 node packages/cli/dist/cli.js validate examples/basic-text/animation.json --verbose
 node packages/cli/dist/cli.js preview examples/basic-text/animation.json
 node packages/cli/dist/cli.js render examples/basic-text/animation.json -o .tmp/basic-text.mp4
-node packages/cli/dist/cli.js init hello-ui2v
 ```
 
-## Project Structure
+## Project Layout
 
 ```text
-ui2v/
-  packages/
-    core/          JSON parsing, validation, and shared types
-    runtime-core/  scene graph, timeline, frame plans, adapter contracts
-    engine/        browser rendering engine and exporters
-    producer/      Puppeteer/WebCodecs preview and render pipeline
-    cli/           command-line interface
-  examples/        smoke-test animation JSON files
-  docs/            project documentation
-  scripts/         helper scripts
+packages/core          JSON parsing, validation, and shared types
+packages/runtime-core  scene graph, timeline, frame plans, adapter contracts
+packages/engine        browser renderer and exporters
+packages/producer      Puppeteer/WebCodecs preview and render pipeline
+packages/cli           command-line interface
+examples               smoke-test animation JSON projects
+docs                   documentation
+scripts                validation and smoke-test scripts
 ```
 
-## Code Style
+## Guidelines
 
-- Use TypeScript.
 - Keep package boundaries clear.
-- Prefer existing helpers and runtime-core contracts over one-off logic.
-- Add focused tests for new runtime, rendering, and CLI behavior.
-- Keep generated artifacts in `.tmp/`.
+- Prefer runtime-core contracts over one-off rendering logic.
+- Add focused tests for runtime, rendering, and CLI changes.
+- Update English and Chinese docs together when behavior changes.
+- Keep generated artifacts in `.tmp/` or ignored build directories.
 
 ## Commit Messages
 
-Use conventional commits when possible:
+Conventional commits are encouraged:
 
 - `feat: add new feature`
 - `fix: bug fix`
@@ -81,14 +78,6 @@ Use conventional commits when possible:
 - `test: add tests`
 - `chore: maintenance`
 
-## Pull Requests
-
-1. Create a feature branch.
-2. Make focused changes.
-3. Add or update tests.
-4. Update docs when behavior changes.
-5. Run the build and relevant tests before submitting.
-
 ## License
 
-By contributing, you agree that your contributions will be licensed under MIT.
+By contributing, you agree that your contributions are licensed under MIT.

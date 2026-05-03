@@ -1,24 +1,23 @@
 # @ui2v/cli
 
-[中文](README.zh.md)
+[English](README.md)
 
-Command-line interface for validating, previewing, inspecting, and rendering
-ui2v animation JSON projects.
+用于校验、预览、检查和渲染 ui2v 动画 JSON 项目的命令行入口。
 
-## Install
+## 安装
 
 ```bash
 npm install -g @ui2v/cli
 ui2v --version
 ```
 
-Run without global install:
+不全局安装也可以运行：
 
 ```bash
 npx @ui2v/cli --version
 ```
 
-## Commands
+## 命令
 
 ```bash
 ui2v doctor
@@ -30,7 +29,7 @@ ui2v render animation.json -o output.mp4
 ui2v info
 ```
 
-## Render Options
+## 渲染参数
 
 ```bash
 ui2v render animation.json -o output.mp4 --quality high --fps 60
@@ -39,10 +38,10 @@ ui2v render animation.json -o output.mp4 --codec avc --bitrate 8000000
 ui2v render animation.json -o output.mp4 --timeout 300 --no-headless
 ```
 
-`render` currently targets MP4. AVC/H.264 is the default codec. HEVC can be
-requested only when the local browser supports it.
+`render` 当前主要输出 MP4。AVC/H.264 是默认编码器。只有本地浏览器支持时才
+可以请求 HEVC。
 
-## Local Development
+## 本地开发
 
 ```bash
 bun install
@@ -50,13 +49,13 @@ bun run build
 node packages/cli/dist/cli.js doctor
 ```
 
-If no browser is found, install Chrome or Edge, set
-`PUPPETEER_EXECUTABLE_PATH`, or run:
+如果找不到浏览器，可以安装 Chrome 或 Edge，设置 `PUPPETEER_EXECUTABLE_PATH`，
+或者运行：
 
 ```bash
 npx puppeteer browsers install chrome
 ```
 
-## License
+## 许可证
 
 MIT

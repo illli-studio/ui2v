@@ -1,129 +1,36 @@
-# Getting Started with ui2v
+# Getting Started
 
-This guide walks through both the published CLI flow and the local workspace
-flow for rendering ui2v animation JSON files.
+[中文](getting-started.zh.md)
 
-## Prerequisites
+ui2v renders structured animation JSON through a real browser. This guide
+explains the workflow, project shape, and common troubleshooting steps.
 
-- Node.js >= 18
-- Bun >= 1.0 for local workspace development
-- Chrome, Edge, or Puppeteer's bundled Chromium
+## Workflow
 
-The main render path uses Puppeteer, Canvas, and WebCodecs. It does not require
-Electron, FFmpeg, or node-canvas.
+1. Write or generate an `animation.json` project.
+2. Validate it with `ui2v validate`.
+3. Preview it in a browser with `ui2v preview`.
+4. Render MP4 with `ui2v render`.
+5. Inspect timeline state with `ui2v inspect-runtime` when debugging.
 
-## Install The Published CLI
-
-```bash
-npm install -g @ui2v/cli
-ui2v doctor
-```
-
-The npm package is `@ui2v/cli`; the installed command is `ui2v`.
-
-Run without a global install:
-
-```bash
-npx @ui2v/cli --version
-npx @ui2v/cli init my-video
-```
-
-## Local Install And Build
-
-```bash
-bun install
-bun run build
-```
-
-## Check Your Environment
-
-```bash
-node packages/cli/dist/cli.js doctor
-```
-
-If no browser is found, install Chrome or Edge, set `PUPPETEER_EXECUTABLE_PATH`,
-or run:
-
-```bash
-npx puppeteer browsers install chrome
-```
-
-## Validate An Example
-
-```bash
-ui2v validate examples/basic-text/animation.json --verbose
-```
-
-## Preview An Example
-
-```bash
-ui2v preview examples/basic-text/animation.json
-```
-
-Open the printed URL in a browser. The preview UI includes play/pause, restart,
-and a scrubber.
-
-Preview renders at a 2x canvas pixel ratio by default for a sharper browser
-view. Use `--pixel-ratio 1` for lower GPU usage, or raise it up to
-`--pixel-ratio 4` when checking fine details:
-
-```bash
-ui2v preview examples/basic-text/animation.json --pixel-ratio 3
-```
-
-## Render An MP4
-
-```bash
-ui2v render examples/basic-text/animation.json -o .tmp/basic-text.mp4
-```
-
-Useful render options:
-
-```bash
---quality low|medium|high|ultra|cinema
---fps 30
---width 1280 --height 720
---render-scale 2
---codec avc
---bitrate 8000000
---timeout 300
---no-headless
-```
-
-`--render-scale` supersamples frames before encoding. For example,
-`--width 1280 --height 720 --render-scale 2` renders internally at 2560x1440,
-then downsamples to a 1280x720 video for cleaner edges and text.
-
-## Project Structure
+## Minimal Project
 
 ```json
 {
-  "id": "my-video",
+  "id": "basic-text",
   "mode": "template",
-  "duration": 5,
-  "fps": 60,
-  "resolution": "1080p",
+  "duration": 2,
+  "fps": 30,
+  "resolution": { "width": 640, "height": 360 },
   "template": {
-    "background": {
-      "type": "color",
-      "value": "#000000"
-    },
     "layers": [
       {
-        "id": "title",
-        "type": "text",
-        "content": "Hello ui2v",
-        "style": {
-          "fontSize": 72,
-          "color": "#ffffff"
-        },
-        "transform": {
-          "x": 960,
-          "y": 540
-        },
-        "animation": {
-          "in": { "type": "fadeIn", "duration": 1 },
-          "out": { "type": "fadeOut", "duration": 1 }
+        "id": "text-layer",
+        "type": "custom-code",
+        "startTime": 0,
+        "endTime": 2,
+        "properties": {
+          "code": "function createRenderer() { return { render(t, context) { const ctx = context.mainContext; ctx.fillStyle = '#101820'; ctx.fillRect(0, 0, context.width, context.height); ctx.fillStyle = '#fff'; ctx.fillText('ui2v', 40, 80); } }; }"
         }
       }
     ]
@@ -131,31 +38,60 @@ then downsamples to a 1280x720 video for cleaner edges and text.
 }
 ```
 
-## Troubleshooting
+`custom-code` layers can expose `createRenderer()`, a render function, an object
+with `render`, or compatible module/class shapes handled by the runtime.
 
-### Browser Not Found
-
-Install Chrome or Edge, set `PUPPETEER_EXECUTABLE_PATH`, or install Puppeteer's
-browser:
-
-```bash
-npx puppeteer browsers install chrome
-```
-
-### WebCodecs Not Available
-
-Use a recent Chromium-based browser. Run `doctor` again after changing browser
-configuration.
-
-### Validation Errors
+## Validation
 
 ```bash
 ui2v validate animation.json --verbose
 ```
 
-## Next Steps
+Validation checks the top-level project shape, timing, resolution, and layer
+structure before the browser renderer starts.
 
-- [CLI Reference](../packages/cli/README.md)
-- [Examples](../examples/)
-- [Architecture](./architecture.md)
-- [Runtime Core](./runtime-core.md)
+## Preview
+
+```bash
+ui2v preview animation.json --pixel-ratio 2
+```
+
+The preview page includes play, pause, restart, scrubbing, and a debug overlay
+toggled with `d`.
+
+## Render
+
+```bash
+ui2v render animation.json -o output.mp4 --quality high --codec avc
+```
+
+MP4 with AVC/H.264 is the default production target. HEVC is available only when
+the launched browser supports it.
+
+## Inspect Runtime
+
+```bash
+ui2v inspect-runtime animation.json --time 0 --time 1 --json
+```
+
+Inspection prints normalized composition data, sampled frame state, dependency
+information, routing metadata, and draw command summaries.
+
+## Troubleshooting
+
+Use `ui2v doctor` first. Most setup problems are browser discovery,
+WebCodecs support, or codec negotiation issues.
+
+If Puppeteer cannot download Chromium during install, use a locally installed
+Chrome or Edge and skip the download:
+
+```bash
+PUPPETEER_SKIP_DOWNLOAD=true bun install
+```
+
+## Related Docs
+
+- [Quick Start](quick-start.md)
+- [Architecture](architecture.md)
+- [Runtime Core](runtime-core.md)
+- [Roadmap](roadmap.md)

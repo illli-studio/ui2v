@@ -1,16 +1,16 @@
 # @ui2v/core
 
-[中文](README.zh.md)
+[English](README.md)
 
-Core project types, JSON parsing, validation, and shared helpers for ui2v.
+ui2v 的核心项目类型、JSON 解析、校验和共享工具。
 
-## Install
+## 安装
 
 ```bash
 npm install @ui2v/core
 ```
 
-## Usage
+## 使用
 
 ```ts
 import {
@@ -31,15 +31,15 @@ console.log(getProjectDimensions(project));
 console.log(getTotalFrames(project));
 ```
 
-## Responsibilities
+## 职责
 
-- Parse ui2v animation JSON.
-- Validate common project structure issues.
-- Provide shared TypeScript types.
-- Resolve dimensions and frame counts from project metadata.
+- 解析 ui2v 动画 JSON。
+- 校验常见项目结构问题。
+- 提供共享 TypeScript 类型。
+- 根据项目元数据解析尺寸和帧数。
 
-Rendering is handled by `@ui2v/engine` and `@ui2v/producer`.
+渲染由 `@ui2v/engine` 和 `@ui2v/producer` 负责。
 
-## License
+## 许可证
 
 MIT
