@@ -1,6 +1,6 @@
 # Quick Start
 
-[中文](quick-start.zh.md)
+[Chinese](quick-start.zh.md)
 
 This guide gets a ui2v JSON project rendered from either the published CLI or a
 local workspace build.
@@ -23,16 +23,16 @@ package `@ui2v/cli`.
 npm install -g ui2v
 # or: bun install -g ui2v
 ui2v doctor
-ui2v validate examples/basic-text/animation.json --verbose
-ui2v preview examples/basic-text/animation.json
-ui2v render examples/basic-text/animation.json -o .tmp/basic-text.mp4
+ui2v validate examples/logo-reveal/animation.json --verbose
+ui2v preview examples/logo-reveal/animation.json --pixel-ratio 2
+ui2v render examples/logo-reveal/animation.json -o .tmp/logo-reveal.mp4 --quality high
 ```
 
 Run without a global install:
 
 ```bash
 npx ui2v --version
-npx ui2v render animation.json -o output.mp4
+npx ui2v render examples/logo-reveal/animation.json -o logo-reveal.mp4 --quality high
 ```
 
 ## Local Workspace
@@ -41,8 +41,8 @@ npx ui2v render animation.json -o output.mp4
 bun install
 bun run build
 node packages/cli/dist/cli.js doctor
-node packages/cli/dist/cli.js preview examples/basic-text/animation.json
-node packages/cli/dist/cli.js render examples/basic-text/animation.json -o .tmp/basic-text.mp4
+node packages/cli/dist/cli.js preview examples/logo-reveal/animation.json --pixel-ratio 2
+node packages/cli/dist/cli.js render examples/logo-reveal/animation.json -o .tmp/logo-reveal.mp4 --quality high
 ```
 
 If Puppeteer browser download fails during install and you already have Chrome
@@ -81,6 +81,13 @@ ui2v preview animation.json --pixel-ratio 2
 `--render-scale` supersamples frames before encoding. For example,
 `--width 1280 --height 720 --render-scale 2` renders internally at 2560x1440
 and then downsamples to 1280x720.
+
+## Choose An Example
+
+- Start with [`examples/logo-reveal`](../examples/logo-reveal/README.md) for a polished brand intro.
+- Use [`examples/product-showcase`](../examples/product-showcase/README.md) for a launch-video structure.
+- Use [`examples/render-lab`](../examples/render-lab/README.md) to stress-test data, particles, and pseudo-3D.
+- Use [`examples/basic-text`](../examples/basic-text/README.md) for the smallest sanity check.
 
 ## Next Steps
 

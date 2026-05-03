@@ -1,11 +1,11 @@
 # @ui2v/cli
 
-[中文](README.zh.md)
+[Chinese](README.zh.md)
 
 Command-line interface for validating, previewing, inspecting, and rendering
 ui2v animation JSON projects.
 
-## Install
+Most users should install the short package name:
 
 ```bash
 npm install -g ui2v
@@ -13,10 +13,26 @@ npm install -g ui2v
 ui2v --version
 ```
 
-Run without global install:
+This implementation package can also be installed directly:
+
+```bash
+npm install -g @ui2v/cli
+```
+
+## First Render
+
+```bash
+ui2v doctor
+ui2v validate examples/logo-reveal/animation.json --verbose
+ui2v preview examples/logo-reveal/animation.json --pixel-ratio 2
+ui2v render examples/logo-reveal/animation.json -o .tmp/logo-reveal.mp4 --quality high
+```
+
+Run without a global install:
 
 ```bash
 npx ui2v --version
+npx ui2v render examples/logo-reveal/animation.json -o logo-reveal.mp4 --quality high
 ```
 
 ## Commands

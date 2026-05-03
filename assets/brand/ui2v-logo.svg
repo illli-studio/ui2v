@@ -1,0 +1,37 @@
+<svg width="1200" height="360" viewBox="0 0 1200 360" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">ui2v logo</title>
+  <desc id="desc">A cinematic ui2v wordmark with a play-shaped frame and browser video colors.</desc>
+  <defs>
+    <linearGradient id="markGradient" x1="72" y1="48" x2="306" y2="306" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00D4FF"/>
+      <stop offset="0.48" stop-color="#7BD88F"/>
+      <stop offset="1" stop-color="#F2AA4C"/>
+    </linearGradient>
+    <linearGradient id="wordGradient" x1="372" y1="90" x2="870" y2="268" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="0.58" stop-color="#D7E6F4"/>
+      <stop offset="1" stop-color="#8EA8BE"/>
+    </linearGradient>
+    <filter id="softShadow" x="18" y="18" width="330" height="330" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="24" stdDeviation="20" flood-color="#00101C" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="360" rx="44" fill="#050914"/>
+  <path d="M78 291C184 252 204 100 327 68" stroke="#00D4FF" stroke-opacity="0.2" stroke-width="2"/>
+  <path d="M38 94C178 124 233 305 356 296" stroke="#F2AA4C" stroke-opacity="0.2" stroke-width="2"/>
+  <g filter="url(#softShadow)">
+    <rect x="66" y="54" width="252" height="252" rx="58" fill="#071019"/>
+    <rect x="78" y="66" width="228" height="228" rx="48" stroke="url(#markGradient)" stroke-width="18"/>
+    <path d="M164 126C164 111 181 102 194 110L251 146C263 154 263 172 251 180L194 216C181 224 164 215 164 200V126Z" fill="url(#markGradient)"/>
+    <path d="M114 254H270" stroke="#DFF6FF" stroke-opacity="0.84" stroke-width="14" stroke-linecap="round"/>
+    <path d="M114 106H270" stroke="#DFF6FF" stroke-opacity="0.2" stroke-width="10" stroke-linecap="round"/>
+  </g>
+  <text x="374" y="211" fill="url(#wordGradient)" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="154" font-weight="900" letter-spacing="0">ui2v</text>
+  <text x="386" y="272" fill="#90AFC8" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="30" font-weight="700" letter-spacing="0">JSON timeline to browser-rendered MP4</text>
+  <g opacity="0.92">
+    <rect x="890" y="116" width="176" height="52" rx="16" fill="#0B1D34" stroke="#1F4E66"/>
+    <text x="978" y="151" text-anchor="middle" fill="#7BD88F" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20" font-weight="800" letter-spacing="0">Canvas</text>
+    <rect x="930" y="188" width="176" height="52" rx="16" fill="#0B1D34" stroke="#55421E"/>
+    <text x="1018" y="223" text-anchor="middle" fill="#F2AA4C" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20" font-weight="800" letter-spacing="0">WebCodecs</text>
+  </g>
+</svg>

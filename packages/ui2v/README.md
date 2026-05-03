@@ -1,11 +1,19 @@
 # ui2v
 
-Convenience package for installing the ui2v CLI with the short package name.
+Short package name for installing the ui2v CLI.
 
 ```bash
 npm install -g ui2v
 ui2v --version
 ui2v doctor
+```
+
+Render the recommended starter example from the repository:
+
+```bash
+ui2v validate examples/logo-reveal/animation.json --verbose
+ui2v preview examples/logo-reveal/animation.json --pixel-ratio 2
+ui2v render examples/logo-reveal/animation.json -o .tmp/logo-reveal.mp4 --quality high
 ```
 
 With Bun:
