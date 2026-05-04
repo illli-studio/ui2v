@@ -3,7 +3,7 @@
 [English](README.md)
 
 <p align="center">
-  <img src="assets/brand/ui2v-logo-readme-official-banner.png" alt="ui2v logo" width="760">
+  <img src="assets/brand/ui2v-logo-readme-official-banner.jpg" alt="ui2v logo" width="760">
 </p>
 
 <p align="center">
@@ -15,6 +15,16 @@
 ui2v 是一个把 JSON 动画项目渲染成 MP4 的开源工具链。它使用本机浏览器环境（`puppeteer-core` 控制 Chrome/Edge/Chromium）、Canvas、WebCodecs 和 Node.js 文件输出，不会自动下载内置 Chromium。
 
 如果你想做产品发布视频、AI 生成视频、数据故事、UI 演示、品牌开场，或者可以进入 Git 工作流的可复现动效系统，ui2v 会很适合。
+
+## Codex Skill
+
+安装仓库内置 skill：
+
+```bash
+npx skills add illli-studio/ui2v --skill ui2v
+```
+
+这个 skill 放在 [`skills/ui2v`](skills/ui2v/SKILL.md)，覆盖示例创建、runtime-core 项目、渲染能力选择，以及 README showcase 素材导出流程。
 
 ## 效果展示
 

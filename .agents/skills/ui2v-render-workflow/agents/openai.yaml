@@ -1,7 +1,0 @@
-interface:
-  display_name: "ui2v Render Workflow"
-  short_description: "Validate, render, and export ui2v README media assets."
-  brand_color: "#7BD88F"
-  default_prompt: "Use $ui2v-render-workflow to validate, render, and refresh README preview assets for a ui2v example."
-policy:
-  allow_implicit_invocation: true

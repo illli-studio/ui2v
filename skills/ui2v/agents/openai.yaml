@@ -1,0 +1,3 @@
+display_name: ui2v
+short_description: Build, validate, render, and document ui2v animation/video projects.
+default_prompt: Create or update a polished ui2v example, validate it, render it, and prepare README-ready preview assets.

@@ -3,7 +3,7 @@
 [中文](README_zh.md)
 
 <p align="center">
-  <img src="assets/brand/ui2v-logo-readme-official-banner.png" alt="ui2v logo" width="760">
+  <img src="assets/brand/ui2v-logo-readme-official-banner.jpg" alt="ui2v logo" width="760">
 </p>
 
 <p align="center">
@@ -18,6 +18,17 @@ clips with system Chrome/Edge automation, Canvas, WebCodecs, and Node.js.
 
 Use it when you want launch clips, AI-generated product videos, data stories,
 UI demos, brand openers, or repeatable motion systems that can live in Git.
+
+## Codex Skill
+
+Install the repo-local ui2v skill:
+
+```bash
+npx skills add illli-studio/ui2v --skill ui2v
+```
+
+The skill lives in [`skills/ui2v`](skills/ui2v/SKILL.md) and covers example creation,
+runtime-core projects, renderer capabilities, and README showcase asset export.
 
 ## Showcase
 

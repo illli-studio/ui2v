@@ -1,7 +1,0 @@
-interface:
-  display_name: "ui2v Runtime Core"
-  short_description: "Create and inspect uiv-runtime segmented video projects."
-  brand_color: "#F2AA4C"
-  default_prompt: "Use $ui2v-runtime-core to create or inspect a segmented uiv-runtime demo for ui2v."
-policy:
-  allow_implicit_invocation: true
