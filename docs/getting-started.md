@@ -22,7 +22,7 @@ steps.
   "mode": "template",
   "duration": 2,
   "fps": 30,
-  "resolution": { "width": 640, "height": 360 },
+  "resolution": { "width": 1920, "height": 1080 },
   "template": {
     "layers": [
       {

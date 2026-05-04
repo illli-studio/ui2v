@@ -69,9 +69,9 @@ export async function previewCommand(
 
 function normalizePreviewOptions(options: PreviewOptions) {
   return {
-    fps: parseOptionalPositiveInt(options.fps, 'fps'),
-    width: parseOptionalPositiveInt(options.width, 'width'),
-    height: parseOptionalPositiveInt(options.height, 'height'),
+    fps: parseOptionalPositiveInt(options.fps, 'fps', 240),
+    width: parseOptionalPositiveInt(options.width, 'width', 7680),
+    height: parseOptionalPositiveInt(options.height, 'height', 4320),
     pixelRatio: parsePreviewPixelRatio(options.pixelRatio),
     timeoutMs: options.timeout ? parseOptionalPositiveInt(options.timeout, 'timeout')! * 1000 : undefined,
   };
@@ -86,8 +86,11 @@ function parsePreviewPixelRatio(value: string | undefined): number {
   if (!Number.isFinite(parsed) || parsed <= 0) {
     throw new Error('--pixel-ratio must be a positive number');
   }
+  if (parsed > 4) {
+    throw new Error('--pixel-ratio must be less than or equal to 4');
+  }
 
-  return Math.max(1, Math.min(4, parsed));
+  return parsed;
 }
 
 function waitUntilInterrupted(onStop: () => Promise<void>): Promise<void> {

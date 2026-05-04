@@ -50,7 +50,7 @@ function stripUtf8Bom(value: string): string {
   return value.charCodeAt(0) === 0xfeff ? value.slice(1) : value;
 }
 
-export function parseOptionalPositiveInt(value: string | undefined, name: string): number | undefined {
+export function parseOptionalPositiveInt(value: string | undefined, name: string, max?: number): number | undefined {
   if (value === undefined) {
     return undefined;
   }
@@ -59,10 +59,13 @@ export function parseOptionalPositiveInt(value: string | undefined, name: string
   if (!Number.isInteger(parsed) || parsed <= 0) {
     throw new Error(`--${name} must be a positive integer`);
   }
+  if (max !== undefined && parsed > max) {
+    throw new Error(`--${name} must be less than or equal to ${max}`);
+  }
   return parsed;
 }
 
-export function parseOptionalPositiveNumber(value: string | undefined, name: string): number | undefined {
+export function parseOptionalPositiveNumber(value: string | undefined, name: string, max?: number): number | undefined {
   if (value === undefined) {
     return undefined;
   }
@@ -70,6 +73,9 @@ export function parseOptionalPositiveNumber(value: string | undefined, name: str
   const parsed = Number(value);
   if (!Number.isFinite(parsed) || parsed <= 0) {
     throw new Error(`--${name} must be a positive number`);
+  }
+  if (max !== undefined && parsed > max) {
+    throw new Error(`--${name} must be less than or equal to ${max}`);
   }
   return parsed;
 }

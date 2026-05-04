@@ -87,12 +87,12 @@ export async function renderCommand(
 }
 
 function normalizeRenderOptions(options: RenderOptions) {
-  const fps = parseOptionalPositiveInt(options.fps, 'fps');
-  const width = parseOptionalPositiveInt(options.width, 'width');
-  const height = parseOptionalPositiveInt(options.height, 'height');
-  const renderScale = parseOptionalPositiveNumber(options.renderScale, 'render-scale') ?? 1;
+  const fps = parseOptionalPositiveInt(options.fps, 'fps', 240);
+  const width = parseOptionalPositiveInt(options.width, 'width', 7680);
+  const height = parseOptionalPositiveInt(options.height, 'height', 4320);
+  const renderScale = parseOptionalPositiveNumber(options.renderScale, 'render-scale', 4) ?? 1;
   const timeoutMs = options.timeout ? parseOptionalPositiveInt(options.timeout, 'timeout')! * 1000 : undefined;
-  const bitrate = parseOptionalPositiveInt(options.bitrate, 'bitrate');
+  const bitrate = parseOptionalPositiveInt(options.bitrate, 'bitrate', 200_000_000);
 
   if (options.format !== 'mp4') {
     throw new Error(`Only mp4 output is currently supported. Received: ${options.format}`);

@@ -1,4 +1,4 @@
-﻿import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+﻿import { access, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -40,6 +40,7 @@ try {
   assertIncludes(combined, 'Render failed');
   assertIncludes(combined, 'intentional render failure');
   assertNotIncludes(combined, 'Protocol error (Runtime.callFunctionOn)');
+  await assertMissing(output);
   console.log('Render failure smoke passed: custom-code render errors are surfaced');
 } finally {
   await rm(tempDir, { recursive: true, force: true });
@@ -67,4 +68,13 @@ function assertNotIncludes(value, needle) {
   if (value.includes(needle)) {
     throw new Error(`Expected output not to include ${JSON.stringify(needle)}.\nOutput:\n${value}`);
   }
+}
+
+async function assertMissing(file) {
+  try {
+    await access(file);
+  } catch {
+    return;
+  }
+  throw new Error(`Expected failed render not to leave output file: ${file}`);
 }

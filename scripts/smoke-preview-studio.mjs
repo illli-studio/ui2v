@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
@@ -9,6 +9,9 @@ const { startPreviewServer } = require('../packages/producer/dist/index.js');
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const input = resolve(root, 'examples/hero-ai-launch/animation.json');
 const runtimeInput = resolve(root, 'examples/runtime-core/animation.json');
+const invalidInput = resolve(root, '.tmp/preview-invalid-project.json');
+mkdirSync(dirname(invalidInput), { recursive: true });
+writeFileSync(invalidInput, JSON.stringify({ id: 'invalid-preview-project', duration: 1, fps: 30, resolution: { width: 1920, height: 1080 } }, null, 2));
 const project = parseProject(readFileSync(input, 'utf8'));
 const session = await startPreviewServer(project, {
   sourcePath: input,
@@ -30,6 +33,10 @@ try {
   assert(html.includes('--render-scale'), 'copied render command should use real CLI render-scale flag');
   assert(!html.includes('--scale '), 'copied render command should not use unsupported scale flag');
 
+  const projectUrl = session.url.replace('/preview.html', '/project.json');
+  const attached = await fetch(projectUrl).then(response => response.json());
+  assert(attached.options?.width === 1920 && attached.options?.height === 1080, 'preview project defaults should start at 1920x1080');
+
   const projectsUrl = session.url.replace('/preview.html', '/preview/projects');
   const projects = await fetch(projectsUrl).then(response => response.json());
   assert(Array.isArray(projects.projects), 'project list should be an array');
@@ -41,6 +48,12 @@ try {
   assert(loaded.project?.schema === 'uiv-runtime', 'runtime project should load through preview API');
   assert(loaded.options?.width === 1920 && loaded.options?.height === 1080, 'runtime project should keep its own dimensions');
 
+  const invalidUrl = session.url.replace('/preview.html', `/preview/load?path=${encodeURIComponent(invalidInput)}`);
+  const invalidResponse = await fetch(invalidUrl);
+  const invalid = await invalidResponse.json();
+  assert(!invalidResponse.ok, 'invalid project load should fail');
+  assert(String(invalid.error).includes('Project mode'), 'invalid project error should explain schema validation');
+
   const blockedUrl = session.url.replace('/preview.html', `/preview/load?path=${encodeURIComponent(resolve(root, '..', 'outside.json'))}`);
   const blockedResponse = await fetch(blockedUrl);
   const blocked = await blockedResponse.json();
@@ -50,6 +63,7 @@ try {
   console.log(`Preview Studio smoke passed: ${projects.projects.length} projects`);
 } finally {
   await session.close();
+  rmSync(invalidInput, { force: true });
 }
 
 function assert(condition, message) {

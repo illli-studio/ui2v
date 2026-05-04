@@ -60,15 +60,15 @@ these environment variables: `PUPPETEER_EXECUTABLE_PATH`, `CHROME_PATH`,
 ```bash
 ui2v render animation.json -o output.mp4 --quality high --fps 60
 ui2v render animation.json -o output.mp4 --quality low|medium|high|ultra|cinema
-ui2v render animation.json -o output.mp4 --width 1280 --height 720 --render-scale 2
+ui2v render animation.json -o output.mp4 --width 1920 --height 1080 --render-scale 2
 ui2v render animation.json -o output.mp4 --codec avc --bitrate 8000000
 ui2v render animation.json -o output.mp4 --timeout 300 --no-headless
 ui2v preview animation.json --pixel-ratio 2
 ```
 
 `--render-scale` supersamples frames before encoding. For example,
-`--width 1280 --height 720 --render-scale 2` renders internally at 2560x1440
-and then downsamples to 1280x720.
+`--width 1920 --height 1080 --render-scale 2` renders internally at 3840x2160
+and then downsamples to 1920x1080.
 
 ## Choose An Example
 

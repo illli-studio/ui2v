@@ -3,7 +3,7 @@
 [中文](README_zh.md)
 
 <p align="center">
-  <img src="assets/brand/ui2v-logo.svg" alt="ui2v logo" width="760">
+  <img src="assets/brand/ui2v-logo-readme-official-banner.png" alt="ui2v logo" width="760">
 </p>
 
 <p align="center">
@@ -152,7 +152,7 @@ ui2v render animation.json -o output.mp4 --quality high
 Useful render options:
 
 ```bash
-ui2v render animation.json -o output.mp4 --width 1280 --height 720
+ui2v render animation.json -o output.mp4 --width 1920 --height 1080
 ui2v render animation.json -o output.mp4 --quality ultra --render-scale 2
 ui2v render animation.json -o output.mp4 --codec avc --bitrate 8000000
 ui2v render animation.json -o output.mp4 --timeout 300 --no-headless

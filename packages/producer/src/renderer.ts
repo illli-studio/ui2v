@@ -6,9 +6,10 @@
  * real file to Node instead of asking the user to click a generated HTML page.
  */
 
+import { parseProject } from '@ui2v/core';
 import type { AnimationProject } from '@ui2v/engine';
 export type { AnimationProject } from '@ui2v/engine';
-import { getFrameCount } from '@ui2v/runtime-core';
+import { getFrameCount, validateRuntimeProject } from '@ui2v/runtime-core';
 import * as fs from 'fs';
 import * as fsp from 'fs/promises';
 import * as http from 'http';
@@ -289,7 +290,9 @@ export async function renderToFile(
       await fsp.rename(tempOutput, absoluteOutput);
     } else if (pageResult.base64) {
       const buffer = Buffer.from(pageResult.base64, 'base64');
-      await fsp.writeFile(absoluteOutput, buffer);
+      await fsp.writeFile(tempOutput, buffer);
+      await fsp.rm(absoluteOutput, { force: true });
+      await fsp.rename(tempOutput, absoluteOutput);
     } else {
       throw new Error('Browser renderer completed without returning video data');
     }
@@ -382,8 +385,8 @@ export async function startPreview(
     page.setDefaultNavigationTimeout(options.timeoutMs ?? DEFAULT_TIMEOUT_MS);
 
     const { width, height } = resolveDimensions(project, {});
-    const viewportWidth = options.width ?? Math.min(Math.max(width, 640), 1600);
-    const viewportHeight = options.height ?? Math.min(Math.max(height, 360), 1000);
+    const viewportWidth = options.width ?? width;
+    const viewportHeight = options.height ?? height;
     const pixelRatio = normalizePreviewPixelRatio(options.pixelRatio);
     await page.setViewport({
       width: viewportWidth,
@@ -616,12 +619,13 @@ async function createStaticServer(
         const body = await readRequestJson(req);
         const projectFile = resolvePreviewProjectPath(body?.path, options);
         const project = await readPreviewProject(projectFile);
+        const previewOptions = normalizePreviewOptions(project, options.previewOptionOverrides ?? {});
         const outputPath = resolvePreviewExportPath(projectFile, project, options);
         const result = await renderToFile(project, outputPath, {
           quality: body?.quality === 'ultra' || body?.quality === 'cinema' || body?.quality === 'medium' || body?.quality === 'low' ? body.quality : 'high',
-          fps: options.previewOptions?.fps,
-          width: options.previewOptions?.width,
-          height: options.previewOptions?.height,
+          fps: previewOptions.fps,
+          width: previewOptions.width,
+          height: previewOptions.height,
           renderScale: body?.renderScale ? Number(body.renderScale) : 1,
           codec: body?.codec === 'hevc' ? 'hevc' : 'avc',
         });
@@ -794,8 +798,23 @@ function safeReadProjectSummary(file: string): any | null {
 }
 
 async function readPreviewProject(file: string): Promise<AnimationProject> {
-  const text = await fsp.readFile(file, 'utf8');
-  return JSON.parse(stripUtf8Bom(text)) as AnimationProject;
+  const text = stripUtf8Bom(await fsp.readFile(file, 'utf8'));
+  const rawProject = JSON.parse(text);
+
+  if (rawProject?.schema === 'uiv-runtime') {
+    const validation = validateRuntimeProject(rawProject);
+    if (!validation.valid) {
+      const details = validation.errors
+        .slice(0, 5)
+        .map(error => `${error.path}: ${error.message}`)
+        .join('; ');
+      throw new Error(`Invalid runtime project ${path.basename(file)}: ${details}`);
+    }
+    return rawProject as AnimationProject;
+  }
+
+  parseProject(text);
+  return rawProject as AnimationProject;
 }
 
 function stripUtf8Bom(value: string): string {

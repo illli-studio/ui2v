@@ -63,13 +63,13 @@ $env:PUPPETEER_EXECUTABLE_PATH='C:\Program Files\Google\Chrome\Application\chrom
 ```bash
 ui2v render animation.json -o output.mp4 --quality high --fps 60
 ui2v render animation.json -o output.mp4 --quality low|medium|high|ultra|cinema
-ui2v render animation.json -o output.mp4 --width 1280 --height 720 --render-scale 2
+ui2v render animation.json -o output.mp4 --width 1920 --height 1080 --render-scale 2
 ui2v render animation.json -o output.mp4 --codec avc --bitrate 8000000
 ui2v render animation.json -o output.mp4 --timeout 300 --no-headless
 ui2v preview animation.json --pixel-ratio 2
 ```
 
-`--render-scale` 会在编码前进行超采样。例如 `--width 1280 --height 720 --render-scale 2` 会以 2560x1440 内部尺寸渲染，再降采样到 1280x720。
+`--render-scale` 会在编码前进行超采样。例如 `--width 1920 --height 1080 --render-scale 2` 会以 3840x2160 内部尺寸渲染，再降采样到 1920x1080。
 
 ## 选择一个示例
 

@@ -27,6 +27,19 @@ const cases = [
     args: ['preview', example, '--pixel-ratio', '0'],
     expected: '--pixel-ratio must be a positive number',
   },
+
+  {
+    args: ['render', example, '--width', '999999'],
+    expected: '--width must be less than or equal to 7680',
+  },
+  {
+    args: ['render', example, '--render-scale', '99'],
+    expected: '--render-scale must be less than or equal to 4',
+  },
+  {
+    args: ['preview', example, '--fps', '999'],
+    expected: '--fps must be less than or equal to 240',
+  },
 ];
 
 for (const testCase of cases) {
