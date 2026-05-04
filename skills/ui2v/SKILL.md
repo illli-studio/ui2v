@@ -60,20 +60,79 @@ Do not default to "just Canvas". Start from the desired visual outcome, then pic
 
 Read `references/rendering-features.md` for platform capabilities and `references/library-recipes.md` before selecting advanced dependencies.
 
-## Dependency declaration
+## Writing libraries into JSON
 
-Use canonical dependency keys and only declare libraries the project or segment actually uses. Runtime examples should declare dependencies at both project and segment level when segment code needs them.
+When an agent decides to use a library, it must put that decision into the JSON project, not only mention it in prose. Use this process.
+
+### 1. Choose the JSON format
+
+Use a template project when the example is a single coherent animation with custom-code layers:
 
 ```json
 {
+  "mode": "template",
+  "duration": 8,
+  "fps": 30,
+  "resolution": { "width": 1920, "height": 1080 },
+  "dependencies": ["canvas2d", "gsap", "d3"],
+  "layers": []
+}
+```
+
+Use runtime JSON when the project needs segment-level dependencies, inspection, scene metadata, or adapter routing:
+
+```json
+{
+  "schema": "uiv-runtime",
+  "duration": 12,
+  "fps": 30,
+  "resolution": { "width": 1920, "height": 1080 },
+  "dependencies": ["canvas2d", "THREE", "gsap"],
+  "timeline": { "segments": [] },
+  "scene": { "root": { "id": "root", "type": "root", "children": [] } }
+}
+```
+
+### 2. Map visual intent to dependency keys
+
+Use canonical keys consistently in top-level and segment/layer metadata.
+
+| Visual intent | JSON dependencies |
+| --- | --- |
+| Data reveal with charts | `["canvas2d", "d3", "math"]` |
+| Product/UI launch motion | `["canvas2d", "gsap", "SplitType"]` |
+| 3D product/grid/globe scene | `["THREE", "POSTPROCESSING"]` or `["THREE", "Globe"]` |
+| Physics cards/particles | `["canvas2d", "Matter"]` or `["THREE", "CANNON"]` |
+| Generative art / flow field | `["canvas2d", "p5", "simplex"]` or `["PIXI", "tsParticles"]` |
+| Typography/glyph animation | `["canvas2d", "SplitType", "opentype"]` |
+| Lottie/icon-driven UI | `["canvas2d", "lottie", "iconify"]` |
+
+If an existing example uses a different canonical key, follow the existing example or `packages/engine/src/sandbox/LibraryManager.ts`.
+
+### 3. Put dependencies at the correct level
+
+Top-level `dependencies` describes the full project. Runtime segment `dependencies` describes what that segment needs at render time:
+
+```json
+{
+  "schema": "uiv-runtime",
   "dependencies": ["canvas2d", "d3", "gsap"],
   "timeline": {
     "segments": [
       {
         "id": "data-reveal",
+        "label": "Data reveal",
         "startTime": 0,
         "endTime": 5,
         "dependencies": ["canvas2d", "d3", "gsap"],
+        "code": "function render(t, context) { const ctx = context.ctx; }"
+      },
+      {
+        "id": "physics-finale",
+        "label": "Physics finale",
+        "startTime": 5,
+        "endTime": 9,
+        "dependencies": ["canvas2d", "Matter"],
         "code": "function render(t, context) { const ctx = context.ctx; }"
       }
     ]
@@ -81,7 +140,65 @@ Use canonical dependency keys and only declare libraries the project or segment 
 }
 ```
 
-Use names consistently with the renderer's library manager and existing examples. If unsure, inspect similar examples or references before inventing names.
+For template examples, put project dependencies at the top level and place custom code in the appropriate custom-code layer shape used by nearby examples. Keep the same dependency keys in layer metadata if the schema/example pattern supports layer-level dependencies.
+
+### 4. Use libraries inside the code string
+
+Inside runtime segment code, read the drawing context and then access libraries from the runtime-provided context/global surface used by the renderer. Prefer defensive lookup so examples survive small loader differences:
+
+```js
+function render(t, context) {
+  const ctx = context.ctx;
+  const width = context.width;
+  const height = context.height;
+  const progress = context.progress;
+
+  const d3 = context.libs?.d3 || globalThis.d3;
+  const gsap = context.libs?.gsap || globalThis.gsap;
+
+  const values = [18, 42, 75, 61, 94];
+  const x = d3.scaleBand().domain(values.map((_, i) => String(i))).range([180, width - 180]).padding(0.2);
+  const y = d3.scaleLinear().domain([0, 100]).range([height - 160, 160]);
+
+  const eased = gsap.parseEase?.('power3.out')?.(Math.min(1, progress)) ?? progress;
+
+  ctx.fillStyle = '#030712';
+  ctx.fillRect(0, 0, width, height);
+  ctx.fillStyle = '#7dd3fc';
+  values.forEach((value, index) => {
+    const barHeight = (height - 160 - y(value)) * eased;
+    ctx.fillRect(x(String(index)), height - 160 - barHeight, x.bandwidth(), barHeight);
+  });
+}
+```
+
+For `THREE`, `PIXI`, `Matter`, or similar libraries, initialize reusable objects carefully. If the render environment recreates the function per frame, derive state from `t`; if the example pattern provides setup storage, cache expensive objects there.
+
+### 5. Keep code JSON-safe
+
+Custom code is usually stored as a JSON string. Before committing:
+
+- Escape newlines/quotes correctly, or use the repository's existing multiline string pattern if available.
+- Do not paste unescaped backticks or invalid JSON control characters into `code`.
+- Keep generated code deterministic and frame-based.
+- Validate after editing; validation catches malformed JSON before rendering.
+
+### 6. Validate, inspect, render
+
+After writing dependencies and code into JSON, run:
+
+```bash
+node packages/cli/dist/cli.js validate examples/<name>/animation.json --verbose
+node packages/cli/dist/cli.js render examples/<name>/animation.json -o .tmp/examples/<name>.mp4 --quality high
+```
+
+For runtime projects, inspect frames before rendering:
+
+```bash
+node packages/cli/dist/cli.js validate examples/runtime-core/<file>.json --verbose
+node packages/cli/dist/cli.js inspect-runtime examples/runtime-core/<file>.json --time 1 --time 5 --time 9 --json
+node packages/cli/dist/cli.js render examples/runtime-core/<file>.json -o .tmp/examples/<file-without-json>.mp4 --quality high
+```
 
 ## Custom code shapes
 
