@@ -6,9 +6,13 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 const examples = [
   ['examples/basic-text/animation.json', project('basic-text-polished', 5, '#050914', basicCode())],
-  ['examples/product-showcase/animation.json', project('product-showcase-polished', 9, '#050914', productCode())],
-  ['examples/render-lab/animation.json', project('render-lab-flagship', 12, '#05070f', renderLabCode())],
   ['examples/kitchen-sink/animation.json', project('kitchen-sink-gallery', 24, '#050914', kitchenSinkCode())],
+];
+
+const preservedFeaturedExamples = [
+  'examples/hero-ai-launch/animation.json',
+  'examples/product-showcase/animation.json',
+  'examples/render-lab/animation.json',
 ];
 
 for (const [file, data] of examples) {
@@ -16,6 +20,9 @@ for (const [file, data] of examples) {
   await mkdir(dirname(target), { recursive: true });
   await writeFile(target, `${JSON.stringify(data, null, 2)}\n`, 'utf8');
 }
+
+console.log(`Refreshed ${examples.length} utility showcase examples.`);
+console.log(`Preserved ${preservedFeaturedExamples.length} hand-polished featured examples: ${preservedFeaturedExamples.join(', ')}`);
 
 function project(id, duration, backgroundColor, code) {
   return {

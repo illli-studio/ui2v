@@ -23,19 +23,21 @@ npm install -g @ui2v/cli
 
 ```bash
 ui2v doctor
-ui2v validate examples/logo-reveal/animation.json --verbose
-ui2v preview examples/logo-reveal/animation.json --pixel-ratio 2
-ui2v render examples/logo-reveal/animation.json -o .tmp/logo-reveal.mp4 --quality high
+ui2v validate examples/hero-ai-launch/animation.json --verbose
+ui2v preview examples/hero-ai-launch/animation.json --pixel-ratio 2
+ui2v render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-launch.mp4 --quality high
 ```
 
 Run without a global install:
 
 ```bash
 npx ui2v --version
-npx ui2v render examples/logo-reveal/animation.json -o logo-reveal.mp4 --quality high
+npx ui2v render examples/hero-ai-launch/animation.json -o hero-ai-launch.mp4 --quality high
 ```
 
 ## Commands
+The preview command opens a local Studio UI with a searchable JSON project list, timeline scrubbing, fit/theater/fullscreen controls, runtime debug overlay, and an Export MP4 action.
+
 
 ```bash
 ui2v doctor
@@ -67,11 +69,11 @@ bun run build
 node packages/cli/dist/cli.js doctor
 ```
 
-If no browser is found, install Chrome or Edge, set
-`PUPPETEER_EXECUTABLE_PATH`, or run:
+If no browser is found, install Chrome, Edge, or Chromium locally. If auto-detection fails, set one of these environment variables:
 
 ```bash
-npx puppeteer browsers install chrome
+PUPPETEER_EXECUTABLE_PATH=/path/to/chrome node packages/cli/dist/cli.js doctor
+CHROME_PATH=/path/to/chrome node packages/cli/dist/cli.js doctor
 ```
 
 ## License

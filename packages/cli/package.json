@@ -1,7 +1,7 @@
 {
   "name": "@ui2v/cli",
   "version": "1.0.4",
-  "description": "Command-line interface for ui2v video compositions",
+  "description": "CLI for validating, previewing, inspecting, and rendering ui2v video projects",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -28,8 +28,11 @@
     "ui2v",
     "video",
     "animation",
-    "rendering",
-    "cli"
+    "mp4",
+    "canvas",
+    "webcodecs",
+    "cli",
+    "generative-video"
   ],
   "author": "ui2v",
   "license": "MIT",
@@ -54,7 +57,7 @@
     "ora": "^8.0.0",
     "prompts": "^2.4.2",
     "fs-extra": "^11.2.0",
-    "puppeteer": "^24.42.0"
+    "puppeteer-core": "^24.42.0"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",

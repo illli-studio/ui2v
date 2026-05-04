@@ -19,9 +19,9 @@ program
 
 program
   .command('init')
-  .description('Initialize a new ui2v project')
+  .description('Initialize a polished ui2v starter video project')
   .argument('[name]', 'Project name', 'my-video')
-  .option('-t, --template <template>', 'Template to use', 'basic')
+  .option('-t, --template <template>', 'Template to use (launch; basic is an alias)', 'launch')
   .action(initCommand);
 
 program

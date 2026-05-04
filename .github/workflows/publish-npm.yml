@@ -55,8 +55,6 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Install dependencies
-        env:
-          PUPPETEER_SKIP_DOWNLOAD: "true"
         run: bun install --frozen-lockfile
 
       - name: Validate release version

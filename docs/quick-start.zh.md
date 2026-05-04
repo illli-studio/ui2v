@@ -8,28 +8,28 @@
 
 - Node.js 18 或更新版本
 - 本地 workspace 开发需要 Bun 1.0 或更新版本
-- Chrome、Edge、Chromium，或 Puppeteer 安装的 Chromium
+- 本机已安装 Chrome、Edge 或 Chromium
 
-主渲染链路使用 Puppeteer、Canvas 和 WebCodecs，不需要 Electron、FFmpeg 或 `node-canvas`。
+主渲染链路使用 `puppeteer-core`、本机 Chrome/Edge/Chromium、Canvas 和 WebCodecs；不会下载内置 Chromium，也不需要 Electron、FFmpeg 或 `node-canvas`。
 
 ## 使用已发布 CLI
 
-短包名 `ui2v` 会安装命令，并依赖真正的实现包 `@ui2v/cli`。
+短包 `ui2v` 会安装命令，并依赖真正的实现包 `@ui2v/cli`。
 
 ```bash
 npm install -g ui2v
 # or: bun install -g ui2v
 ui2v doctor
-ui2v validate examples/logo-reveal/animation.json --verbose
-ui2v preview examples/logo-reveal/animation.json --pixel-ratio 2
-ui2v render examples/logo-reveal/animation.json -o .tmp/logo-reveal.mp4 --quality high
+ui2v validate examples/hero-ai-launch/animation.json --verbose
+ui2v preview examples/hero-ai-launch/animation.json --pixel-ratio 2
+ui2v render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-launch.mp4 --quality high
 ```
 
 也可以不全局安装：
 
 ```bash
 npx ui2v --version
-npx ui2v render examples/logo-reveal/animation.json -o logo-reveal.mp4 --quality high
+npx ui2v render examples/hero-ai-launch/animation.json -o hero-ai-launch.mp4 --quality high
 ```
 
 ## 使用本地 Workspace
@@ -38,31 +38,27 @@ npx ui2v render examples/logo-reveal/animation.json -o logo-reveal.mp4 --quality
 bun install
 bun run build
 node packages/cli/dist/cli.js doctor
-node packages/cli/dist/cli.js preview examples/logo-reveal/animation.json --pixel-ratio 2
-node packages/cli/dist/cli.js render examples/logo-reveal/animation.json -o .tmp/logo-reveal.mp4 --quality high
+node packages/cli/dist/cli.js preview examples/hero-ai-launch/animation.json --pixel-ratio 2
+node packages/cli/dist/cli.js render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-launch.mp4 --quality high
 ```
 
-如果安装时 Puppeteer 下载浏览器失败，而你已经安装了 Chrome 或 Edge，可以跳过内置浏览器下载：
+安装依赖时不会下载内置浏览器。ui2v 通过 `puppeteer-core` 使用本机 Chrome、Edge 或 Chromium。
+
+## 浏览器配置
+
+如果 `doctor` 找不到浏览器，可以安装 Chrome/Edge/Chromium，或设置 `PUPPETEER_EXECUTABLE_PATH`、`CHROME_PATH`、`CHROMIUM_PATH`、`EDGE_PATH`。
 
 ```bash
-PUPPETEER_SKIP_DOWNLOAD=true bun install
+PUPPETEER_EXECUTABLE_PATH=/path/to/chrome ui2v doctor
 ```
 
 Windows PowerShell：
 
 ```powershell
-$env:PUPPETEER_SKIP_DOWNLOAD='true'; bun install
+$env:PUPPETEER_EXECUTABLE_PATH='C:\Program Files\Google\Chrome\Application\chrome.exe'; ui2v doctor
 ```
 
-## 浏览器配置
-
-如果 `doctor` 找不到浏览器，可以安装 Chrome 或 Edge，设置 `PUPPETEER_EXECUTABLE_PATH`，或安装 Puppeteer 浏览器：
-
-```bash
-npx puppeteer browsers install chrome
-```
-
-## 常用渲染参数
+## 常用渲染选项
 
 ```bash
 ui2v render animation.json -o output.mp4 --quality high --fps 60
@@ -73,14 +69,15 @@ ui2v render animation.json -o output.mp4 --timeout 300 --no-headless
 ui2v preview animation.json --pixel-ratio 2
 ```
 
-`--render-scale` 会先以更高分辨率渲染，再缩放到目标尺寸编码。例如 `--width 1280 --height 720 --render-scale 2` 会先以 2560x1440 渲染，再输出 1280x720。
+`--render-scale` 会在编码前进行超采样。例如 `--width 1280 --height 720 --render-scale 2` 会以 2560x1440 内部尺寸渲染，再降采样到 1280x720。
 
-## 选择示例
+## 选择一个示例
 
-- 从 [`examples/logo-reveal`](../examples/logo-reveal/README.zh.md) 开始，得到一个精美品牌开场。
-- 用 [`examples/product-showcase`](../examples/product-showcase/README.zh.md) 作为产品发布视频结构。
-- 用 [`examples/render-lab`](../examples/render-lab/README.zh.md) 压测数据、粒子和伪 3D 效果。
-- 用 [`examples/basic-text`](../examples/basic-text/README.zh.md) 做最小环境检查。
+- 从 [`examples/hero-ai-launch`](../examples/hero-ai-launch/README.zh.md) 开始，它是最适合 README 首屏展示的 hero demo。
+- 用 [`examples/product-showcase`](../examples/product-showcase/README.zh.md) 快速改出 SaaS/App 产品发布视频。
+- 用 [`examples/render-lab`](../examples/render-lab/README.zh.md) 压测数据动效、粒子和伪 3D 视觉能力。
+- 用 [`examples/logo-reveal`](../examples/logo-reveal/README.zh.md) 快速验证品牌开场和基础渲染链路。
+- 只需要最小环境检查时，再使用 [`examples/basic-text`](../examples/basic-text/README.zh.md)。
 
 ## 下一步
 

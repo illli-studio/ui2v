@@ -85,12 +85,9 @@ information, routing metadata, and draw command summaries.
 Use `ui2v doctor` first. Most setup problems are browser discovery,
 WebCodecs support, or codec negotiation issues.
 
-If Puppeteer cannot download Chromium during install, use a locally installed
-Chrome or Edge and skip the download:
-
-```bash
-PUPPETEER_SKIP_DOWNLOAD=true bun install
-```
+ui2v uses `puppeteer-core`, so dependency install does not download a bundled
+Chromium. If `doctor` cannot find a browser, install Chrome/Edge/Chromium or set
+`PUPPETEER_EXECUTABLE_PATH`, `CHROME_PATH`, `CHROMIUM_PATH`, or `EDGE_PATH`.
 
 ## Related Docs
 

@@ -101,6 +101,7 @@ export class WebCodecsExporter {
     const totalFrames = framePlan.length;
 
     this.canvas = canvas;
+    engine.setExportMode?.(true);
 
     try {
       const startTime = performance.now();
@@ -108,22 +109,8 @@ export class WebCodecsExporter {
 
       const bitrate = customBitrate || this.calculateBitrate(width, height, quality);
 
-      this.output = new Output({
-        format: new Mp4OutputFormat({
-          fastStart: 'in-memory',
-        }),
-        target: new BufferTarget(),
-      });
-
-      const codecString = this.getCodecString(codec, quality);
-
-      const mediabunnyCodec = codec;
-      this.videoSource = new EncodedVideoPacketSource(mediabunnyCodec as any);
-      this.output.addVideoTrack(this.videoSource, {
-        frameRate: fps,
-      });
-
-      await this.output.start();
+      let selectedCodec: 'avc' | 'hevc' = codec;
+      let codecString = this.getCodecString(selectedCodec, quality);
 
       // Realtime encoding is faster, but a bitrate cushion preserves detail.
       const adjustedBitrate = bitrate * 1.5;
@@ -145,7 +132,9 @@ export class WebCodecsExporter {
       const support = await VideoEncoder.isConfigSupported(config);
       if (!support.supported) {
         if (codec === 'hevc') {
-          config.codec = this.getCodecString('avc', quality);
+          selectedCodec = 'avc';
+          codecString = this.getCodecString(selectedCodec, quality);
+          config.codec = codecString;
           (config as any).avc = { format: 'avc' };
           const avcSupport = await VideoEncoder.isConfigSupported(config);
           if (!avcSupport.supported) {
@@ -160,6 +149,20 @@ export class WebCodecsExporter {
         }
       }
 
+      this.output = new Output({
+        format: new Mp4OutputFormat({
+          fastStart: 'in-memory',
+        }),
+        target: new BufferTarget(),
+      });
+
+      this.videoSource = new EncodedVideoPacketSource(selectedCodec as any);
+      this.output.addVideoTrack(this.videoSource, {
+        frameRate: fps,
+      });
+
+      await this.output.start();
+
       const progressTracker = { lastReportedProgress: 0 };
 
       const encoderPromise = new Promise<void>((resolve, reject) => {
@@ -171,6 +174,7 @@ export class WebCodecsExporter {
                 await this.videoSource.add(EncodedPacket.fromEncodedChunk(chunk), metadata);
               } catch (err) {
                 console.error('[WebCodecsExporter] Failed to add chunk:', err);
+                reject(err);
               }
             }
             encodedFrames++;
@@ -268,6 +272,7 @@ export class WebCodecsExporter {
       console.error(`[WebCodecsExporter.exportToVideo] Export failed:`, error);
       throw error;
     } finally {
+      engine.setExportMode?.(false);
       // Cleanup resources (Requirement 8.4)
       this.dispose();
     }
@@ -400,6 +405,8 @@ export class WebCodecsExporter {
                   }
                 } catch (renderError) {
                   console.error(`[WebCodecsExporter] Render error at frame ${frameIndex}:`, renderError);
+                  rejectFrames(renderError);
+                  return;
                 }
 
                 if (frameIndex % 30 === 0 && onProgress) {
@@ -441,6 +448,8 @@ export class WebCodecsExporter {
                   encoder.encode(videoFrame, { keyFrame: plannedFrame.keyframe });
                 } catch (frameError) {
                   console.error(`[WebCodecsExporter] Frame encoding error at frame ${frameIndex}:`, frameError);
+                  rejectFrames(frameError);
+                  return;
                 } finally {
                   if (videoFrame) {
                     videoFrame.close();

@@ -1,6 +1,6 @@
 import chalk from 'chalk';
-import puppeteer from 'puppeteer';
-import { findBrowserExecutable } from '@ui2v/producer';
+import puppeteer from 'puppeteer-core';
+import { resolveBrowserExecutable, resolveRequiredBrowserExecutable } from '@ui2v/producer';
 import * as http from 'http';
 
 interface CheckResult {
@@ -39,7 +39,7 @@ export async function doctorCommand(): Promise<void> {
     console.log(chalk.green('All checks passed'));
   } else {
     console.log(chalk.yellow('Some checks failed'));
-    console.log(chalk.dim('\nThe standalone renderer needs Node.js 18+ and a Chromium browser from Puppeteer.'));
+    console.log(chalk.dim('\nThe standalone renderer needs Node.js 18+ and a locally installed Chrome, Edge, or Chromium browser.'));
   }
 
   process.exit(allOk ? 0 : 1);
@@ -60,17 +60,25 @@ function checkNode(): CheckResult {
 async function checkBrowser(): Promise<CheckResult> {
   let browser;
   let server: http.Server | undefined;
+  const browserResolution = resolveBrowserExecutable();
   try {
-    const executablePath = findBrowserExecutable();
-    browser = await puppeteer.launch({
-      headless: true,
-      executablePath,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--enable-features=WebCodecs'],
-    });
+    const executablePath = resolveRequiredBrowserExecutable();
+    browser = await withTimeout(
+      puppeteer.launch({
+        headless: true,
+        executablePath,
+        protocolTimeout: 15_000,
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--enable-features=WebCodecs'],
+      }),
+      20_000,
+      'Timed out launching local browser for WebCodecs probe'
+    );
     server = await createProbeServer();
     const page = await browser.newPage();
-    await page.goto(getServerUrl(server), { waitUntil: 'load' });
-    const support = await page.evaluate(async () => {
+    page.setDefaultTimeout(10_000);
+    page.setDefaultNavigationTimeout(10_000);
+    await withTimeout(page.goto(getServerUrl(server), { waitUntil: 'load' }), 10_000, 'Timed out loading WebCodecs probe page');
+    const support = await withTimeout(page.evaluate(async () => {
       const videoEncoder = globalThis['VideoEncoder' as keyof typeof globalThis] as any;
       const hasWebCodecs =
         typeof videoEncoder !== 'undefined' &&
@@ -122,9 +130,10 @@ async function checkBrowser(): Promise<CheckResult> {
           };
         }
       }
-    });
+    }), 10_000, 'Timed out evaluating WebCodecs probe');
 
     const hevcMessage = support.hevc.supported ? '; HEVC available' : '; HEVC unavailable';
+    const browserSource = browserResolution.source ? ` via ${browserResolution.source}` : '';
     const failureReason = support.webCodecs
       ? support.avc.error ?? 'AVC/H.264 is not supported by this browser'
       : 'WebCodecs is not available in this browser';
@@ -135,7 +144,7 @@ async function checkBrowser(): Promise<CheckResult> {
       version: support.userAgent.match(/Chrome\/([^\s]+)/)?.[1] || 'unknown',
       ok: support.webCodecs && support.avc.supported,
       message: support.webCodecs && support.avc.supported
-        ? `OK; AVC/H.264 available${hevcMessage}`
+        ? `OK; AVC/H.264 available${hevcMessage}${browserSource}`
         : failureReason,
     };
   } catch (error) {
@@ -144,7 +153,7 @@ async function checkBrowser(): Promise<CheckResult> {
       installed: false,
       version: null,
       ok: false,
-      message: `${(error as Error).message} Install Chrome/Edge or run: npx puppeteer browsers install chrome`,
+      message: `${(error as Error).message} Install Chrome/Edge/Chromium or set PUPPETEER_EXECUTABLE_PATH/CHROME_PATH`,
     };
   } finally {
     if (server) {
@@ -154,6 +163,22 @@ async function checkBrowser(): Promise<CheckResult> {
       await browser.close();
     }
   }
+}
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(message)), timeoutMs);
+    promise.then(
+      value => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      error => {
+        clearTimeout(timer);
+        reject(error);
+      }
+    );
+  });
 }
 
 function createProbeServer(): Promise<http.Server> {
@@ -181,3 +206,4 @@ function getServerUrl(server: http.Server): string {
 function closeServer(server: http.Server): Promise<void> {
   return new Promise(resolve => server.close(() => resolve()));
 }
+

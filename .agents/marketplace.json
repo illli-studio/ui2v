@@ -1,0 +1,24 @@
+{
+  "skills": [
+    {
+      "name": "ui2v-render-capabilities",
+      "path": "./skills/ui2v-render-capabilities",
+      "description": "Choose ui2v render features and built-in libraries."
+    },
+    {
+      "name": "ui2v-example-creator",
+      "path": "./skills/ui2v-example-creator",
+      "description": "Create polished ui2v animation examples and README demos."
+    },
+    {
+      "name": "ui2v-render-workflow",
+      "path": "./skills/ui2v-render-workflow",
+      "description": "Validate, render, and export ui2v README media assets."
+    },
+    {
+      "name": "ui2v-runtime-core",
+      "path": "./skills/ui2v-runtime-core",
+      "description": "Create and inspect uiv-runtime segmented video projects."
+    }
+  ]
+}

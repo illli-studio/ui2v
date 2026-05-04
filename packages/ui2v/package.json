@@ -1,7 +1,7 @@
 {
   "name": "ui2v",
   "version": "1.0.4",
-  "description": "Convenience package for installing the ui2v CLI",
+  "description": "Install the ui2v CLI for rendering animation JSON into MP4 video",
   "bin": {
     "ui2v": "bin/ui2v.js"
   },
@@ -13,8 +13,11 @@
     "ui2v",
     "video",
     "animation",
-    "rendering",
-    "cli"
+    "mp4",
+    "canvas",
+    "webcodecs",
+    "cli",
+    "generative-video"
   ],
   "author": "ui2v",
   "license": "MIT",

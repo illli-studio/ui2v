@@ -1,6 +1,6 @@
 # Quick Start
 
-[Chinese](quick-start.zh.md)
+[中文](quick-start.zh.md)
 
 This guide gets a ui2v JSON project rendered from either the published CLI or a
 local workspace build.
@@ -9,10 +9,11 @@ local workspace build.
 
 - Node.js 18 or newer
 - Bun 1.0 or newer for local workspace development
-- Chrome, Edge, Chromium, or Puppeteer's installed Chromium
+- A locally installed Chrome, Edge, or Chromium executable
 
-The primary render path uses Puppeteer, Canvas, and WebCodecs. It does not
-require Electron, FFmpeg, or `node-canvas`.
+The primary render path uses `puppeteer-core`, Canvas, and WebCodecs. It does
+not download a bundled Chromium and does not require Electron, FFmpeg, or
+`node-canvas`.
 
 ## Published CLI
 
@@ -23,16 +24,16 @@ package `@ui2v/cli`.
 npm install -g ui2v
 # or: bun install -g ui2v
 ui2v doctor
-ui2v validate examples/logo-reveal/animation.json --verbose
-ui2v preview examples/logo-reveal/animation.json --pixel-ratio 2
-ui2v render examples/logo-reveal/animation.json -o .tmp/logo-reveal.mp4 --quality high
+ui2v validate examples/hero-ai-launch/animation.json --verbose
+ui2v preview examples/hero-ai-launch/animation.json --pixel-ratio 2
+ui2v render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-launch.mp4 --quality high
 ```
 
 Run without a global install:
 
 ```bash
 npx ui2v --version
-npx ui2v render examples/logo-reveal/animation.json -o logo-reveal.mp4 --quality high
+npx ui2v render examples/hero-ai-launch/animation.json -o hero-ai-launch.mp4 --quality high
 ```
 
 ## Local Workspace
@@ -41,31 +42,18 @@ npx ui2v render examples/logo-reveal/animation.json -o logo-reveal.mp4 --quality
 bun install
 bun run build
 node packages/cli/dist/cli.js doctor
-node packages/cli/dist/cli.js preview examples/logo-reveal/animation.json --pixel-ratio 2
-node packages/cli/dist/cli.js render examples/logo-reveal/animation.json -o .tmp/logo-reveal.mp4 --quality high
+node packages/cli/dist/cli.js preview examples/hero-ai-launch/animation.json --pixel-ratio 2
+node packages/cli/dist/cli.js render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-launch.mp4 --quality high
 ```
 
-If Puppeteer browser download fails during install and you already have Chrome
-or Edge installed, you can skip the bundled browser download:
-
-```bash
-PUPPETEER_SKIP_DOWNLOAD=true bun install
-```
-
-Windows PowerShell:
-
-```powershell
-$env:PUPPETEER_SKIP_DOWNLOAD='true'; bun install
-```
+No browser is downloaded during install. `ui2v` uses your local Chrome, Edge, or
+Chromium installation through `puppeteer-core`.
 
 ## Browser Setup
 
-If `doctor` cannot find a browser, install Chrome or Edge, set
-`PUPPETEER_EXECUTABLE_PATH`, or install Puppeteer's browser:
-
-```bash
-npx puppeteer browsers install chrome
-```
+If `doctor` cannot find a browser, install Chrome/Edge/Chromium or set one of
+these environment variables: `PUPPETEER_EXECUTABLE_PATH`, `CHROME_PATH`,
+`CHROMIUM_PATH`, or `EDGE_PATH`.
 
 ## Useful Render Options
 
@@ -84,10 +72,10 @@ and then downsamples to 1280x720.
 
 ## Choose An Example
 
-- Start with [`examples/logo-reveal`](../examples/logo-reveal/README.md) for a polished brand intro.
-- Use [`examples/product-showcase`](../examples/product-showcase/README.md) for a launch-video structure.
+- Start with [`examples/hero-ai-launch`](../examples/hero-ai-launch/README.md) for the most impressive README hero demo.
+- Use [`examples/product-showcase`](../examples/product-showcase/README.md) for a customizable SaaS/app launch-video structure.
 - Use [`examples/render-lab`](../examples/render-lab/README.md) to stress-test data, particles, and pseudo-3D.
-- Use [`examples/basic-text`](../examples/basic-text/README.md) for the smallest sanity check.
+- Use [`examples/basic-text`](../examples/basic-text/README.md) only when you need the smallest sanity check.
 
 ## Next Steps
 

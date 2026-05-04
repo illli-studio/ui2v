@@ -1,0 +1,7 @@
+interface:
+  display_name: "ui2v Render Capabilities"
+  short_description: "Choose ui2v render features and built-in libraries."
+  brand_color: "#A78BFA"
+  default_prompt: "Use $ui2v-render-capabilities to choose the best ui2v rendering approach and built-in libraries for this animation."
+policy:
+  allow_implicit_invocation: true

@@ -1,6 +1,6 @@
 # @ui2v/core
 
-[中文](README.zh.md)
+[Chinese](README.zh.md)
 
 Core project types, JSON parsing, validation, and shared helpers for ui2v.
 

@@ -12,13 +12,30 @@
   <img alt="node" src="https://img.shields.io/badge/node-%3E%3D18-7bd88f">
 </p>
 
-ui2v turns structured animation JSON into browser-rendered MP4 video. It starts
-a local Chromium browser with Puppeteer, evaluates the project timeline on
-Canvas, encodes with WebCodecs, and writes the finished video from Node.js.
+ui2v turns structured animation JSON into polished, browser-rendered MP4 video.
+Write motion graphics as code, preview them locally, and export production-ready
+clips with system Chrome/Edge automation, Canvas, WebCodecs, and Node.js.
 
-The project is useful when you want repeatable motion graphics, launch clips,
-data stories, UI demos, product explainers, or generated brand videos that can
-be versioned as code.
+Use it when you want launch clips, AI-generated product videos, data stories,
+UI demos, brand openers, or repeatable motion systems that can live in Git.
+
+## Showcase
+
+README demos should sell the project in the first five seconds. These clips are
+rendered by ui2v and compressed as lightweight GIFs for GitHub preview.
+
+| Hero AI Launch | Product Launch |
+| --- | --- |
+| ![Hero AI launch trailer rendered by ui2v](assets/showcase/hero-ai-launch.gif) | ![Product launch video rendered by ui2v](assets/showcase/product-showcase.gif) |
+| README-first AI launch trailer with cinematic lighting, glass UI, prompt-to-MP4 pipeline, and final CTA. | Premium SaaS launch style with glass panels, feature beats, and light sweeps. |
+
+| Render Lab | Commerce Command Center |
+| --- | --- |
+| ![Render lab video rendered by ui2v](assets/showcase/render-lab.gif) | ![Commerce command center video rendered by ui2v](assets/showcase/commerce-command-center.gif) |
+| Data, particles, pseudo-3D depth, and high-energy motion tests. | Dashboard storytelling with live metrics, revenue panels, and command-center pacing. |
+
+> Tip: keep the full MP4 exports in release assets, GitHub issue attachments, or
+> a CDN, then keep compressed GIF/JPG previews in `assets/showcase` for README.
 
 ## Quick Start
 
@@ -29,18 +46,18 @@ npm install -g ui2v
 ui2v doctor
 ```
 
-Render the polished starter example:
+Render a polished starter example:
 
 ```bash
-ui2v validate examples/logo-reveal/animation.json --verbose
-ui2v preview examples/logo-reveal/animation.json --pixel-ratio 2
-ui2v render examples/logo-reveal/animation.json -o .tmp/logo-reveal.mp4 --quality high
+ui2v validate examples/hero-ai-launch/animation.json --verbose
+ui2v preview examples/hero-ai-launch/animation.json --pixel-ratio 2
+ui2v render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-launch.mp4 --quality high
 ```
 
 Run without a global install:
 
 ```bash
-npx ui2v render examples/logo-reveal/animation.json -o logo-reveal.mp4 --quality high
+npx ui2v render examples/hero-ai-launch/animation.json -o hero-ai-launch.mp4 --quality high
 ```
 
 Use a local workspace build:
@@ -48,17 +65,44 @@ Use a local workspace build:
 ```bash
 bun install
 bun run build
-node packages/cli/dist/cli.js render examples/logo-reveal/animation.json -o .tmp/logo-reveal.mp4
+node packages/cli/dist/cli.js render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-launch.mp4 --quality high
 ```
 
-## What You Can Make
+## Example Gallery
+Preview opens a local Studio page with a searchable JSON project list, playback controls, frame scrubbing, playback speed, fit/theater/fullscreen modes, runtime debug overlay, current-frame PNG snapshots, copyable CLI render commands, and an **Export MP4** button that writes to `.tmp/examples`.
 
-| Example | Best For | Render |
+
+Use the examples as marketing assets, not only test fixtures. The strongest ones
+should show a concrete outcome a user wants to copy.
+
+| Example | Why It Sells | Render |
 | --- | --- | --- |
-| [`examples/logo-reveal`](examples/logo-reveal/README.md) | First run, brand openers, README demo clips | `ui2v render examples/logo-reveal/animation.json -o .tmp/logo-reveal.mp4 --quality high` |
-| [`examples/product-showcase`](examples/product-showcase/README.md) | Product launch videos and feature teasers | `ui2v render examples/product-showcase/animation.json -o .tmp/product-showcase.mp4 --quality high` |
-| [`examples/render-lab`](examples/render-lab/README.md) | Data, particles, pseudo-3D, and multi-scene demos | `ui2v render examples/render-lab/animation.json -o .tmp/render-lab.mp4 --quality high` |
-| [`examples/basic-text`](examples/basic-text/README.md) | Minimal validation and environment checks | `ui2v render examples/basic-text/animation.json -o .tmp/basic-text.mp4` |
+| [`examples/hero-ai-launch`](examples/hero-ai-launch/README.md) | The README hero trailer: cinematic lighting, glass UI panels, prompt-to-MP4 storytelling, and a final CTA lockup. | `ui2v render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-launch.mp4 --quality high` |
+| [`examples/runtime-core/uiv-runtime-one-minute-studio.json`](examples/runtime-core/uiv-runtime-one-minute-studio.json) | A complete AI-video studio promo with multiple scenes, interface choreography, depth, and CTA pacing. | `ui2v render examples/runtime-core/uiv-runtime-one-minute-studio.json -o .tmp/examples/uiv-runtime-one-minute-studio.mp4 --quality high` |
+| [`examples/product-showcase`](examples/product-showcase/README.md) | A product launch clip users can immediately imagine replacing with their own SaaS, app, or devtool. | `ui2v render examples/product-showcase/animation.json -o .tmp/examples/product-showcase.mp4 --quality high` |
+| [`examples/render-lab`](examples/render-lab/README.md) | A capability reel for particles, data motion, pseudo-3D, lighting, and multi-scene transitions. | `ui2v render examples/render-lab/animation.json -o .tmp/examples/render-lab.mp4 --quality high` |
+| [`examples/runtime-core/uiv-runtime-commerce-command-center.json`](examples/runtime-core/uiv-runtime-commerce-command-center.json) | A dashboard storytelling demo for metrics, commerce, operations, and command-center visuals. | `ui2v render examples/runtime-core/uiv-runtime-commerce-command-center.json -o .tmp/examples/uiv-runtime-commerce-command-center.mp4 --quality high` |
+| [`examples/logo-reveal`](examples/logo-reveal/README.md) | A short first-run brand opener that proves the CLI works quickly. | `ui2v render examples/logo-reveal/animation.json -o .tmp/examples/logo-reveal.mp4 --quality high` |
+| [`examples/basic-text`](examples/basic-text/README.md) | A minimal smoke test for validating local browser/render setup. | `ui2v render examples/basic-text/animation.json -o .tmp/examples/basic-text.mp4` |
+
+## README Asset Workflow
+
+Render MP4 for quality, then export short preview assets for GitHub:
+
+```bash
+ui2v render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-launch.mp4 --quality high
+
+ffmpeg -y -ss 0 -t 4.5 -i .tmp/examples/hero-ai-launch.mp4 \
+  -vf "fps=10,scale=640:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=80[p];[s1][p]paletteuse=dither=bayer:bayer_scale=5" \
+  -loop 0 assets/showcase/hero-ai-launch.gif
+
+ffmpeg -y -ss 1 -i .tmp/examples/hero-ai-launch.mp4 \
+  -frames:v 1 -vf "scale=1280:-1:flags=lanczos" -update 1 -q:v 3 \
+  assets/showcase/hero-ai-launch.jpg
+```
+
+For the README, prefer 4-6 second GIFs under 3 MB and keep full MP4 files out of
+the repository unless they are release assets.
 
 ## Generate A New Idea
 
@@ -122,7 +166,7 @@ ui2v                 Short install package for the ui2v command
 @ui2v/core           Types, parser, validator, and shared helpers
 @ui2v/runtime-core   Scene graph, timeline, frame plans, adapters, commands
 @ui2v/engine         Browser Canvas renderer and WebCodecs exporter
-@ui2v/producer       Puppeteer-backed preview and MP4 render pipeline
+@ui2v/producer       System-browser preview and MP4 render pipeline
 ```
 
 ## Render Flow
@@ -131,7 +175,7 @@ ui2v                 Short install package for the ui2v command
 animation.json
   -> CLI parses and validates input
   -> producer starts a local static server
-  -> Puppeteer launches Chrome, Edge, or Chromium
+  -> puppeteer-core controls local Chrome, Edge, or Chromium
   -> browser loads core/runtime/engine bundles
   -> runtime evaluates frame state from a shared timeline
   -> engine renders frames to Canvas
@@ -143,27 +187,29 @@ animation.json
 
 - Node.js 18 or newer
 - Bun 1.0 or newer for workspace development
-- Chrome, Edge, Chromium, or Puppeteer's installed Chromium
+- Locally installed Chrome, Edge, or Chromium
 
 The main render path does not require Electron, FFmpeg, or `node-canvas`.
 
-If Puppeteer browser download fails and you already have Chrome or Edge
-installed, skip the bundled browser download:
+ui2v uses `puppeteer-core`, so it does not download a bundled Chromium.
+Install Chrome, Edge, or Chromium locally. If auto-detection fails, point ui2v at
+your browser:
 
 ```bash
-PUPPETEER_SKIP_DOWNLOAD=true bun install
+PUPPETEER_EXECUTABLE_PATH=/path/to/chrome ui2v doctor
 ```
 
 Windows PowerShell:
 
 ```powershell
-$env:PUPPETEER_SKIP_DOWNLOAD='true'; bun install
+$env:PUPPETEER_EXECUTABLE_PATH='C:\Program Files\Google\Chrome\Application\chrome.exe'; ui2v doctor
 ```
 
 ## Documentation
 
 - [Quick Start](docs/quick-start.md)
 - [Getting Started](docs/getting-started.md)
+- [Examples](examples/README.md)
 - [Architecture](docs/architecture.md)
 - [Runtime Core](docs/runtime-core.md)
 - [Renderer Notes](docs/renderer-notes.md)

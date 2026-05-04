@@ -15,6 +15,7 @@ export async function infoCommand(): Promise<void> {
     `${Math.round(os.totalmem() / 1024 / 1024 / 1024)}GB`
   );
 
-  console.log(chalk.dim('\nDocumentation:'), 'https://github.com/ui2v/ui2v#readme');
-  console.log(chalk.dim('Issues:'), 'https://github.com/ui2v/ui2v/issues');
+  console.log(chalk.dim('\nDocumentation:'), 'https://github.com/illli-studio/ui2v#readme');
+  console.log(chalk.dim('Examples:'), 'https://github.com/illli-studio/ui2v/tree/main/examples');
+  console.log(chalk.dim('Issues:'), 'https://github.com/illli-studio/ui2v/issues');
 }

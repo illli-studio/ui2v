@@ -614,6 +614,7 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
             }
 
             if (instance.exports.render) {
+                let contextSaved = false;
                 try {
                     if (instance.sdk) {
                         instance.sdk.update(layer, context);
@@ -637,6 +638,7 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
 
                     if (hasTransform) {
                         targetCtx.save();
+                        contextSaved = true;
                         
                         if (hasRuntimeMatrix) {
                             targetCtx.transform(
@@ -674,8 +676,9 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
                     }
                     this.markRuntimeRendered(layer.id, context.time);
                     
-                    if (hasTransform) {
+                    if (contextSaved) {
                         targetCtx.restore();
+                        contextSaved = false;
                     }
                 } catch (e) {
                     console.error(`[CustomCodeRenderer] Render error in layer ${layer.id}:`, e);
@@ -683,6 +686,12 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
                         time: context.time,
                         frame: compatibleContext.frame,
                     }));
+                    if (contextSaved) {
+                        try { targetCtx.restore(); } catch (restoreError) { }
+                    }
+                    if (context.isExporting) {
+                        throw e;
+                    }
                 }
             }
         }
@@ -1174,6 +1183,9 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
                                 time: ctx.time,
                                 frame: activeContext.frame,
                             }));
+                            if (ctx.isExporting) {
+                                throw e;
+                            }
                         }
                     },
                     dispose: () => {

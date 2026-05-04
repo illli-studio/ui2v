@@ -9,6 +9,9 @@ export {
   startPreviewServer,
   checkBrowserEnvironment,
   checkFFmpeg,
-  findBrowserExecutable
+  findBrowserExecutable,
+  resolveBrowserExecutable,
+  resolveRequiredBrowserExecutable,
+  BrowserExecutableNotFoundError
 } from './renderer';
-export type { RenderOptions, RenderProgress, RenderResult, PreviewOptions, PreviewSession, AnimationProject } from './renderer';
+export type { BrowserResolutionResult, RenderOptions, RenderProgress, RenderResult, PreviewOptions, PreviewSession, AnimationProject } from './renderer';

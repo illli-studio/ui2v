@@ -2,10 +2,9 @@
 
 [English](README.md)
 
-基于 Puppeteer 的 ui2v 预览和 MP4 渲染管线。
+基于本机系统浏览器的 ui2v 预览和 MP4 渲染管线。
 
-`@ui2v/producer` 会启动本地静态服务器、启动浏览器、加载已构建的 ui2v
-bundle，通过 Canvas 渲染帧，用 WebCodecs 编码 MP4，并由 Node.js 写出结果。
+`@ui2v/producer` 会启动本地静态服务器，通过 `puppeteer-core` 控制本机 Chrome、Edge 或 Chromium，加载已构建的 ui2v bundle，通过 Canvas 渲染每一帧，用 WebCodecs 编码 MP4，并由 Node.js 写出结果文件。
 
 ## 安装
 
@@ -15,9 +14,11 @@ npm install @ui2v/producer
 
 ## 环境要求
 
-- Node.js 18 或更高版本
-- Chrome、Edge、Chromium，或 Puppeteer 已安装的 Chromium
+- Node.js 18 或更新版本
+- 本机已安装的 Chrome、Edge 或 Chromium
 - 浏览器支持 WebCodecs MP4 导出
+
+安装依赖时不会下载内置浏览器。如果自动检测失败，可以设置 `PUPPETEER_EXECUTABLE_PATH`、`CHROME_PATH`、`CHROMIUM_PATH` 或 `EDGE_PATH`。
 
 ## 渲染到文件
 
@@ -51,18 +52,27 @@ console.log(session.url);
 await session.close();
 ```
 
-## 环境检查
+预览页包含左侧 JSON 项目库、时间线控制、播放速度、适配/剧场/全屏模式、debug overlay、PNG 快照导出、可复制 CLI 渲染命令和 Export MP4 按钮。快捷键：Space 播放/暂停，`f` 全屏，`t` 剧场模式，`d` debug。通过 CLI 启动时，导出文件会写入 `.tmp/examples`。
+
+
+## 浏览器发现
 
 ```ts
-import { checkBrowserEnvironment, findBrowserExecutable } from '@ui2v/producer';
+import {
+  checkBrowserEnvironment,
+  findBrowserExecutable,
+  resolveBrowserExecutable,
+  resolveRequiredBrowserExecutable,
+} from '@ui2v/producer';
 
+console.log(resolveBrowserExecutable());
 console.log(findBrowserExecutable());
+console.log(resolveRequiredBrowserExecutable());
 console.log(await checkBrowserEnvironment());
 ```
 
-`checkFFmpeg` 仍作为旧调用方的兼容别名保留。新代码应使用
-`checkBrowserEnvironment`。
+`checkFFmpeg` 仍作为旧调用方的兼容别名保留。新代码应使用 `checkBrowserEnvironment`。
 
-## 许可证
+## 许可
 
 MIT

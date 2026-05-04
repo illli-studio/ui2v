@@ -99,10 +99,11 @@ export function normalizeResolution(
     'width' in resolution &&
     'height' in resolution
   ) {
-    return {
-      width: resolution.width,
-      height: resolution.height,
-    };
+    const width = Number(resolution.width);
+    const height = Number(resolution.height);
+    if (isPositiveInteger(width) && isPositiveInteger(height)) {
+      return { width, height };
+    }
   }
 
   if (typeof resolution === 'string') {
@@ -123,6 +124,10 @@ export function normalizeResolution(
     'Invalid resolution format',
     'INVALID_RESOLUTION'
   );
+}
+
+function isPositiveInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value > 0;
 }
 
 export function stringifyProject(project: AnimationProject): string {

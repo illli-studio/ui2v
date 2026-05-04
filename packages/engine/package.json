@@ -1,7 +1,7 @@
 {
   "name": "@ui2v/engine",
   "version": "1.0.4",
-  "description": "Rendering engine for ui2v",
+  "description": "Browser Canvas and WebCodecs rendering engine for ui2v video projects",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -25,7 +25,9 @@
     "ui2v",
     "rendering",
     "canvas",
-    "animation"
+    "webcodecs",
+    "animation",
+    "motion-graphics"
   ],
   "author": "ui2v",
   "license": "MIT",

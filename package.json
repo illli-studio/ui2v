@@ -1,7 +1,7 @@
 {
   "name": "@ui2v/workspace",
   "version": "1.0.4",
-  "description": "ui2v workspace",
+  "description": "ui2v workspace for rendering animation JSON into MP4 video with Canvas and WebCodecs",
   "private": true,
   "workspaces": [
     "packages/*"
@@ -12,9 +12,9 @@
     "clean": "bun run --filter '*' clean",
     "version:bump": "node scripts/bump-version.mjs",
     "publish:packages": "bun run test && npm publish --workspaces --access public",
-    "test": "bun run build && bun run test:unit && bun run test:metadata && bun run test:surface && bun run test:pack && bun run test:examples && bun run test:validate && bun run test:cli-errors && bun run test:inspect-runtime && bun run test:smoke && bun run test:render-scale && bun run test:runtime-render && bun run test:init",
-    "test:ci": "bun run build && bun run test:unit && bun run test:metadata && bun run test:surface && bun run test:pack && bun run test:examples && bun run test:validate && bun run test:cli-errors && bun run test:inspect-runtime",
-    "test:unit": "bun run packages/runtime-core/test/runtime-core.test.mjs && bun run packages/engine/test/canvas-draw-command-executor.test.mjs && bun run packages/engine/test/custom-code-runtime.test.mjs",
+    "test": "bun run build && bun run test:unit && bun run test:metadata && bun run test:surface && bun run test:pack && bun run test:examples && bun run test:docs && bun run test:validate && bun run test:cli-errors && bun run test:inspect-runtime && bun run test:preview-studio && bun run test:smoke && bun run test:render-scale && bun run test:runtime-render && bun run test:render-failures && bun run test:init",
+    "test:ci": "bun run build && bun run test:unit && bun run test:metadata && bun run test:surface && bun run test:pack && bun run test:examples && bun run test:docs && bun run test:validate && bun run test:cli-errors && bun run test:inspect-runtime && bun run test:preview-studio && bun run test:render-failures",
+    "test:unit": "bun run packages/core/test/parser.test.mjs && bun run packages/runtime-core/test/runtime-core.test.mjs && bun run packages/engine/test/canvas-draw-command-executor.test.mjs && bun run packages/engine/test/custom-code-runtime.test.mjs",
     "test:metadata": "node scripts/validate-package-metadata.mjs",
     "test:surface": "node scripts/validate-cli-surface.mjs",
     "test:pack": "node scripts/validate-package-packs.mjs",
@@ -24,16 +24,21 @@
     "test:inspect-runtime": "node scripts/smoke-inspect-runtime.mjs",
     "test:smoke": "node scripts/smoke-render.mjs",
     "test:render-scale": "node scripts/smoke-render-scale.mjs",
+    "test:render-failures": "node scripts/smoke-render-failures.mjs",
     "test:runtime-render": "node scripts/smoke-runtime-render.mjs",
-    "test:init": "node scripts/smoke-init.mjs"
+    "test:init": "node scripts/smoke-init.mjs",
+    "test:docs": "node scripts/validate-docs-assets.mjs",
+    "test:preview-studio": "node scripts/smoke-preview-studio.mjs"
   },
   "keywords": [
     "video",
     "animation",
     "rendering",
+    "mp4",
     "canvas",
     "webcodecs",
-    "puppeteer"
+    "puppeteer-core",
+    "generative-video"
   ],
   "author": "ui2v",
   "license": "MIT",

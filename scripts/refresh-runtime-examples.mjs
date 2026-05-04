@@ -34,19 +34,6 @@ const files = [
       segment('resolve', 'Resolve', 6, 9, pipelineScene('Custom code to MP4', ['Segment', 'Layer', 'Frame', 'Encode'], '#F2AA4C')),
     ],
   })],
-  ['examples/runtime-core/uiv-runtime-commerce-command-center.json', runtimeProject({
-    id: 'uiv-commerce-command-center',
-    name: 'Commerce Command Center',
-    version: '0.4.0',
-    duration: 12,
-    accent: '#7BD88F',
-    segments: [
-      segment('hero', 'Hero', 0, 3, titleScene('Commerce Command Center', 'orders, revenue, and operations in motion', '#7BD88F')),
-      segment('metrics', 'Metrics', 3, 6, dashboardScene('Live Revenue Pulse', 'clean dashboard animation for product demos', '#00D4FF')),
-      segment('workflow', 'Workflow', 6, 9, pipelineScene('Ops Workflow', ['Orders', 'Risk', 'Inventory', 'Dispatch'], '#F2AA4C')),
-      segment('final', 'Final', 9, 12, titleScene('Ready for the morning standup', 'rendered from one runtime JSON', '#FFFFFF')),
-    ],
-  })],
   ['examples/runtime-core/uiv-runtime-one-minute-studio.json', runtimeProject({
     id: 'uiv-runtime-one-minute-studio',
     name: 'One Minute Studio',
@@ -101,11 +88,18 @@ const files = [
   })],
 ];
 
+const preservedFeaturedRuntimeExamples = [
+  'examples/runtime-core/uiv-runtime-commerce-command-center.json',
+];
+
 for (const [file, data] of files) {
   const target = resolve(root, file);
   await mkdir(dirname(target), { recursive: true });
   await writeFile(target, `${JSON.stringify(data, null, 2)}\n`, 'utf8');
 }
+
+console.log(`Refreshed ${files.length} runtime-core examples.`);
+console.log(`Preserved ${preservedFeaturedRuntimeExamples.length} hand-polished featured runtime examples: ${preservedFeaturedRuntimeExamples.join(', ')}`);
 
 function runtimeProject({ id, name, version, duration, accent, segments, markers = [] }) {
   return {

@@ -72,20 +72,27 @@ export class CodeSanitizer {
     }
 
     /**
-     *    import X from 'Y'       → const X = require('Y')
-     *    import { A, B } from 'Y' → const { A, B } = require('Y')
-     *    export default X         → exports.default = X
+     *    import X from 'Y'          -> const X = require('Y')
+     *    import * as X from 'Y'     -> const X = require('Y')
+     *    import { A, B as C } from 'Y' -> const { A, B: C } = require('Y')
+     *    import 'Y'                 -> require('Y')
+     *    export default X           -> exports.default = X
      */
     private static transpileESM(code: string): string {
         return code
             .replace(
-                /import\s+(?:(\w+)|\{([\w\s,]+)\})\s+from\s+(['"])([^'"]+)\3;?/g,
+                /import\s+\*\s+as\s+([A-Za-z_$][\w$]*)\s+from\s+(['"])([^'"]+)\2;?/g,
+                (_match, namespace, quote, id) => `const ${namespace} = require(${quote}${id}${quote});`
+            )
+            .replace(
+                /import\s+(?:([A-Za-z_$][\w$]*)|\{([^}]+)\})\s+from\s+(['"])([^'"]+)\3;?/g,
                 (match, def, named, quote, id) => {
                     if (def) return `const ${def} = require(${quote}${id}${quote});`;
-                    if (named) return `const {${named}} = require(${quote}${id}${quote});`;
+                    if (named) return `const {${normalizeNamedImports(named)}} = require(${quote}${id}${quote});`;
                     return match;
                 }
             )
+            .replace(/import\s+(['"])([^'"]+)\1;?/g, (_match, quote, id) => `require(${quote}${id}${quote});`)
             .replace(/export\s+default\s+/g, 'exports.default = ');
     }
 
@@ -102,7 +109,7 @@ export class CodeSanitizer {
 
         // Warn if any array-form roundRect remains (regex couldn't handle it)
         if (/\.roundRect\s*\([^)]*,\s*\[[^\]]+\]\s*\)/.test(fixed)) {
-            console.warn('[CodeSanitizer] ⚠️ Array-form roundRect still present after fixup');
+            console.warn('[CodeSanitizer] Array-form roundRect still present after fixup');
         }
         return fixed;
     }
@@ -126,4 +133,13 @@ export class CodeSanitizer {
             }
         }
     }
+}
+
+function normalizeNamedImports(named: string): string {
+    return named
+        .split(',')
+        .map(part => part.trim())
+        .filter(Boolean)
+        .map(part => part.replace(/\s+as\s+/i, ': '))
+        .join(', ');
 }

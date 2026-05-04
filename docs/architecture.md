@@ -12,7 +12,7 @@ Canvas rendering and WebCodecs encoding.
 @ui2v/core          Project types, parsing, validation, shared helpers
 @ui2v/runtime-core  Scene graph, timeline, frame plans, adapter contracts
 @ui2v/engine        Browser Canvas rendering, custom code, WebCodecs export
-@ui2v/producer      Puppeteer preview/render pipeline and local static server
+@ui2v/producer      puppeteer-core preview/render pipeline and local static server
 @ui2v/cli           User-facing command-line interface
 ```
 
@@ -22,7 +22,7 @@ Canvas rendering and WebCodecs encoding.
 JSON project
   -> CLI reads and validates input
   -> producer starts a localhost static server
-  -> Puppeteer launches Chrome, Edge, or Chromium
+  -> puppeteer-core launches local Chrome, Edge, or Chromium
   -> browser loads core/runtime/engine bundles
   -> runtime evaluates deterministic frame state
   -> engine renders the frame to Canvas

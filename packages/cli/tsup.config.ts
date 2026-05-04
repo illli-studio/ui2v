@@ -8,7 +8,7 @@ export default defineConfig({
   clean: true,
   external: [
     'canvas',
-    'puppeteer',
+    'puppeteer-core',
     '@ui2v/core',
     '@ui2v/engine',
     '@ui2v/producer',
@@ -16,3 +16,4 @@ export default defineConfig({
   ],
   noExternal: [],
 });
+

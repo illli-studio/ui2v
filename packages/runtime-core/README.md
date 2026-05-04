@@ -1,6 +1,6 @@
 # @ui2v/runtime-core
 
-[中文](README.zh.md)
+[Chinese](README.zh.md)
 
 DOM-free runtime foundation for ui2v compositions.
 

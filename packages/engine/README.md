@@ -1,6 +1,6 @@
 # @ui2v/engine
 
-[中文](README.zh.md)
+[Chinese](README.zh.md)
 
 Browser rendering engine for ui2v. It renders projects to Canvas and supports
 browser-native MP4 export through WebCodecs.

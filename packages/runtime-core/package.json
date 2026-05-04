@@ -1,7 +1,7 @@
 {
   "name": "@ui2v/runtime-core",
   "version": "1.0.4",
-  "description": "Runtime core for ui2v scene graphs, timelines, schedulers, and engine adapters",
+  "description": "Runtime core for ui2v scene graphs, timelines, frame plans, and adapters",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -27,7 +27,8 @@
     "runtime",
     "scene-graph",
     "timeline",
-    "animation"
+    "animation",
+    "video"
   ],
   "author": "ui2v",
   "license": "MIT",

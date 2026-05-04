@@ -1,7 +1,7 @@
 {
   "name": "@ui2v/core",
   "version": "1.0.4",
-  "description": "Core types, parsers, and utilities for ui2v",
+  "description": "Core types, parser, validation, and project utilities for ui2v animation JSON",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -25,7 +25,9 @@
     "ui2v",
     "video",
     "animation",
-    "rendering"
+    "json",
+    "validation",
+    "schema"
   ],
   "author": "ui2v",
   "license": "MIT",

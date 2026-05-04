@@ -319,6 +319,9 @@ export class TemplateRenderer {
       }
     } catch (error) {
       console.error(`Renderer failed for layer "${layer.name}" (${layer.type}):`, error);
+      if (this.isExporting) {
+        throw error;
+      }
     }
   }
 

@@ -32,7 +32,12 @@ export async function previewCommand(
     }
 
     const project = await loadProjectFile(inputPath);
-    const previewOptions = normalizePreviewOptions(options);
+    const previewOptions = {
+      ...normalizePreviewOptions(options),
+      sourcePath: inputPath,
+      workspaceRoot: process.cwd(),
+      exportDir: path.resolve(process.cwd(), '.tmp/examples'),
+    };
 
     spinner.succeed(chalk.green(`Loaded project: ${project.id}`));
     console.log(chalk.dim(`  Duration: ${project.duration}s`));

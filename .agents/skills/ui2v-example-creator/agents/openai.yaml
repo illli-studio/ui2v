@@ -1,0 +1,7 @@
+interface:
+  display_name: "ui2v Example Creator"
+  short_description: "Create polished ui2v animation examples and README demos."
+  brand_color: "#00D4FF"
+  default_prompt: "Use $ui2v-example-creator to create a polished ui2v example that can be featured in the README."
+policy:
+  allow_implicit_invocation: true

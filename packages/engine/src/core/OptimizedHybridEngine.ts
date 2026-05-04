@@ -318,6 +318,7 @@ export class OptimizedHybridEngine {
       }
     } catch (error) {
       this.handleRenderError(error);
+      throw error;
     }
   }
 
