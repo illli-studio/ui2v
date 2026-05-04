@@ -1,6 +1,6 @@
 {
   "name": "ui2v",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Install the ui2v CLI for rendering animation JSON into MP4 video",
   "bin": {
     "ui2v": "bin/ui2v.js"
@@ -34,7 +34,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@ui2v/cli": "1.0.4"
+    "@ui2v/cli": "1.0.5"
   },
   "engines": {
     "node": ">=18"
