@@ -27,8 +27,11 @@ Install the repo-local ui2v skill:
 npx skills add illli-studio/ui2v --skill ui2v
 ```
 
-The skill lives in [`skills/ui2v`](skills/ui2v/SKILL.md) and covers example creation,
-runtime-core projects, renderer capabilities, and README showcase asset export.
+The skill lives in [`skills/ui2v`](skills/ui2v/SKILL.md). It guides agents to
+build full ui2v animation projects with the right mix of runtime timelines,
+custom code, browser rendering, npm/built-in libraries such as three, d3, gsap,
+physics, particles, typography, Lottie/icons, MP4 export, and README showcase
+asset packaging.
 
 ## Showcase
 
