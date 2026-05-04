@@ -282,7 +282,7 @@ This project renders a 6-second, 1920x1080 launch-style MP4 from structured JSON
 
 \`\`\`bash
 # Install the published CLI
-npm install -g ui2v
+npm install -g @ui2v/cli
 
 # Validate project
 ui2v validate animation.json
@@ -310,7 +310,7 @@ See the ui2v README for examples, rendering options, and README asset workflows.
 
     console.log(chalk.dim('\nNext steps:'));
     console.log(chalk.dim(`  cd ${name}`));
-    console.log(chalk.dim('  npm install -g ui2v'));
+    console.log(chalk.dim('  npm install -g @ui2v/cli'));
     console.log(chalk.dim('  ui2v validate animation.json'));
     console.log(chalk.dim('  ui2v preview animation.json --pixel-ratio 2'));
     console.log(chalk.dim('  ui2v render animation.json -o output.mp4 --quality high'));

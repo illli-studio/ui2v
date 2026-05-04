@@ -17,12 +17,12 @@ not download a bundled Chromium and does not require Electron, FFmpeg, or
 
 ## Published CLI
 
-The short `ui2v` package installs the command and depends on the implementation
-package `@ui2v/cli`.
+Install the scoped CLI package. It still exposes the `ui2v` command after
+installation.
 
 ```bash
-npm install -g ui2v
-# or: bun install -g ui2v
+npm install -g @ui2v/cli
+# or: bun install -g @ui2v/cli
 ui2v doctor
 ui2v validate examples/hero-ai-launch/animation.json --verbose
 ui2v preview examples/hero-ai-launch/animation.json --pixel-ratio 2
@@ -32,8 +32,8 @@ ui2v render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-laun
 Run without a global install:
 
 ```bash
-npx ui2v --version
-npx ui2v render examples/hero-ai-launch/animation.json -o hero-ai-launch.mp4 --quality high
+npx @ui2v/cli --version
+npx @ui2v/cli render examples/hero-ai-launch/animation.json -o hero-ai-launch.mp4 --quality high
 ```
 
 ## Local Workspace

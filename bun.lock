@@ -12,7 +12,7 @@
     },
     "packages/cli": {
       "name": "@ui2v/cli",
-      "version": "1.0.4",
+      "version": "1.0.5",
       "bin": {
         "ui2v": "dist/cli.js",
       },
@@ -37,7 +37,7 @@
     },
     "packages/core": {
       "name": "@ui2v/core",
-      "version": "1.0.4",
+      "version": "1.0.5",
       "dependencies": {
         "zod": "^3.25.76",
       },
@@ -49,7 +49,7 @@
     },
     "packages/engine": {
       "name": "@ui2v/engine",
-      "version": "1.0.4",
+      "version": "1.0.5",
       "dependencies": {
         "@emotion/css": "^11.13.5",
         "@tsparticles/engine": "^3.9.1",
@@ -93,7 +93,7 @@
     },
     "packages/producer": {
       "name": "@ui2v/producer",
-      "version": "1.0.4",
+      "version": "1.0.5",
       "dependencies": {
         "@ui2v/core": "1.0.4",
         "@ui2v/engine": "1.0.4",
@@ -110,7 +110,7 @@
     },
     "packages/runtime-core": {
       "name": "@ui2v/runtime-core",
-      "version": "1.0.4",
+      "version": "1.0.5",
       "dependencies": {
         "@ui2v/core": "1.0.4",
       },
@@ -118,16 +118,6 @@
         "rimraf": "^6.0.1",
         "tsup": "^8.0.0",
         "typescript": "^5.8.3",
-      },
-    },
-    "packages/ui2v": {
-      "name": "ui2v",
-      "version": "1.0.4",
-      "bin": {
-        "ui2v": "bin/ui2v.js",
-      },
-      "dependencies": {
-        "@ui2v/cli": "1.0.4",
       },
     },
   },
@@ -1173,8 +1163,6 @@
     "typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
     "ufo": ["ufo@1.6.3", "", {}, "sha512-yDJTmhydvl5lJzBmy/hyOAA0d+aqCBuwl818haVdYCRrWV84o7YyeVm4QlVHStqNrrJSTb6jKuFAVqAFsr+K3Q=="],
-
-    "ui2v": ["ui2v@workspace:packages/ui2v"],
 
     "undici-types": ["undici-types@6.21.0", "", {}, "sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ=="],
 

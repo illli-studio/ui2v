@@ -8,7 +8,7 @@ ui2v animation JSON projects.
 Most users should install the short package name:
 
 ```bash
-npm install -g ui2v
+npm install -g @ui2v/cli
 # or: bun install -g ui2v
 ui2v --version
 ```
@@ -31,8 +31,8 @@ ui2v render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-laun
 Run without a global install:
 
 ```bash
-npx ui2v --version
-npx ui2v render examples/hero-ai-launch/animation.json -o hero-ai-launch.mp4 --quality high
+npx @ui2v/cli --version
+npx @ui2v/cli render examples/hero-ai-launch/animation.json -o hero-ai-launch.mp4 --quality high
 ```
 
 ## Commands

@@ -7,7 +7,7 @@
 大多数用户建议安装短包名：
 
 ```bash
-npm install -g ui2v
+npm install -g @ui2v/cli
 # or: bun install -g ui2v
 ui2v --version
 ```
@@ -30,8 +30,8 @@ ui2v render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-laun
 不全局安装也可以运行：
 
 ```bash
-npx ui2v --version
-npx ui2v render animation.json -o output.mp4 --quality high
+npx @ui2v/cli --version
+npx @ui2v/cli render animation.json -o output.mp4 --quality high
 ```
 
 `preview` 会打开本地 Studio UI，左侧可浏览 JSON 项目，支持播放、拖动、播放速度、适配/剧场/全屏模式、runtime debug overlay、当前帧 PNG 快照、复制 CLI 渲染命令和 Export MP4。

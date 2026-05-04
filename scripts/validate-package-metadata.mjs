@@ -10,7 +10,6 @@ const packageDirs = [
   'packages/engine',
   'packages/producer',
   'packages/runtime-core',
-  'packages/ui2v',
 ];
 const textFiles = [
   'CONTRIBUTING.md',

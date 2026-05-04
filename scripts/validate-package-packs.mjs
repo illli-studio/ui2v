@@ -8,11 +8,6 @@ const packages = [
   { dir: 'packages/engine', maxFiles: 8 },
   { dir: 'packages/producer', maxFiles: 8 },
   { dir: 'packages/cli', maxFiles: 14 },
-  {
-    dir: 'packages/ui2v',
-    maxFiles: 4,
-    requiredFiles: ['package.json', 'README.md', 'bin/ui2v.js'],
-  },
 ];
 
 const defaultRequiredFiles = [

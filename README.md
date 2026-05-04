@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/ui2v"><img alt="npm version" src="https://img.shields.io/npm/v/ui2v?color=00d4ff"></a>
+  <a href="https://www.npmjs.com/package/@ui2v/cli"><img alt="npm version" src="https://img.shields.io/npm/v/@ui2v/cli?color=00d4ff"></a>
   <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-MIT-f2aa4c"></a>
   <img alt="node" src="https://img.shields.io/badge/node-%3E%3D18-7bd88f">
 </p>
@@ -53,7 +53,7 @@ rendered by ui2v and compressed as lightweight GIFs for GitHub preview.
 Install the short CLI package:
 
 ```bash
-npm install -g ui2v
+npm install -g @ui2v/cli
 ui2v doctor
 ```
 
@@ -68,7 +68,7 @@ ui2v render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-laun
 Run without a global install:
 
 ```bash
-npx ui2v render examples/hero-ai-launch/animation.json -o hero-ai-launch.mp4 --quality high
+npx @ui2v/cli render examples/hero-ai-launch/animation.json -o hero-ai-launch.mp4 --quality high
 ```
 
 Use a local workspace build:

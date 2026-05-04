@@ -14,11 +14,11 @@
 
 ## 使用已发布 CLI
 
-短包 `ui2v` 会安装命令，并依赖真正的实现包 `@ui2v/cli`。
+安装 `@ui2v/cli` 这个带作用域的 CLI 包，它在安装后仍然提供 `ui2v` 命令。
 
 ```bash
-npm install -g ui2v
-# or: bun install -g ui2v
+npm install -g @ui2v/cli
+# or: bun install -g @ui2v/cli
 ui2v doctor
 ui2v validate examples/hero-ai-launch/animation.json --verbose
 ui2v preview examples/hero-ai-launch/animation.json --pixel-ratio 2
@@ -28,8 +28,8 @@ ui2v render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-laun
 也可以不全局安装：
 
 ```bash
-npx ui2v --version
-npx ui2v render examples/hero-ai-launch/animation.json -o hero-ai-launch.mp4 --quality high
+npx @ui2v/cli --version
+npx @ui2v/cli render examples/hero-ai-launch/animation.json -o hero-ai-launch.mp4 --quality high
 ```
 
 ## 使用本地 Workspace
