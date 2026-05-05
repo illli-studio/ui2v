@@ -2,6 +2,18 @@
 
 ui2v examples should use the browser/npm ecosystem as a creative toolkit. Choose libraries for the scene's job, combine them when useful, and keep the final render deterministic.
 
+## Freshness before package use
+
+Before coding against a browser/npm library, confirm that the available `ui2v` CLI and the user's project dependency state match the intended library stack.
+
+- Compare `ui2v --version` with `npm view @ui2v/cli version` when freshness matters or the environment is unknown.
+- Run `ui2v doctor` before validation/rendering when the environment is unknown.
+- If `ui2v` is missing, outdated, or lacks a needed command/capability, use `npm install -g @ui2v/cli@latest` or `npx @ui2v/cli@latest`.
+- If the user project has its own `package.json`, respect its package manager and lockfile when adding authored assets/scripts.
+- If the task depends on latest package behavior or a new library version, check package metadata, update the user project deliberately, and run focused validation/rendering.
+- Keep browser-rendered dependencies reproducible. Prefer explicit dependency names and stable versions supported by the current CLI over implicit latest URLs.
+- Validate and render at least one project that exercises any newly added or updated library.
+
 ## Sequencing: gsap / anime / TWEEN
 
 Use for polished staged motion: launch beats, panel choreography, scroll-like reveals, elastic cards, camera-ish transitions, and kinetic text timing.
@@ -77,3 +89,4 @@ Before writing an example, decide:
 2. Which library makes that problem easier or higher quality?
 3. Which dependencies must be declared in project/segment metadata?
 4. How will validation, preview, MP4 render, and README GIF/JPG export be verified?
+5. What CLI/project dependency check proves the selected library version is the one being rendered?

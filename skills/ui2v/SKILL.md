@@ -26,6 +26,48 @@ Core project features to use when they fit:
 - **Library ecosystem**: combine `gsap`, `anime`, `d3`, `math`, `THREE`, `POSTPROCESSING`, `Matter`, `CANNON`, `PIXI`, `p5`, `tsParticles`, `simplex`, `fabric`, `Konva`, `paper`, `rough`, `SplitType`, `opentype`, `katex`, `lottie`, `iconify`, `Globe`, and Canvas APIs as needed.
 - **Reproducible media workflow**: validate JSON, inspect runtime frames, render MP4, export README GIF/JPG, keep large MP4s out of the repo unless requested.
 
+## CLI freshness gate
+
+This skill is for using `@ui2v/cli` to create, validate, preview, render, and package video projects. It is not primarily a workflow for developing the ui2v source repository.
+
+Before generating or rendering, make the CLI version check explicit. Users should not have to know whether their local tool is stale; the agent should check.
+
+1. Check the installed CLI and compare it with the npm latest version:
+
+```bash
+ui2v --version
+npm view @ui2v/cli version
+```
+
+If `ui2v --version` fails, the CLI is missing. If the installed version is lower than the npm version, the CLI is outdated.
+
+2. If the installed CLI is current enough, use it:
+
+```bash
+ui2v doctor
+ui2v validate <project-json> --verbose
+```
+
+3. If `ui2v` is missing, outdated, fails because of an old command surface, or the user asks for latest ui2v behavior, update/use the npm CLI before continuing:
+
+```bash
+npm install -g @ui2v/cli@latest
+ui2v doctor
+```
+
+4. If global installs are not desired or not available, use the latest package through `npx` so the user does not need to manage freshness manually:
+
+```bash
+npx @ui2v/cli@latest doctor
+npx @ui2v/cli@latest validate <project-json> --verbose
+npx @ui2v/cli@latest render <project-json> -o <output>.mp4 --quality high
+```
+
+5. If working inside an existing user project with its own `package.json`, respect its package manager and lockfile. Install or update only what the project needs for authored assets/scripts; do not convert the project to the ui2v repository workflow.
+6. Browser/npm libraries referenced in ui2v JSON `dependencies` or custom code should be reproducible. Prefer explicit dependency names and stable versions supported by the current CLI; when latest library behavior matters, check package metadata, update the user project intentionally, then validate and render a project that exercises the library.
+
+The default answer to "make a video with ui2v" is: compare `ui2v --version` with `npm view @ui2v/cli version`, ensure `ui2v doctor` passes, author the JSON/assets, run `ui2v validate`, then render. Only update the CLI or project packages when the installed tools are missing, outdated, broken for the requested feature, or the user asks for latest behavior.
+
 ## Start every generation with a storyboard
 
 Before writing JSON, produce a compact shot plan:
@@ -51,6 +93,7 @@ Read `references/json-authoring.md` for exact JSON recipes, dependency placement
 ## Choose libraries by visual intent
 
 Do not default to just one rendering primitive. Pick the smallest reliable stack that creates the desired shot.
+Before writing code against a selected library, pass through the CLI freshness gate above so the available `ui2v` command and rendered output support the intended dependency stack.
 
 | Goal | Prefer |
 | --- | --- |
@@ -106,19 +149,19 @@ The custom-code inspector can detect/sanitize common entrypoints and dependency 
 
 ## Validation and render workflow
 
-Run from the repo root.
+Run from the directory that contains the animation project, or pass paths explicitly.
 
 ```bash
-node packages/cli/dist/cli.js validate examples/<name>/animation.json --verbose
-node packages/cli/dist/cli.js render examples/<name>/animation.json -o .tmp/examples/<name>.mp4 --quality high
+ui2v validate examples/<name>/animation.json --verbose
+ui2v render examples/<name>/animation.json -o .tmp/examples/<name>.mp4 --quality high
 ```
 
 Runtime projects:
 
 ```bash
-node packages/cli/dist/cli.js validate examples/runtime-core/<file>.json --verbose
-node packages/cli/dist/cli.js inspect-runtime examples/runtime-core/<file>.json --time 1 --time 5 --time 9 --json
-node packages/cli/dist/cli.js render examples/runtime-core/<file>.json -o .tmp/examples/<file-without-json>.mp4 --quality high
+ui2v validate examples/runtime-core/<file>.json --verbose
+ui2v inspect-runtime examples/runtime-core/<file>.json --time 1 --time 5 --time 9 --json
+ui2v render examples/runtime-core/<file>.json -o .tmp/examples/<file-without-json>.mp4 --quality high
 ```
 
 README assets:
@@ -137,18 +180,18 @@ Read `references/showcase-assets.md` before changing root README gallery assets.
 
 ## Final checks
 
-Use focused checks first; run broader checks before committing broad changes:
+Use focused checks for the generated video project:
 
 ```bash
-node scripts/validate-package-metadata.mjs
-node scripts/validate-package-packs.mjs
-node scripts/validate-examples.mjs
-node scripts/validate-docs-assets.mjs
-node -e "const fs=require('fs'); for (const f of ['README.md','README_zh.md']) { const t=fs.readFileSync(f,'utf8'); console.log(f, t.charCodeAt(0)===0xFEFF, [...t].some(ch=>ch.charCodeAt(0)===65533)); }"
+ui2v --version
+npm view @ui2v/cli version
+ui2v doctor
+ui2v validate <project-json> --verbose
+ui2v render <project-json> -o <output>.mp4 --quality high
 ```
 
 If rendering fails before launching the browser, run:
 
 ```bash
-node packages/cli/dist/cli.js doctor
+ui2v doctor
 ```

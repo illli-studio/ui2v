@@ -27,11 +27,19 @@ Install the repo-local ui2v skill:
 npx skills add illli-studio/ui2v --skill ui2v
 ```
 
+Refresh it the same way when the repo skill changes:
+
+```bash
+npx skills add illli-studio/ui2v --skill ui2v --force
+```
+
 The skill lives in [`skills/ui2v`](skills/ui2v/SKILL.md). It guides agents to
 plan segmented storyboards, choose runtime/template JSON, use XYZ/depth/camera
 features, combine browser/npm libraries such as three, d3, gsap, physics,
 particles, typography, Lottie/icons, validate/render MP4, and package README
-showcase assets.
+showcase assets. Keep the skill updated with current `@ui2v/cli` usage,
+dependency guidance, and render workflow changes so agents check or refresh the
+CLI before relying on stale local tooling.
 
 ## Showcase
 

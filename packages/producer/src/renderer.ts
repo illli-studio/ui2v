@@ -609,6 +609,12 @@ async function createStaticServer(
         return;
       }
 
+      if (url.pathname === '/preview/directories') {
+        const requestedPath = url.searchParams.get('path');
+        sendJson(res, await createPreviewDirectoryList(requestedPath, options));
+        return;
+      }
+
       if (url.pathname === '/preview/load') {
         const requestedPath = url.searchParams.get('path');
         const projectFile = resolvePreviewProjectPath(requestedPath, options);
@@ -626,7 +632,7 @@ async function createStaticServer(
         const projectFile = resolvePreviewProjectPath(body?.path, options);
         const project = await readPreviewProject(projectFile);
         const previewOptions = normalizePreviewOptions(project, options.previewOptionOverrides ?? {});
-        const outputPath = resolvePreviewExportPath(projectFile, project, options);
+        const outputPath = resolvePreviewExportPath(projectFile, project, options, body?.outputPath);
         const result = await renderToFile(project, outputPath, {
           quality: body?.quality === 'ultra' || body?.quality === 'cinema' || body?.quality === 'medium' || body?.quality === 'low' ? body.quality : 'high',
           fps: previewOptions.fps,
@@ -636,6 +642,36 @@ async function createStaticServer(
           codec: body?.codec === 'hevc' ? 'hevc' : 'avc',
         });
         sendJson(res, { ...result, outputPath });
+        return;
+      }
+
+      if (url.pathname === '/preview/export-download' && req.method === 'POST') {
+        const body = await readRequestJson(req);
+        const projectFile = resolvePreviewProjectPath(body?.path, options);
+        const project = await readPreviewProject(projectFile);
+        const previewOptions = normalizePreviewOptions(project, options.previewOptionOverrides ?? {});
+        const tempOutput = resolvePreviewExportPath(projectFile, project, options);
+        const result = await renderToFile(project, tempOutput, {
+          quality: body?.quality === 'ultra' || body?.quality === 'cinema' || body?.quality === 'medium' || body?.quality === 'low' ? body.quality : 'high',
+          fps: previewOptions.fps,
+          width: previewOptions.width,
+          height: previewOptions.height,
+          renderScale: body?.renderScale ? Number(body.renderScale) : 1,
+          codec: body?.codec === 'hevc' ? 'hevc' : 'avc',
+        });
+        if (!result.success) {
+          res.writeHead(500, {
+            'content-type': 'application/json; charset=utf-8',
+            'cache-control': 'no-store',
+            'access-control-allow-origin': '*',
+          });
+          res.end(JSON.stringify(result));
+          return;
+        }
+        const fileName = sanitizeFileName(String((project as any).id || path.basename(projectFile, '.json'))) + '.mp4';
+        const buffer = await fsp.readFile(tempOutput);
+        await fsp.rm(tempOutput, { force: true }).catch(() => {});
+        sendBinary(res, buffer, 'video/mp4', fileName);
         return;
       }
 
@@ -710,6 +746,17 @@ function sendText(res: http.ServerResponse, text: string, contentType: string): 
 
 function sendJson(res: http.ServerResponse, value: unknown): void {
   sendText(res, JSON.stringify(value), 'application/json; charset=utf-8');
+}
+
+function sendBinary(res: http.ServerResponse, buffer: Buffer, contentType: string, fileName: string): void {
+  res.writeHead(200, {
+    'content-type': contentType,
+    'content-length': String(buffer.length),
+    'content-disposition': `attachment; filename="${fileName.replace(/"/g, '')}"`,
+    'cache-control': 'no-store',
+    'access-control-allow-origin': '*',
+  });
+  res.end(buffer);
 }
 
 function readRequestJson(req: http.IncomingMessage): Promise<any> {
@@ -787,6 +834,32 @@ async function createPreviewState(requestedPath: unknown, options: StaticServerO
   };
 }
 
+async function createPreviewDirectoryList(requestedPath: unknown, options: StaticServerOptions) {
+  const root = resolvePreviewWorkspaceRoot(options);
+  const current = resolvePreviewDirectoryPath(requestedPath, options);
+  const entries = await fsp.readdir(current, { withFileTypes: true });
+  const directories = entries
+    .filter(entry => entry.isDirectory() && !isHiddenPreviewSystemDirectory(entry.name))
+    .map(entry => {
+      const fullPath = path.join(current, entry.name);
+      return {
+        name: entry.name,
+        path: fullPath,
+        label: path.relative(root, fullPath).replace(/\\/g, '/') || '.',
+      };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const parent = current === root ? null : path.dirname(current);
+
+  return {
+    root,
+    current,
+    currentLabel: path.relative(root, current).replace(/\\/g, '/') || '.',
+    parent: parent && isPathInside(root, parent) ? parent : null,
+    directories,
+  };
+}
+
 async function findPreviewJsonProjects(root: string): Promise<string[]> {
   const files: string[] = [];
   await walkPreviewProjects(root, files);
@@ -796,7 +869,7 @@ async function findPreviewJsonProjects(root: string): Promise<string[]> {
 async function walkPreviewProjects(dir: string, files: string[]): Promise<void> {
   const entries = await fsp.readdir(dir, { withFileTypes: true });
   for (const entry of entries) {
-    if (entry.name === 'node_modules' || entry.name === '.git' || entry.name === 'dist' || entry.name === 'out' || entry.name === '.tmp') {
+    if (isIgnoredPreviewProjectDirectory(entry.name)) {
       continue;
     }
     const fullPath = path.join(dir, entry.name);
@@ -812,6 +885,14 @@ async function walkPreviewProjects(dir: string, files: string[]): Promise<void> 
       files.push(path.resolve(fullPath));
     }
   }
+}
+
+function isIgnoredPreviewProjectDirectory(name: string): boolean {
+  return name === 'node_modules' || name === '.git' || name === 'dist' || name === 'out' || name === '.tmp';
+}
+
+function isHiddenPreviewSystemDirectory(name: string): boolean {
+  return name === 'node_modules' || name === '.git';
 }
 
 function safeReadProjectSummary(file: string): any | null {
@@ -879,8 +960,32 @@ function resolvePreviewProjectPath(requestedPath: unknown, options: StaticServer
   return resolved;
 }
 
-function resolvePreviewExportPath(projectFile: string, project: AnimationProject, options: StaticServerOptions): string {
+function resolvePreviewDirectoryPath(requestedPath: unknown, options: StaticServerOptions): string {
   const root = resolvePreviewWorkspaceRoot(options);
+  const resolved = typeof requestedPath === 'string' && requestedPath ? path.resolve(requestedPath) : root;
+  if (!isPathInside(root, resolved)) {
+    throw new Error('Preview directory path must stay inside the workspace root');
+  }
+  if (!fs.existsSync(resolved) || !fs.statSync(resolved).isDirectory()) {
+    throw new Error('Preview directory path must be an existing directory');
+  }
+  return resolved;
+}
+
+function resolvePreviewExportPath(projectFile: string, project: AnimationProject, options: StaticServerOptions, requestedPath?: unknown): string {
+  const root = resolvePreviewWorkspaceRoot(options);
+  if (typeof requestedPath === 'string' && requestedPath.trim()) {
+    const resolved = path.resolve(requestedPath.trim());
+    if (path.extname(resolved).toLowerCase() !== '.mp4') {
+      throw new Error('Preview export path must end with .mp4');
+    }
+    const parent = path.dirname(resolved);
+    if (!fs.existsSync(parent) || !fs.statSync(parent).isDirectory()) {
+      throw new Error('Preview export parent folder must exist');
+    }
+    return resolved;
+  }
+
   const exportDir = path.resolve(options.previewExportDir ?? path.join(root, '.tmp', 'examples'));
   if (!isPathInside(root, exportDir)) {
     throw new Error('Preview export directory must stay inside the workspace root');
@@ -1194,60 +1299,464 @@ function createPreviewHTML(): string {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ui2v Studio Preview</title>
+  <title>ui2v Preview</title>
+  <link rel="icon" href="data:,">
   <script type="importmap">${JSON.stringify({ imports: IMPORT_MAP })}</script>
   <style>
-    :root { color-scheme: dark; --bg:#030712; --panel:rgba(7,17,31,.78); --line:rgba(255,255,255,.12); --text:#f8fbff; --muted:#8ea4bc; --cyan:#00d4ff; --green:#7bd88f; --amber:#f2aa4c; --danger:#ff6b6b; }
-    * { box-sizing: border-box; } html,body { margin:0; width:100%; height:100%; overflow:hidden; background:radial-gradient(circle at 20% 10%,rgba(0,212,255,.18),transparent 28%),radial-gradient(circle at 86% 74%,rgba(242,170,76,.16),transparent 30%),var(--bg); color:var(--text); font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
-    body { display:grid; grid-template-columns:340px minmax(0,1fr); }
-    #sidebar { z-index:12; min-width:0; display:flex; flex-direction:column; border-right:1px solid var(--line); background:linear-gradient(180deg,rgba(3,7,18,.96),rgba(5,12,24,.9)); backdrop-filter:blur(18px); }
-    #brand { padding:22px 20px 18px; border-bottom:1px solid var(--line); } #brand .eyebrow { color:var(--cyan); font:800 12px/1 ui-monospace,SFMono-Regular,Consolas,monospace; letter-spacing:.16em; text-transform:uppercase; } #brand h1 { margin:10px 0 8px; font-size:24px; letter-spacing:-.03em; } #brand p { margin:0; color:var(--muted); font-size:13px; line-height:1.45; } #folder { margin-top:12px; padding:8px 10px; border:1px solid rgba(0,212,255,.18); border-radius:11px; color:#b9ddf2; background:rgba(0,212,255,.055); font:11px/1.35 ui-monospace,SFMono-Regular,Consolas,monospace; word-break:break-all; }
-    #searchWrap { padding:14px 16px 10px; display:grid; gap:8px; } #search { width:100%; height:38px; border:1px solid var(--line); border-radius:12px; padding:0 12px; background:rgba(255,255,255,.06); color:var(--text); outline:none; } #listStatus { color:var(--muted); font-size:12px; }
-    #projectList { flex:1; overflow:auto; padding:0 12px 14px; } .project { width:100%; display:block; text-align:left; margin:8px 0; border:1px solid var(--line); border-radius:14px; padding:12px; color:var(--text); background:rgba(255,255,255,.045); cursor:pointer; transition:border-color .18s,background .18s,transform .18s; } .project:hover { border-color:rgba(0,212,255,.42); background:rgba(0,212,255,.08); transform:translateY(-1px); } .project.active { border-color:rgba(123,216,143,.78); background:linear-gradient(135deg,rgba(0,212,255,.14),rgba(123,216,143,.08)); } .project strong,.project span { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .project strong { font-size:14px; } .project span { margin-top:6px; color:var(--muted); font-size:12px; }
-    .meta { display:flex; gap:6px; margin-top:9px; flex-wrap:wrap; } .pill { border:1px solid var(--line); border-radius:999px; padding:3px 7px; color:#c8d7e8; background:rgba(255,255,255,.05); font-size:11px; font-style:normal; }
-    #main { min-width:0; display:grid; grid-template-rows:auto minmax(0,1fr) auto; } #topbar { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:16px 18px; border-bottom:1px solid var(--line); background:rgba(3,7,18,.58); backdrop-filter:blur(18px); } #titleBlock { min-width:0; } #title { margin:0; font-size:16px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } #subtitle { margin-top:4px; color:var(--muted); font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } #actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
-    button,select { height:36px; border-radius:11px; border:1px solid var(--line); padding:0 12px; color:var(--text); background:rgba(255,255,255,.07); font-weight:750; cursor:pointer; } select.compact { width:104px; } select.speed { width:82px; } button.primary { color:#07111f; border-color:transparent; background:linear-gradient(135deg,var(--cyan),var(--green)); } button.warn { color:#07111f; border-color:transparent; background:var(--amber); } button:disabled { opacity:.5; cursor:not-allowed; }
-    #projectsToggle { display:none; }
-    #stageOuter { min-width:0; min-height:0; display:grid; place-items:center; padding:22px; } #stageOuter.theater { position:fixed; inset:0; z-index:20; padding:26px; background:radial-gradient(circle at 50% 20%,rgba(0,212,255,.16),transparent 36%),rgba(3,7,18,.96); } #stage { position:relative; max-width:100%; max-height:100%; padding:18px; border:1px solid rgba(255,255,255,.12); border-radius:24px; background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025)); box-shadow:0 28px 90px rgba(0,0,0,.38); } #stageOuter.theater #stage { padding:0; border-radius:18px; border-color:rgba(0,212,255,.22); background:#000; } canvas { display:block; max-width:min(calc(100vw - 410px),100%); max-height:calc(100vh - 190px); border-radius:14px; background:#000; box-shadow:0 16px 60px rgba(0,0,0,.45); } #stageOuter.fit-width canvas { width:min(calc(100vw - 410px),100%) !important; height:auto !important; } #stageOuter.actual canvas { max-width:none; max-height:none; }
-    #status { position:fixed; left:362px; top:78px; z-index:5; max-width:min(720px,calc(100vw - 392px)); padding:10px 12px; border:1px solid rgba(0,212,255,.24); border-radius:12px; background:rgba(3,7,18,.78); color:#cfeeff; font:12px/1.35 ui-monospace,SFMono-Regular,Consolas,monospace; backdrop-filter:blur(16px); } #status.error { border-color:rgba(255,107,107,.5); color:#ffd2d2; }
-    #controls { display:grid; grid-template-columns:auto auto minmax(160px,1fr) auto; gap:12px; align-items:center; padding:14px 18px 18px; border-top:1px solid var(--line); background:rgba(3,7,18,.68); } #scrub { width:100%; accent-color:var(--cyan); } #time { color:#dbeafe; font-variant-numeric:tabular-nums; font:700 12px ui-monospace,SFMono-Regular,Consolas,monospace; text-align:right; }
-    #debug { position:fixed; top:86px; right:18px; z-index:7; width:min(420px,calc(100vw - 380px)); max-height:calc(100vh - 160px); overflow:auto; padding:14px; border-radius:14px; background:rgba(6,9,14,.9); border:1px solid rgba(121,217,255,.26); color:#dfe9f5; font:12px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace; backdrop-filter:blur(14px); display:none; } #debug.visible { display:block; }
-    #exportPanel { position:fixed; right:18px; bottom:82px; z-index:8; width:360px; display:none; padding:14px; border:1px solid var(--line); border-radius:16px; background:rgba(3,7,18,.92); box-shadow:0 24px 80px rgba(0,0,0,.45); backdrop-filter:blur(18px); } #exportPanel.visible { display:block; } #exportPanel h3 { margin:0 0 10px; font-size:15px; } .field { display:grid; grid-template-columns:96px minmax(0,1fr); gap:10px; align-items:center; margin:10px 0; color:var(--muted); font-size:12px; } .field select { width:100%; } #exportResult { margin-top:10px; color:var(--muted); font-size:12px; line-height:1.45; word-break:break-word; }
-    #scrim { display:none; }
-    @media (max-width:900px) { body { grid-template-columns:1fr; } #sidebar { position:fixed; inset:0 auto 0 0; width:min(360px,calc(100vw - 34px)); transform:translateX(-105%); transition:transform .22s ease; box-shadow:24px 0 80px rgba(0,0,0,.52); } body.projects-open #sidebar { transform:translateX(0); } #scrim { display:block; position:fixed; inset:0; z-index:11; background:rgba(0,0,0,.48); opacity:0; pointer-events:none; transition:opacity .22s ease; } body.projects-open #scrim { opacity:1; pointer-events:auto; } #projectsToggle { display:inline-flex; align-items:center; } #status { left:16px; top:72px; max-width:calc(100vw - 32px); } canvas { max-width:calc(100vw - 64px); } #stageOuter.fit-width canvas { width:calc(100vw - 64px) !important; } #debug { width:calc(100vw - 32px); right:16px; } #controls { grid-template-columns:auto minmax(120px,1fr) auto; } }
+    :root { color-scheme: dark; --bg:#08090b; --surface:#11141a; --panel:#151922; --panel-2:#0f1218; --line:rgba(255,255,255,.12); --text:#f5f7fb; --muted:#9aa4b2; --accent:#48c7ff; --ok:#7dd3a7; --danger:#ff7474; }
+    * { box-sizing:border-box; }
+    html, body { margin:0; width:100%; height:100%; overflow:hidden; background:var(--bg); color:var(--text); font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { height:100vh; display:grid; grid-template-columns:300px minmax(0,1fr); }
+    #sidebar { min-width:0; min-height:0; display:grid; grid-template-rows:auto auto minmax(0,1fr); border-right:1px solid var(--line); background:var(--panel-2); }
+    #brand { padding:16px 14px 12px; border-bottom:1px solid var(--line); }
+    #brand h1 { margin:0; font-size:17px; line-height:1.2; font-weight:780; }
+    #brand p { margin:6px 0 0; color:var(--muted); font:11px/1.35 ui-monospace, SFMono-Regular, Consolas, monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    #searchWrap { padding:10px; border-bottom:1px solid var(--line); background:rgba(255,255,255,.02); }
+    #search { width:100%; height:36px; border:1px solid var(--line); border-radius:7px; padding:0 10px; outline:none; color:var(--text); background:rgba(255,255,255,.06); }
+    #listStatus { margin-top:8px; color:var(--muted); font:11px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; }
+    #projectList { min-height:0; overflow:auto; padding:0; }
+    .project { width:100%; height:42px; display:grid; grid-template-columns:minmax(0,1fr) 46px 74px; grid-template-rows:18px 15px; column-gap:8px; row-gap:1px; align-items:center; justify-items:start; margin:0; padding:4px 10px 4px 12px; border:0; border-left:3px solid transparent; border-bottom:1px solid rgba(255,255,255,.045); color:var(--text); background:transparent; text-align:left; cursor:pointer; overflow:hidden; }
+    .project:hover { background:rgba(255,255,255,.04); }
+    .project.active { border-left-color:var(--accent); background:rgba(72,199,255,.1); }
+    .project strong, .project span { display:block; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+    .project strong { grid-column:1; grid-row:1; font-size:13px; line-height:18px; font-weight:690; }
+    .project span { grid-column:1; grid-row:2; color:var(--muted); font-size:11px; line-height:16px; }
+    .projectFps { grid-column:2; grid-row:1 / span 2; justify-self:start; color:#c7d2df; font:10px/1 ui-monospace, SFMono-Regular, Consolas, monospace; white-space:nowrap; }
+    .projectSize { grid-column:3; grid-row:1 / span 2; justify-self:start; color:#c7d2df; font:10px/1 ui-monospace, SFMono-Regular, Consolas, monospace; white-space:nowrap; }
+    #workspace { min-width:0; min-height:0; display:grid; grid-template-rows:auto minmax(0,1fr) auto; background:var(--surface); }
+    #topbar { min-width:0; display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid var(--line); background:var(--panel); }
+    #identity { min-width:0; }
+    #title { margin:0; font-size:15px; line-height:1.2; font-weight:760; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    #subtitle { margin-top:4px; color:var(--muted); font:11px/1.35 ui-monospace, SFMono-Regular, Consolas, monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    #status { max-width:320px; padding:8px 10px; border:1px solid rgba(72,199,255,.28); border-radius:7px; color:#d8f3ff; background:rgba(72,199,255,.07); font:11px/1.25 ui-monospace, SFMono-Regular, Consolas, monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    #status.error { color:#ffdada; border-color:rgba(255,116,116,.5); }
+    #topActions { display:flex; gap:8px; align-items:center; }
+    #stage { min-width:0; min-height:0; display:grid; place-items:center; padding:18px; background:#090b0f; overflow:hidden; }
+    #stageInner { width:100%; height:100%; min-width:0; min-height:0; display:grid; place-items:center; border:1px solid var(--line); border-radius:8px; background:#000; overflow:hidden; }
+    #stage:fullscreen { padding:0; background:#000; }
+    #stage:fullscreen #stageInner { border:0; border-radius:0; }
+    #previewCanvas { display:block; width:0; height:0; max-width:none; max-height:none; background:#000; }
+    #controls { min-width:0; height:56px; display:grid; grid-template-columns:auto auto minmax(180px,1fr) auto; gap:10px; align-items:center; padding:9px 14px; border-top:1px solid var(--line); background:var(--panel); }
+    button { width:38px; height:38px; display:grid; place-items:center; border:1px solid var(--line); border-radius:7px; color:var(--text); background:rgba(255,255,255,.08); cursor:pointer; }
+    button:hover { border-color:rgba(72,199,255,.44); background:rgba(72,199,255,.12); }
+    button:disabled { opacity:.45; cursor:default; }
+    svg { width:18px; height:18px; stroke:currentColor; stroke-width:2.2; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+    #toggle.playing svg.play { display:none; }
+    #toggle:not(.playing) svg.pause { display:none; }
+    #scrub { width:100%; accent-color:var(--accent); }
+    #time { color:#eef4fb; font:700 12px/1 ui-monospace, SFMono-Regular, Consolas, monospace; font-variant-numeric:tabular-nums; white-space:nowrap; text-align:right; }
+    .textButton { width:auto; min-width:72px; padding:0 12px; font-size:12px; font-weight:760; }
+    #exportResult { position:fixed; right:14px; top:58px; z-index:8; max-width:460px; display:none; padding:9px 11px; border:1px solid var(--line); border-radius:7px; color:#d8f3ff; background:#10141b; font:11px/1.35 ui-monospace, SFMono-Regular, Consolas, monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; box-shadow:0 18px 54px rgba(0,0,0,.35); }
+    #exportResult.visible { display:block; }
+    @media (max-width:820px) {
+      body { grid-template-columns:1fr; }
+      #sidebar { display:none; }
+      #topbar { grid-template-columns:minmax(0,1fr) auto; }
+      #status { max-width:100%; }
+      #controls { grid-template-columns:auto auto minmax(90px,1fr) auto; }
+      #time { font-size:11px; }
+      #exportAction { display:none; }
+    }
   </style>
 </head>
 <body>
-  <aside id="sidebar"><div id="brand"><div class="eyebrow">ui2v studio</div><h1>Project Library</h1><p>Browse local JSON videos, live-reload edits, scrub frames, inspect runtime state, and export MP4 from this page.</p><div id="folder">Folder: loading...</div></div><div id="searchWrap"><input id="search" placeholder="Search JSON projects..."><div id="listStatus">Scanning projects...</div></div><div id="projectList"></div></aside>
-  <div id="scrim"></div>
-  <main id="main"><div id="topbar"><div id="titleBlock"><h2 id="title">Loading preview...</h2><div id="subtitle">Starting ui2v Studio</div></div><div id="actions"><button id="projectsToggle">Projects</button><button id="debugToggle">Debug</button><select id="fitMode" class="compact"><option value="fit">Fit</option><option value="width">Fit width</option><option value="actual">Actual</option></select><button id="theaterToggle">Theater</button><button id="fullscreenToggle">Fullscreen</button><button id="snapshotFrame">Snapshot</button><button id="copyCommand">Copy render</button><button id="exportOpen" class="primary">Export MP4</button></div></div><div id="stageOuter" class="fit"><div id="stage"><canvas id="previewCanvas"></canvas></div></div><div id="controls"><button id="toggle" class="primary">Play</button><button id="restart">Restart</button><input id="scrub" type="range" min="0" max="1000" value="0"><select id="playbackRate" class="speed"><option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="1.5">1.5x</option><option value="2">2x</option></select><div id="time">0.00 / 0.00</div></div></main>
-  <div id="status">Booting...</div><pre id="debug"></pre>
-  <div id="exportPanel"><h3>Export current project</h3><div class="field"><label>Quality</label><select id="exportQuality"><option>high</option><option>ultra</option><option>cinema</option><option>medium</option><option>low</option></select></div><div class="field"><label>Render scale</label><select id="exportScale"><option value="1">1x</option><option value="2">2x</option><option value="3">3x</option><option value="4">4x</option></select></div><div class="field"><label>Codec</label><select id="exportCodec"><option value="avc">AVC / H.264</option><option value="hevc">HEVC</option></select></div><button id="exportStart" class="warn">Render MP4</button><div id="exportResult"></div></div>
+  <aside id="sidebar">
+    <div id="brand"><h1>ui2v Preview</h1><p id="folder">Loading workspace...</p></div>
+    <div id="searchWrap"><input id="search" placeholder="Search projects"><div id="listStatus">Scanning projects...</div></div>
+    <div id="projectList"></div>
+  </aside>
+  <main id="workspace">
+    <div id="topbar">
+      <div id="identity"><h1 id="title">Loading preview</h1><div id="subtitle">Preparing ui2v runtime</div></div>
+      <div id="topActions">
+        <button id="exportAction" class="textButton" title="Export MP4">Export</button>
+        <button id="fullscreen" title="Fullscreen" aria-label="Fullscreen"><svg viewBox="0 0 24 24"><path d="M8 3H3v5"></path><path d="M16 3h5v5"></path><path d="M8 21H3v-5"></path><path d="M16 21h5v-5"></path></svg></button>
+      </div>
+      <div id="status">Booting...</div>
+    </div>
+    <section id="stage"><div id="stageInner"><canvas id="previewCanvas" data-ui2v-ready="false"></canvas></div></section>
+    <div id="controls">
+      <button id="toggle" title="Play / pause" aria-label="Play / pause">
+        <svg class="play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+        <svg class="pause" viewBox="0 0 24 24"><path d="M9 5v14"></path><path d="M15 5v14"></path></svg>
+      </button>
+      <button id="restart" title="Restart" aria-label="Restart"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v7h7"></path></svg></button>
+      <input id="scrub" type="range" min="0" max="1000" value="0" aria-label="Timeline">
+      <div id="time">0.00 / 0.00s</div>
+    </div>
+  </main>
+  <div id="exportResult"></div>
   <script type="module">
-    import { TemplateCanvasAdapter, UivRuntime } from '/engine/index.mjs';
-    const canvas=document.getElementById('previewCanvas'),stageOuter=document.getElementById('stageOuter'),statusEl=document.getElementById('status'),titleEl=document.getElementById('title'),subtitleEl=document.getElementById('subtitle'),listEl=document.getElementById('projectList'),searchEl=document.getElementById('search'),listStatus=document.getElementById('listStatus'),folderEl=document.getElementById('folder'),toggle=document.getElementById('toggle'),restart=document.getElementById('restart'),playbackRate=document.getElementById('playbackRate'),scrub=document.getElementById('scrub'),timeEl=document.getElementById('time'),debugPanel=document.getElementById('debug'),debugToggle=document.getElementById('debugToggle'),fitMode=document.getElementById('fitMode'),theaterToggle=document.getElementById('theaterToggle'),fullscreenToggle=document.getElementById('fullscreenToggle'),exportOpen=document.getElementById('exportOpen'),exportPanel=document.getElementById('exportPanel'),exportStart=document.getElementById('exportStart'),snapshotFrame=document.getElementById('snapshotFrame'),copyCommand=document.getElementById('copyCommand'),exportResult=document.getElementById('exportResult'),projectsToggle=document.getElementById('projectsToggle'),scrim=document.getElementById('scrim');
-    let runtime,adapter,raf=0,startTime=0,pausedAt=0,currentSecond=0,duration=0,playing=false,debugVisible=false,currentPath='',currentProjectId='',projects=[],lastState=null,stateTimer=0,reloadInFlight=false,lastSuccessfulLoad=0;
-    function setStatus(text,error=false){statusEl.textContent=text;statusEl.className=error?'error':'';}
-    function playbackSpeed(){return Number(playbackRate.value)||1;}
-    function formatTime(s){return s.toFixed(2)+' / '+duration.toFixed(2)+'s';}
-    function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
-    function formatResolution(r){return r&&r.width&&r.height?r.width+'x'+r.height:'?';}
-    function closeProjects(){document.body.classList.remove('projects-open');}
-    function openProjects(){document.body.classList.add('projects-open');}
-    async function renderAt(second){if(!runtime)return;currentSecond=Math.max(0,Math.min(duration,second));await runtime.seek(currentSecond);scrub.value=duration?String(Math.round((currentSecond/duration)*1000)):'0';timeEl.textContent=formatTime(currentSecond);if(debugVisible){const frame=runtime.getCurrentFrame?.();debugPanel.textContent=JSON.stringify(frame||{time:currentSecond},null,2);}}
-    function tick(){if(!playing||!runtime)return;const elapsed=((performance.now()-startTime)/1000)*playbackSpeed();if(elapsed>=duration){playing=false;toggle.textContent='Play';renderAt(duration);return;}renderAt(elapsed).catch(error=>setStatus(error&&error.message?error.message:String(error),true));raf=requestAnimationFrame(tick);}
-    function renderList(){const q=searchEl.value.trim().toLowerCase();const visible=projects.filter(x=>!q||(x.label+' '+(x.id||'')+' '+(x.name||'')).toLowerCase().includes(q));listEl.innerHTML='';listStatus.textContent=visible.length+' / '+projects.length+' projects';for(const item of visible){const b=document.createElement('button');b.className='project'+(item.path===currentPath?' active':'');b.innerHTML='<strong>'+escapeHtml(item.name||item.id||item.label)+'</strong><span>'+escapeHtml(item.label)+'</span><div class="meta"><em class="pill">'+escapeHtml(String(item.duration||'?'))+'s</em><em class="pill">'+escapeHtml(String(item.fps||'?'))+'fps</em><em class="pill">'+escapeHtml(formatResolution(item.resolution))+'</em></div>';b.onclick=()=>{closeProjects();loadProjectByPath(item.path);};listEl.appendChild(b);}}
-    async function refreshProjectList(){const r=await fetch('/preview/projects',{cache:'no-store'});const p=await r.json();projects=p.projects||[];currentPath=p.currentPath||currentPath;folderEl.textContent='Folder: '+(p.root||'unknown');renderList();}
-    async function loadProjectByPath(projectPath,{auto=false}={}){if(reloadInFlight)return;reloadInFlight=true;try{setStatus((auto?'Reloading ':'Loading ')+projectPath+'...');const r=await fetch('/preview/load?path='+encodeURIComponent(projectPath),{cache:'no-store'});const p=await r.json().catch(()=>null);if(!r.ok)throw new Error((p&&p.error)||('HTTP '+r.status));await window.__ui2vPreview(p.project,p.options,p.sourcePath,{auto});lastSuccessfulLoad=Date.now();await refreshPreviewState();}catch(error){console.error(error);setStatus((auto?'Waiting for valid JSON: ':'')+(error&&error.message?error.message:String(error)),true);}finally{reloadInFlight=false;}}
-    async function fetchPreviewState(){if(!currentPath)return null;const r=await fetch('/preview/state?path='+encodeURIComponent(currentPath),{cache:'no-store'});const state=await r.json();if(!r.ok)throw new Error(state&&state.error?state.error:'Unable to read preview state');return state;} async function refreshPreviewState(){lastState=await fetchPreviewState();return lastState;}
-    async function pollPreviewState(){if(!currentPath||reloadInFlight)return;try{const previous=lastState;const state=await fetchPreviewState();if(!state)return;if(previous&&(state.projectListVersion!==previous.projectListVersion||state.projectCount!==previous.projectCount)){await refreshProjectList();}if(previous&&(state.currentMtimeMs!==previous.currentMtimeMs||state.currentSize!==previous.currentSize)){lastState=state;if(Date.now()-lastSuccessfulLoad>350){await loadProjectByPath(currentPath,{auto:true});}return;}lastState=state;}catch(error){setStatus(error&&error.message?error.message:String(error),true);}}
-    function startStatePolling(){clearInterval(stateTimer);stateTimer=setInterval(pollPreviewState,800);}
-    window.__ui2vPreview=async(project,options,sourcePath,loadOptions={})=>{try{cancelAnimationFrame(raf);if(adapter&&typeof adapter.dispose==='function')adapter.dispose();const pixelRatio=Math.max(1,Math.min(4,Number(options.pixelRatio)||2));canvas.width=Math.round(options.width*pixelRatio);canvas.height=Math.round(options.height*pixelRatio);canvas.style.width=options.width+'px';canvas.style.height=options.height+'px';canvas.style.aspectRatio=options.width+' / '+options.height;duration=options.duration;currentPath=sourcePath||currentPath;currentProjectId=project.id||project.name||'project';const normalized={...project,fps:options.fps,resolution:{width:options.width,height:options.height}};adapter=new TemplateCanvasAdapter({canvas,pixelRatio,enablePerformanceMonitoring:false,enableAutoQualityAdjust:false});runtime=new UivRuntime(normalized);await runtime.initializeAdapter(adapter);await renderAt(loadOptions.auto?Math.min(currentSecond,duration):0);startTime=performance.now()-(currentSecond/playbackSpeed())*1000;playing=true;toggle.textContent='Pause';titleEl.textContent=normalized.name||normalized.id||'ui2v preview';subtitleEl.textContent=(currentPath||'attached project')+' - '+options.width+'x'+options.height+' - '+options.fps+'fps - '+duration+'s';setStatus((loadOptions.auto?'Live reloaded: ':'Preview ready: ')+(normalized.id||'project'));renderList();tick();}catch(error){console.error(error);setStatus(error&&error.message?error.message:String(error),true);throw error;}};
-    async function loadAttachedProject(){try{setStatus('Loading project...');await refreshProjectList();const r=await fetch('/project.json',{cache:'no-store'});if(!r.ok)throw new Error('Unable to load /project.json: HTTP '+r.status);const p=await r.json();await window.__ui2vPreview(p.project,p.options,p.sourcePath);await refreshPreviewState();startStatePolling();}catch(error){console.error(error);setStatus(error&&error.message?error.message:String(error),true);}}
-    toggle.onclick=()=>{if(!runtime)return;if(playing){playing=false;cancelAnimationFrame(raf);pausedAt=currentSecond;toggle.textContent='Play';}else{playing=true;startTime=performance.now()-(pausedAt/playbackSpeed())*1000;toggle.textContent='Pause';tick();}}; restart.onclick=async()=>{if(!runtime)return;await seekSeconds(0);if(!playing){playing=true;toggle.textContent='Pause';tick();}}; async function seekSeconds(second){playing=false;cancelAnimationFrame(raf);pausedAt=second;toggle.textContent='Play';await renderAt(second);} scrub.oninput=()=>{if(!runtime)return;seekSeconds((Number(scrub.value)/1000)*duration);}; playbackRate.onchange=()=>{startTime=performance.now()-(currentSecond/playbackSpeed())*1000;}; searchEl.oninput=renderList; debugToggle.onclick=()=>{debugVisible=!debugVisible;debugPanel.className=debugVisible?'visible':'';}; fitMode.onchange=()=>{stageOuter.classList.toggle('fit-width',fitMode.value==='width');stageOuter.classList.toggle('actual',fitMode.value==='actual');}; theaterToggle.onclick=()=>{stageOuter.classList.toggle('theater');theaterToggle.textContent=stageOuter.classList.contains('theater')?'Exit theater':'Theater';}; fullscreenToggle.onclick=async()=>{try{if(document.fullscreenElement){await document.exitFullscreen();}else{await stageOuter.requestFullscreen();}}catch(error){setStatus(error&&error.message?error.message:String(error),true);}}; projectsToggle.onclick=()=>document.body.classList.toggle('projects-open'); scrim.onclick=closeProjects; document.addEventListener('fullscreenchange',()=>{fullscreenToggle.textContent=document.fullscreenElement?'Exit full':'Fullscreen';}); document.addEventListener('keydown',e=>{if(e.key.toLowerCase()==='d')debugToggle.click();if(e.key.toLowerCase()==='f')fullscreenToggle.click();if(e.key.toLowerCase()==='t')theaterToggle.click();if(e.key.toLowerCase()==='p')projectsToggle.click();if(e.key.toLowerCase()==='r'&&currentPath)loadProjectByPath(currentPath);if(e.key==='Escape'){closeProjects();if(stageOuter.classList.contains('theater'))theaterToggle.click();}if(e.code==='Space'){e.preventDefault();toggle.click();}}); exportOpen.onclick=()=>exportPanel.classList.toggle('visible'); snapshotFrame.onclick=downloadCanvas; copyCommand.onclick=copyRenderCommand;
-    function downloadCanvas(){const a=document.createElement('a');a.download=(currentProjectId||'ui2v-preview')+'-'+currentSecond.toFixed(2)+'.png';a.href=canvas.toDataURL('image/png');a.click();}
-    async function copyRenderCommand(){const command='ui2v render '+(currentPath||'animation.json')+' -o .tmp/examples/'+(currentProjectId||'ui2v-preview')+'.mp4 --quality high';try{await navigator.clipboard.writeText(command);setStatus('Copied render command');}catch{setStatus(command);}}
-    exportStart.onclick=async()=>{if(!currentPath)return;exportStart.disabled=true;exportResult.textContent='Rendering MP4... keep this preview server running.';try{const r=await fetch('/preview/export',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:currentPath,quality:document.getElementById('exportQuality').value,renderScale:document.getElementById('exportScale').value,codec:document.getElementById('exportCodec').value})});const result=await r.json();if(!r.ok||!result.success)throw new Error(result.error||'Export failed');exportResult.textContent='Exported: '+result.outputPath+' ('+(Math.round(((result.fileSize||0)/1024/1024)*10)/10)+' MB)';}catch(error){exportResult.textContent=error&&error.message?error.message:String(error);}finally{exportStart.disabled=false;}};
+    import { TemplateCanvasAdapter } from '/engine/index.mjs';
+    import { UivRuntime } from '/runtime-core/index.mjs';
+
+    const canvas = document.getElementById('previewCanvas');
+    const stage = document.getElementById('stage');
+    const stageInner = document.getElementById('stageInner');
+    const statusEl = document.getElementById('status');
+    const titleEl = document.getElementById('title');
+    const subtitleEl = document.getElementById('subtitle');
+    const folderEl = document.getElementById('folder');
+    const searchEl = document.getElementById('search');
+    const listStatus = document.getElementById('listStatus');
+    const projectList = document.getElementById('projectList');
+    const toggle = document.getElementById('toggle');
+    const restart = document.getElementById('restart');
+    const scrub = document.getElementById('scrub');
+    const timeEl = document.getElementById('time');
+    const fullscreen = document.getElementById('fullscreen');
+    const exportAction = document.getElementById('exportAction');
+    const exportResult = document.getElementById('exportResult');
+
+    let runtime;
+    let adapter;
+    let raf = 0;
+    let currentSecond = 0;
+    let duration = 0;
+    let startTime = 0;
+    let playing = false;
+    let currentPath = '';
+    let projects = [];
+    let lastState = null;
+    let stateTimer = 0;
+    let reloadInFlight = false;
+    let currentProjectId = '';
+    let workspaceRoot = '';
+    let currentResolution = null;
+
+    function setStatus(text, error = false) {
+      statusEl.textContent = text;
+      statusEl.className = error ? 'error' : '';
+    }
+
+    function updatePlayState(nextPlaying) {
+      playing = nextPlaying;
+      toggle.classList.toggle('playing', playing);
+    }
+
+    function updateTime() {
+      scrub.value = duration ? String(Math.round((currentSecond / duration) * 1000)) : '0';
+      timeEl.textContent = currentSecond.toFixed(2) + ' / ' + duration.toFixed(2) + 's';
+    }
+
+    function updateCanvasDisplaySize() {
+      if (!currentResolution) return;
+      const bounds = stageInner.getBoundingClientRect();
+      const width = currentResolution.width;
+      const height = currentResolution.height;
+      if (!bounds.width || !bounds.height || !width || !height) return;
+      const scale = Math.min(bounds.width / width, bounds.height / height);
+      const displayWidth = Math.max(1, Math.floor(width * scale));
+      const displayHeight = Math.max(1, Math.floor(height * scale));
+      canvas.style.width = displayWidth + 'px';
+      canvas.style.height = displayHeight + 'px';
+    }
+
+    async function renderAt(second) {
+      if (!runtime || !adapter) return;
+      currentSecond = Math.max(0, Math.min(duration, second));
+      await runtime.renderFrame(currentSecond, adapter);
+      updateTime();
+    }
+
+    function tick(now) {
+      if (!playing || !runtime) return;
+      const elapsed = (now - startTime) / 1000;
+      if (elapsed >= duration) {
+        updatePlayState(false);
+        renderAt(duration).catch(error => setStatus(error?.message || String(error), true));
+        return;
+      }
+      renderAt(elapsed)
+        .then(() => { raf = requestAnimationFrame(tick); })
+        .catch(error => {
+          updatePlayState(false);
+          setStatus(error?.message || String(error), true);
+        });
+    }
+
+    function startPlayback(fromSecond = currentSecond) {
+      startTime = performance.now() - fromSecond * 1000;
+      updatePlayState(true);
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(tick);
+    }
+
+    function pausePlayback() {
+      updatePlayState(false);
+      cancelAnimationFrame(raf);
+    }
+
+    function formatResolution(resolution) {
+      return resolution?.width && resolution?.height ? resolution.width + 'x' + resolution.height : 'unknown';
+    }
+
+    function sanitizeFileName(value) {
+      return String(value || 'ui2v-preview').replace(/[^a-z0-9._-]+/gi, '-').replace(/^-+|-+$/g, '') || 'ui2v-preview';
+    }
+
+    function defaultExportFileName() {
+      return sanitizeFileName(currentProjectId) + '.mp4';
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
+    }
+
+    function renderProjectList() {
+      const query = searchEl.value.trim().toLowerCase();
+      const visible = projects.filter(item => !query || (item.label + ' ' + (item.name || '') + ' ' + (item.id || '')).toLowerCase().includes(query));
+      projectList.innerHTML = '';
+      listStatus.textContent = visible.length + ' / ' + projects.length + ' projects';
+      for (const item of visible) {
+        const button = document.createElement('button');
+        button.className = 'project' + (item.path === currentPath ? ' active' : '');
+        button.innerHTML =
+          '<strong>' + escapeHtml(item.name || item.id || item.label) + '</strong>' +
+          '<span>' + escapeHtml(item.label) + '</span>' +
+          '<em class="projectFps">' + escapeHtml(String(item.fps || '?')) + 'fps</em>' +
+          '<em class="projectSize">' + escapeHtml(formatResolution(item.resolution)) + '</em>';
+        button.onclick = () => loadProjectByPath(item.path);
+        projectList.appendChild(button);
+      }
+    }
+
+    async function refreshProjectList() {
+      const response = await fetch('/preview/projects', { cache: 'no-store' });
+      const payload = await response.json();
+      projects = payload.projects || [];
+      currentPath = currentPath || payload.currentPath || '';
+      workspaceRoot = payload.root || workspaceRoot;
+      folderEl.textContent = payload.root || 'Workspace';
+      renderProjectList();
+    }
+
+    async function fetchPreviewState() {
+      if (!currentPath) return null;
+      const response = await fetch('/preview/state?path=' + encodeURIComponent(currentPath), { cache: 'no-store' });
+      const state = await response.json();
+      if (!response.ok) {
+        throw new Error(state?.error || 'Unable to read preview state');
+      }
+      return state;
+    }
+
+    async function refreshPreviewState() {
+      lastState = await fetchPreviewState();
+      return lastState;
+    }
+
+    async function pollPreviewState() {
+      if (!currentPath || reloadInFlight) return;
+      try {
+        const previous = lastState;
+        const state = await fetchPreviewState();
+        if (!state) return;
+        if (previous && (state.projectListVersion !== previous.projectListVersion || state.projectCount !== previous.projectCount)) {
+          await refreshProjectList();
+        }
+        if (previous && (state.currentMtimeMs !== previous.currentMtimeMs || state.currentSize !== previous.currentSize)) {
+          lastState = state;
+          await loadProjectByPath(currentPath, { auto: true });
+          return;
+        }
+        lastState = state;
+      } catch (error) {
+        setStatus(error?.message || String(error), true);
+      }
+    }
+
+    function startStatePolling() {
+      clearInterval(stateTimer);
+      stateTimer = setInterval(pollPreviewState, 900);
+    }
+
+    window.__ui2vPreview = async (project, options, sourcePath, loadOptions = {}) => {
+      cancelAnimationFrame(raf);
+      if (adapter?.dispose) adapter.dispose();
+      adapter = undefined;
+      runtime = undefined;
+      canvas.dataset.ui2vReady = 'false';
+
+      const pixelRatio = Math.max(1, Math.min(4, Number(options.pixelRatio) || 2));
+      canvas.width = Math.round(options.width * pixelRatio);
+      canvas.height = Math.round(options.height * pixelRatio);
+      canvas.style.aspectRatio = options.width + ' / ' + options.height;
+      currentResolution = { width: options.width, height: options.height };
+      updateCanvasDisplaySize();
+
+      const normalized = {
+        ...project,
+        fps: options.fps,
+        resolution: { width: options.width, height: options.height },
+      };
+      currentPath = sourcePath || currentPath;
+      currentProjectId = normalized.id || normalized.name || 'ui2v-preview';
+      duration = Number(options.duration) || Number(normalized.duration) || 0;
+      currentSecond = loadOptions.auto ? Math.min(currentSecond, duration) : 0;
+
+      titleEl.textContent = normalized.name || normalized.id || 'ui2v preview';
+      subtitleEl.textContent = formatResolution(normalized.resolution) + ' / ' + options.fps + 'fps / ' + duration + 's';
+      setStatus(loadOptions.auto ? 'Reloading animation...' : 'Loading animation...');
+
+      adapter = new TemplateCanvasAdapter({
+        canvas,
+        pixelRatio,
+        enablePerformanceMonitoring: false,
+        enableAutoQualityAdjust: false,
+      });
+      runtime = new UivRuntime(normalized);
+      await runtime.initializeAdapter(adapter);
+      await renderAt(currentSecond);
+
+      canvas.dataset.ui2vReady = 'true';
+      renderProjectList();
+      setStatus((loadOptions.auto ? 'Live reloaded: ' : 'Preview ready: ') + (normalized.id || 'project'));
+      startPlayback(currentSecond);
+    };
+
+    async function loadProjectByPath(projectPath, { auto = false } = {}) {
+      if (reloadInFlight) return;
+      reloadInFlight = true;
+      try {
+        setStatus((auto ? 'Reloading ' : 'Loading ') + projectPath);
+        const response = await fetch('/preview/load?path=' + encodeURIComponent(projectPath), { cache: 'no-store' });
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(payload?.error || ('HTTP ' + response.status));
+        await window.__ui2vPreview(payload.project, payload.options, payload.sourcePath, { auto });
+        await refreshPreviewState();
+      } catch (error) {
+        setStatus((auto ? 'Waiting for valid project: ' : '') + (error?.message || String(error)), true);
+      } finally {
+        reloadInFlight = false;
+      }
+    }
+
+    async function loadAttachedProject() {
+      try {
+        setStatus('Loading project...');
+        await refreshProjectList();
+        const response = await fetch('/project.json', { cache: 'no-store' });
+        if (!response.ok) throw new Error('Unable to load /project.json: HTTP ' + response.status);
+        const payload = await response.json();
+        await window.__ui2vPreview(payload.project, payload.options, payload.sourcePath);
+        await refreshPreviewState();
+        startStatePolling();
+      } catch (error) {
+        setStatus(error?.message || String(error), true);
+      }
+    }
+
+    toggle.onclick = () => {
+      if (!runtime) return;
+      if (playing) pausePlayback();
+      else startPlayback(currentSecond);
+    };
+
+    restart.onclick = async () => {
+      if (!runtime) return;
+      pausePlayback();
+      await renderAt(0);
+      startPlayback(0);
+    };
+
+    scrub.oninput = async () => {
+      if (!runtime) return;
+      pausePlayback();
+      await renderAt((Number(scrub.value) / 1000) * duration);
+    };
+
+    searchEl.oninput = renderProjectList;
+
+    fullscreen.onclick = async () => {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await stage.requestFullscreen();
+    };
+
+    window.addEventListener('resize', updateCanvasDisplaySize);
+    document.addEventListener('fullscreenchange', updateCanvasDisplaySize);
+
+    function showExportResult(text, error = false) {
+      exportResult.textContent = text;
+      exportResult.className = 'visible' + (error ? ' error' : '');
+      clearTimeout(showExportResult.timer);
+      showExportResult.timer = setTimeout(() => { exportResult.className = ''; }, 6000);
+    }
+
+    exportAction.onclick = async () => {
+      if (!currentPath || exportAction.disabled) return;
+      const fileName = defaultExportFileName();
+      exportAction.disabled = true;
+      showExportResult('Choose save location...');
+      try {
+        const exportTarget = await chooseExportTarget(fileName);
+        showExportResult('Rendering MP4...');
+        const response = await fetch('/preview/export-download', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ path: currentPath, quality: 'high', renderScale: 1, codec: 'avc' }),
+        });
+        if (!response.ok) {
+          const result = await response.json().catch(() => null);
+          throw new Error(result?.error || 'Export failed');
+        }
+        const blob = await response.blob();
+        await writeExportFile(exportTarget, blob, fileName);
+        showExportResult('Exported: ' + fileName);
+      } catch (error) {
+        if (error?.name === 'AbortError') {
+          showExportResult('Export canceled');
+          return;
+        }
+        showExportResult(error?.message || String(error), true);
+      } finally {
+        exportAction.disabled = false;
+      }
+    };
+
+    async function chooseExportTarget(fileName) {
+      if (!window.showSaveFilePicker) {
+        return { mode: 'download' };
+      }
+      const handle = await window.showSaveFilePicker({
+        suggestedName: fileName,
+        types: [{ description: 'MP4 video', accept: { 'video/mp4': ['.mp4'] } }],
+        excludeAcceptAllOption: false,
+      });
+      return { mode: 'file-system', handle };
+    }
+
+    async function writeExportFile(target, blob, fileName) {
+      if (target.mode === 'download') {
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = fileName;
+        anchor.click();
+        setTimeout(() => URL.revokeObjectURL(url), 30000);
+        return;
+      }
+      const writable = await target.handle.createWritable();
+      try {
+        await writable.write(blob);
+      } finally {
+        await writable.close();
+      }
+    }
+
+    document.addEventListener('keydown', event => {
+      if (event.code === 'Space') {
+        const target = event.target;
+        if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable)) {
+          return;
+        }
+        event.preventDefault();
+        toggle.click();
+      }
+      if (event.key.toLowerCase() === 'r') restart.click();
+      if (event.key.toLowerCase() === 'f') fullscreen.click();
+    });
+
     loadAttachedProject();
   </script>
 </body>
@@ -1369,4 +1878,3 @@ function getBrowserCandidates(): string[] {
   }
   return paths;
 }
-

@@ -22,19 +22,26 @@ const session = await startPreviewServer(project, {
 
 try {
   const html = await fetch(session.url).then(response => response.text());
-  assert(html.includes('Project Library'), 'preview HTML should include project library');
-  assert(html.includes('Projects'), 'preview HTML should include mobile project drawer button');
+  assert(html.includes('id="stage"'), 'preview HTML should use a fullscreen stage');
+  assert(html.includes('id="previewCanvas"'), 'preview HTML should include preview canvas');
+  assert(html.includes('id="sidebar"'), 'preview HTML should include a project sidebar');
+  assert(html.includes('id="projectList"'), 'preview HTML should include project list');
+  assert(html.includes('id="controls"'), 'preview HTML should include bottom controls');
+  assert(html.includes('id="topActions"'), 'preview HTML should keep primary actions in the top bar');
   assert(html.includes('/preview/state'), 'preview HTML should poll preview state');
-  assert(html.includes('Live reloaded'), 'preview HTML should support live reload status');
-  assert(html.includes('Export MP4'), 'preview HTML should include export action');
-  assert(html.includes('Fullscreen'), 'preview HTML should include fullscreen control');
-  assert(html.includes('Theater'), 'preview HTML should include theater control');
-  assert(html.includes('fitMode'), 'preview HTML should include fit mode control');
-  assert(html.includes('playbackRate'), 'preview HTML should include playback speed control');
-  assert(html.includes('Snapshot'), 'preview HTML should include snapshot export');
-  assert(html.includes('Copy render'), 'preview HTML should include copy command action');
-  assert(html.includes('--quality high'), 'copied render command should use real CLI quality flag');
-  assert(!html.includes('--scale '), 'copied render command should not use unsupported scale flag');
+  assert(html.includes('/preview/export-download'), 'preview HTML should export through browser save/download flow');
+  assert(html.includes('showSaveFilePicker'), 'preview HTML should use the browser system save picker when available');
+  assert(!html.includes('id="exportPanel"'), 'preview HTML should not show a redundant export dialog');
+  assert(!html.includes('showDirectoryPicker'), 'preview HTML should not use folder picker flow');
+  assert(html.includes("event.code === 'Space'"), 'preview HTML should support spacebar play/pause');
+  assert(html.includes("target.tagName === 'INPUT'"), 'spacebar handler should ignore text inputs');
+  assert(html.includes("import { UivRuntime } from '/runtime-core/index.mjs'"), 'preview HTML should import runtime from runtime-core');
+  assert(html.includes('runtime.renderFrame(currentSecond, adapter)'), 'preview HTML should render through the runtime-core API');
+  assert(html.includes('data-ui2v-ready="false"'), 'preview canvas should expose ready state');
+  assert(html.includes('requestFullscreen'), 'preview HTML should include fullscreen control');
+  assert(html.includes('ui2v Preview'), 'preview HTML should present a focused preview workspace');
+  assert(!html.includes('Snapshot'), 'preview HTML should not include snapshot controls');
+  assert(!html.includes('Copy render'), 'preview HTML should not include copy command controls');
 
   const projectUrl = session.url.replace('/preview.html', '/project.json');
   const attached = await fetch(projectUrl).then(response => response.json());
