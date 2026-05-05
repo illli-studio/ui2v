@@ -1,6 +1,6 @@
 {
   "name": "@ui2v/core",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Core types, parser, validation, and project utilities for ui2v animation JSON",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
