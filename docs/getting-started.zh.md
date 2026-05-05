@@ -53,7 +53,7 @@ ui2v validate animation.json --verbose
 ui2v preview animation.json --pixel-ratio 2
 ```
 
-预览页面包含播放、暂停、重播、拖动进度条，并可按 `d` 切换调试面板。
+预览页面包含可搜索的项目列表、当前 JSON 文件的实时重载、播放/暂停/重启、逐帧拖动、响应式项目抽屉，以及用 `d` 切换的 debug overlay。
 
 ## 渲染
 

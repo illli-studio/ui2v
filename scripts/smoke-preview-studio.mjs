@@ -22,15 +22,18 @@ const session = await startPreviewServer(project, {
 
 try {
   const html = await fetch(session.url).then(response => response.text());
-  assert(html.includes('Preview Library'), 'preview HTML should include project library');
+  assert(html.includes('Project Library'), 'preview HTML should include project library');
+  assert(html.includes('Projects'), 'preview HTML should include mobile project drawer button');
+  assert(html.includes('/preview/state'), 'preview HTML should poll preview state');
+  assert(html.includes('Live reloaded'), 'preview HTML should support live reload status');
   assert(html.includes('Export MP4'), 'preview HTML should include export action');
   assert(html.includes('Fullscreen'), 'preview HTML should include fullscreen control');
   assert(html.includes('Theater'), 'preview HTML should include theater control');
   assert(html.includes('fitMode'), 'preview HTML should include fit mode control');
   assert(html.includes('playbackRate'), 'preview HTML should include playback speed control');
-  assert(html.includes('Save current frame'), 'preview HTML should include snapshot export');
-  assert(html.includes('Copy CLI command'), 'preview HTML should include copy command action');
-  assert(html.includes('--render-scale'), 'copied render command should use real CLI render-scale flag');
+  assert(html.includes('Snapshot'), 'preview HTML should include snapshot export');
+  assert(html.includes('Copy render'), 'preview HTML should include copy command action');
+  assert(html.includes('--quality high'), 'copied render command should use real CLI quality flag');
   assert(!html.includes('--scale '), 'copied render command should not use unsupported scale flag');
 
   const projectUrl = session.url.replace('/preview.html', '/project.json');
@@ -42,6 +45,12 @@ try {
   assert(Array.isArray(projects.projects), 'project list should be an array');
   assert(projects.projects.some(item => item.label === 'examples/hero-ai-launch/animation.json'), 'project list should include hero example');
   assert(projects.projects.some(item => item.label === 'examples/runtime-core/animation.json'), 'project list should include runtime example');
+
+  const stateUrl = session.url.replace('/preview.html', `/preview/state?path=${encodeURIComponent(input)}`);
+  const state = await fetch(stateUrl).then(response => response.json());
+  assert(state.currentPath === input, 'preview state should include current path');
+  assert(typeof state.currentMtimeMs === 'number', 'preview state should include current mtime');
+  assert(typeof state.projectListVersion === 'string' && state.projectListVersion.length > 0, 'preview state should include project list version');
 
   const loadUrl = session.url.replace('/preview.html', `/preview/load?path=${encodeURIComponent(runtimeInput)}`);
   const loaded = await fetch(loadUrl).then(response => response.json());

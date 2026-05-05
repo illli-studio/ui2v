@@ -57,8 +57,7 @@ structure before the browser renderer starts.
 ui2v preview animation.json --pixel-ratio 2
 ```
 
-The preview page includes play, pause, restart, scrubbing, and a debug overlay
-toggled with `d`.
+The preview page includes a searchable project list, live reload for the current JSON file, play, pause, restart, scrubbing, a responsive project drawer, and a debug overlay toggled with `d`.
 
 ## Render
 

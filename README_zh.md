@@ -73,7 +73,7 @@ bun run build
 node packages/cli/dist/cli.js render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-launch.mp4 --quality high
 ```
 
-`preview` 会打开本地 Studio 页面，左侧可搜索 JSON 项目列表，支持播放控制、逐帧拖动、播放速度、适配/剧场/全屏模式、runtime debug overlay、当前帧 PNG 快照、复制 CLI 渲染命令，以及把当前项目直接 **Export MP4** 到 `.tmp/examples`。
+`preview` 会打开本地 Studio 页面，左侧可搜索 JSON 项目列表，支持播放控制、逐帧拖动、播放速度、适配/剧场/全屏模式、runtime debug overlay、当前帧 PNG 快照、复制 CLI 渲染命令，以及把当前项目直接 **Export MP4** 到 `.tmp/examples`。窄屏时项目列表会变成可打开的抽屉；当前 JSON 文件变化时，Studio 会自动重新加载预览。
 
 ## 示例画廊
 

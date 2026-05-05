@@ -83,7 +83,7 @@ node packages/cli/dist/cli.js render examples/hero-ai-launch/animation.json -o .
 ```
 
 ## Example Gallery
-Preview opens a local Studio page with a searchable JSON project list, playback controls, frame scrubbing, playback speed, fit/theater/fullscreen modes, runtime debug overlay, current-frame PNG snapshots, copyable CLI render commands, and an **Export MP4** button that writes to `.tmp/examples`.
+Preview opens a local Studio page with a searchable JSON project list, playback controls, frame scrubbing, playback speed, fit/theater/fullscreen modes, runtime debug overlay, current-frame PNG snapshots, copyable CLI render commands, and an **Export MP4** button that writes to `.tmp/examples`. The Studio keeps a project drawer available on narrow screens and live-reloads the current JSON when the file changes.
 
 
 Use the examples as marketing assets, not only test fixtures. The strongest ones
