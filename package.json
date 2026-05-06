@@ -1,6 +1,6 @@
 {
   "name": "@ui2v/workspace",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "ui2v workspace for rendering animation JSON into MP4 video with Canvas and WebCodecs",
   "private": true,
   "workspaces": [

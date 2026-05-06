@@ -1315,13 +1315,13 @@ function createPreviewHTML(): string {
     #search { width:100%; height:36px; border:1px solid var(--line); border-radius:7px; padding:0 10px; outline:none; color:var(--text); background:rgba(255,255,255,.06); }
     #listStatus { margin-top:8px; color:var(--muted); font:11px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; }
     #projectList { min-height:0; overflow:auto; padding:0; }
-    .project { width:100%; height:42px; display:grid; grid-template-columns:minmax(0,1fr) 46px 74px; grid-template-rows:18px 15px; column-gap:8px; row-gap:1px; align-items:center; justify-items:start; margin:0; padding:4px 10px 4px 12px; border:0; border-left:3px solid transparent; border-bottom:1px solid rgba(255,255,255,.045); color:var(--text); background:transparent; text-align:left; cursor:pointer; overflow:hidden; }
+    .project { width:100%; height:42px; display:grid; grid-template-columns:minmax(0,1fr) 42px 88px; grid-template-rows:18px 15px; column-gap:8px; row-gap:1px; align-items:center; justify-items:start; margin:0; padding:4px 10px 4px 12px; border:0; border-left:3px solid transparent; border-bottom:1px solid rgba(255,255,255,.045); color:var(--text); background:transparent; text-align:left; cursor:pointer; overflow:hidden; }
     .project:hover { background:rgba(255,255,255,.04); }
     .project.active { border-left-color:var(--accent); background:rgba(72,199,255,.1); }
     .project strong, .project span { display:block; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
     .project strong { grid-column:1; grid-row:1; font-size:13px; line-height:18px; font-weight:690; }
     .project span { grid-column:1; grid-row:2; color:var(--muted); font-size:11px; line-height:16px; }
-    .projectFps { grid-column:2; grid-row:1 / span 2; justify-self:start; color:#c7d2df; font:10px/1 ui-monospace, SFMono-Regular, Consolas, monospace; white-space:nowrap; }
+    .projectRatio { grid-column:2; grid-row:1 / span 2; justify-self:start; color:#c7d2df; font:10px/1 ui-monospace, SFMono-Regular, Consolas, monospace; white-space:nowrap; }
     .projectSize { grid-column:3; grid-row:1 / span 2; justify-self:start; color:#c7d2df; font:10px/1 ui-monospace, SFMono-Regular, Consolas, monospace; white-space:nowrap; }
     #workspace { min-width:0; min-height:0; display:grid; grid-template-rows:auto minmax(0,1fr) auto; background:var(--surface); }
     #topbar { min-width:0; display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid var(--line); background:var(--panel); }
@@ -1332,10 +1332,10 @@ function createPreviewHTML(): string {
     #status.error { color:#ffdada; border-color:rgba(255,116,116,.5); }
     #topActions { display:flex; gap:8px; align-items:center; }
     #stage { min-width:0; min-height:0; display:grid; place-items:center; padding:18px; background:#090b0f; overflow:hidden; }
-    #stageInner { width:100%; height:100%; min-width:0; min-height:0; display:grid; place-items:center; border:1px solid var(--line); border-radius:8px; background:#000; overflow:hidden; }
+    #stageInner { width:100%; height:100%; min-width:0; min-height:0; display:grid; place-items:center; border:1px solid var(--line); border-radius:8px; background:#0b0d12; overflow:hidden; }
     #stage:fullscreen { padding:0; background:#000; }
     #stage:fullscreen #stageInner { border:0; border-radius:0; }
-    #previewCanvas { display:block; width:0; height:0; max-width:none; max-height:none; background:#000; }
+    #previewCanvas { display:block; width:0; height:0; max-width:none; max-height:none; background:#000; outline:1px solid rgba(255,255,255,.22); box-shadow:0 18px 50px rgba(0,0,0,.42); }
     #controls { min-width:0; height:56px; display:grid; grid-template-columns:auto auto minmax(180px,1fr) auto; gap:10px; align-items:center; padding:9px 14px; border-top:1px solid var(--line); background:var(--panel); }
     button { width:38px; height:38px; display:grid; place-items:center; border:1px solid var(--line); border-radius:7px; color:var(--text); background:rgba(255,255,255,.08); cursor:pointer; }
     button:hover { border-color:rgba(72,199,255,.44); background:rgba(72,199,255,.12); }
@@ -1491,6 +1491,25 @@ function createPreviewHTML(): string {
       return resolution?.width && resolution?.height ? resolution.width + 'x' + resolution.height : 'unknown';
     }
 
+    function formatAspectRatio(resolution) {
+      if (!resolution?.width || !resolution?.height) return '?';
+      const width = Number(resolution.width);
+      const height = Number(resolution.height);
+      const divisor = gcd(width, height);
+      return Math.round(width / divisor) + ':' + Math.round(height / divisor);
+    }
+
+    function gcd(a, b) {
+      a = Math.abs(a);
+      b = Math.abs(b);
+      while (b) {
+        const next = a % b;
+        a = b;
+        b = next;
+      }
+      return a || 1;
+    }
+
     function sanitizeFileName(value) {
       return String(value || 'ui2v-preview').replace(/[^a-z0-9._-]+/gi, '-').replace(/^-+|-+$/g, '') || 'ui2v-preview';
     }
@@ -1514,7 +1533,7 @@ function createPreviewHTML(): string {
         button.innerHTML =
           '<strong>' + escapeHtml(item.name || item.id || item.label) + '</strong>' +
           '<span>' + escapeHtml(item.label) + '</span>' +
-          '<em class="projectFps">' + escapeHtml(String(item.fps || '?')) + 'fps</em>' +
+          '<em class="projectRatio">' + escapeHtml(formatAspectRatio(item.resolution)) + '</em>' +
           '<em class="projectSize">' + escapeHtml(formatResolution(item.resolution)) + '</em>';
         button.onclick = () => loadProjectByPath(item.path);
         projectList.appendChild(button);
