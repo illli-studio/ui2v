@@ -31,7 +31,7 @@ npx skills add illli-studio/ui2v --skill ui2v --force
 ```
 
 这个 skill 放在 [`skills/ui2v`](skills/ui2v/SKILL.md)，会引导 AI 先做分段分镜、选择 runtime/template JSON、使用 XYZ/深度/相机特征、组合 three、d3、gsap、物理、粒子、字体、 Lottie/图标等库，并完成 MP4 渲染和 README Showcase 素材打包。
-当 `@ui2v/cli` 用法、依赖建议或渲染流程变化时，也要同步更新这个 skill，让 agent 先检查或刷新 CLI，再基于当前工具链验证和渲染，而不是依赖过期的本地工具。
+当 `@ui2v/cli` 用法、依赖建议或渲染流程变化时，也要同步更新这个 skill，让 agent 先确认当前实际运行的 CLI 版本，再基于当前工具链验证和渲染，而不是默认升级 npm 包或依赖过期的本地工具。
 
 ## 效果展示
 

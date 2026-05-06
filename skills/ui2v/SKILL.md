@@ -26,36 +26,46 @@ Core project features to use when they fit:
 - **Library ecosystem**: combine `gsap`, `anime`, `d3`, `math`, `THREE`, `POSTPROCESSING`, `Matter`, `CANNON`, `PIXI`, `p5`, `tsParticles`, `simplex`, `fabric`, `Konva`, `paper`, `rough`, `SplitType`, `opentype`, `katex`, `lottie`, `iconify`, `Globe`, and Canvas APIs as needed.
 - **Reproducible media workflow**: validate JSON, inspect runtime frames, render MP4, export README GIF/JPG, keep large MP4s out of the repo unless requested.
 
-## CLI freshness gate
+## CLI version awareness gate
 
 This skill is for using `@ui2v/cli` to create, validate, preview, render, and package video projects. It is not primarily a workflow for developing the ui2v source repository.
 
-Before generating or rendering, make the CLI version check explicit. Users should not have to know whether their local tool is stale; the agent should check.
+Before generating or rendering, make the CLI version check explicit and lightweight. Users should not have to know whether their local tool is stale, but the agent should not install or upgrade packages as a routine first step.
 
-1. Check the installed CLI and compare it with the npm latest version:
+1. Identify the command that will run and compare its installed version with the npm latest version:
 
 ```bash
+where ui2v
 ui2v --version
 npm view @ui2v/cli version
 ```
 
-If `ui2v --version` fails, the CLI is missing. If the installed version is lower than the npm version, the CLI is outdated.
+`npm view @ui2v/cli version` is only a metadata lookup. It is used to determine the current latest version, not to install anything.
 
-2. If the installed CLI is current enough, use it:
+If `ui2v --version` fails, the CLI is missing. If the installed version is lower than the npm version, note that it is outdated, but continue with the installed CLI when the requested task does not depend on newer behavior.
+
+2. If the installed CLI can support the requested task, use it as-is:
 
 ```bash
 ui2v doctor
 ui2v validate <project-json> --verbose
 ```
 
-3. If `ui2v` is missing, outdated, fails because of an old command surface, or the user asks for latest ui2v behavior, update/use the npm CLI before continuing:
+3. Only install, upgrade, or use `npx @latest` when one of these is true:
+
+- `ui2v` is missing.
+- The installed CLI fails because of an old command surface or known fixed bug.
+- The requested feature requires a newer version than the installed CLI.
+- The user explicitly asks to install, upgrade, use latest, or debug a version mismatch.
+
+When an upgrade is necessary, prefer explaining why before changing the user's global tools:
 
 ```bash
 npm install -g @ui2v/cli@latest
 ui2v doctor
 ```
 
-4. If global installs are not desired or not available, use the latest package through `npx` so the user does not need to manage freshness manually:
+4. If global installs are not desired or not available, use an explicit one-off `npx` command only for that operation:
 
 ```bash
 npx @ui2v/cli@latest doctor
@@ -66,7 +76,7 @@ npx @ui2v/cli@latest render <project-json> -o <output>.mp4 --quality high
 5. If working inside an existing user project with its own `package.json`, respect its package manager and lockfile. Install or update only what the project needs for authored assets/scripts; do not convert the project to the ui2v repository workflow.
 6. Browser/npm libraries referenced in ui2v JSON `dependencies` or custom code should be reproducible. Prefer explicit dependency names and stable versions supported by the current CLI; when latest library behavior matters, check package metadata, update the user project intentionally, then validate and render a project that exercises the library.
 
-The default answer to "make a video with ui2v" is: compare `ui2v --version` with `npm view @ui2v/cli version`, ensure `ui2v doctor` passes, author the JSON/assets, run `ui2v validate`, then render. Only update the CLI or project packages when the installed tools are missing, outdated, broken for the requested feature, or the user asks for latest behavior.
+The default answer to "make a video with ui2v" is: identify which `ui2v` command will run, compare `ui2v --version` with `npm view @ui2v/cli version`, ensure `ui2v doctor` passes, author the JSON/assets, run `ui2v validate`, then render. Do not update the CLI or project packages unless the installed tools are missing, too old for the requested work, broken for the requested feature, or the user asks for latest behavior.
 
 ## Start every generation with a storyboard
 

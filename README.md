@@ -38,8 +38,8 @@ plan segmented storyboards, choose runtime/template JSON, use XYZ/depth/camera
 features, combine browser/npm libraries such as three, d3, gsap, physics,
 particles, typography, Lottie/icons, validate/render MP4, and package README
 showcase assets. Keep the skill updated with current `@ui2v/cli` usage,
-dependency guidance, and render workflow changes so agents check or refresh the
-CLI before relying on stale local tooling.
+dependency guidance, and render workflow changes so agents check the active CLI
+version before relying on stale local tooling, without upgrading packages by default.
 
 ## Showcase
 
