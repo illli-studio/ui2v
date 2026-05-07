@@ -87,6 +87,7 @@ export {
 } from './dependencies/DependencyPlan';
 export {
   inspectStaticCustomCode,
+  extractDependenciesFromCode,
   type StaticCustomCodeDiagnostic,
   type StaticCustomCodeEntrypoint,
   type StaticCustomCodeInspection,

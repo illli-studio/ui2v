@@ -1,0 +1,198 @@
+{
+  "id": "access-media",
+  "name": "Access Media",
+  "mode": "template",
+  "duration": 7,
+  "fps": 30,
+  "resolution": {
+    "width": 1920,
+    "height": 1080
+  },
+  "backgroundColor": "#090d17",
+  "audio": {
+    "tracks": [
+      {
+        "id": "music",
+        "src": "access/music.wav",
+        "startTime": 0,
+        "duration": 7,
+        "volume": 0.58,
+        "loop": true,
+        "fadeIn": 0.25,
+        "fadeOut": 0.65
+      }
+    ]
+  },
+  "template": {
+    "layers": [
+      {
+        "id": "editor-stage",
+        "type": "custom-code",
+        "zIndex": 0,
+        "startTime": 0,
+        "endTime": 7,
+        "properties": {
+          "code": "function createRenderer(){function rr(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath()}return{render(t,context){const ctx=context.mainContext,w=context.width,h=context.height;let g=ctx.createLinearGradient(0,0,w,h);g.addColorStop(0,'#090d17');g.addColorStop(.45,'#102638');g.addColorStop(1,'#2b1830');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);ctx.save();ctx.globalCompositeOperation='screen';for(let i=0;i<4;i++){const rg=ctx.createRadialGradient(240+i*465+Math.sin(t+i)*78,240+(i%2)*510,0,240+i*465,240+(i%2)*510,460);rg.addColorStop(0,['rgba(125,211,252,.3)','rgba(250,204,21,.24)','rgba(123,216,143,.2)','rgba(251,113,133,.22)'][i]);rg.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=rg;ctx.fillRect(0,0,w,h)}ctx.restore();ctx.fillStyle='#fff';ctx.font='900 48px system-ui, sans-serif';ctx.fillText('Access Media Editing Desk',92,98);ctx.fillStyle='rgba(255,255,255,.66)';ctx.font='700 24px system-ui, sans-serif';ctx.fillText('photo, inserted video, waveform UI, and AAC audio all come from ./access',96,136);ctx.save();ctx.globalAlpha=.1;ctx.strokeStyle='#fff';for(let x=100;x<w-100;x+=58){ctx.beginPath();ctx.moveTo(x,180);ctx.lineTo(x+Math.sin(t+x)*38,h-170);ctx.stroke()}ctx.restore();ctx.fillStyle='rgba(255,255,255,.06)';rr(ctx,78,176,w-156,h-260,42);ctx.fill();ctx.strokeStyle='rgba(255,255,255,.16)';ctx.stroke();const p=Math.min(1,t/7);ctx.fillStyle='rgba(255,255,255,.14)';rr(ctx,110,h-70,w-220,12,6);ctx.fill();g=ctx.createLinearGradient(110,0,w-110,0);g.addColorStop(0,'#7dd3fc');g.addColorStop(.5,'#facc15');g.addColorStop(1,'#fb7185');ctx.fillStyle=g;rr(ctx,110,h-70,(w-220)*p,12,6);ctx.fill()}}}"
+        }
+      },
+      {
+        "id": "photo",
+        "type": "image-layer",
+        "name": "Photo from access folder",
+        "zIndex": 1,
+        "startTime": 0,
+        "endTime": 7,
+        "properties": {
+          "src": "access/photo.png",
+          "x": 126,
+          "y": 205,
+          "width": 710,
+          "height": 642,
+          "fitMode": "cover",
+          "opacity": 0,
+          "scale": 0.92,
+          "rotation": -5,
+          "radius": 28,
+          "accentColor": "rgba(250,204,21,0.95)"
+        },
+        "animations": [
+          {
+            "property": "opacity",
+            "from": 0,
+            "to": 0.98,
+            "startTime": 0.15,
+            "duration": 0.7,
+            "easing": "easeOutCubic"
+          },
+          {
+            "property": "x",
+            "from": 46,
+            "to": 126,
+            "startTime": 0.15,
+            "duration": 0.9,
+            "easing": "easeOutCubic"
+          },
+          {
+            "property": "scale",
+            "from": 0.92,
+            "to": 1.06,
+            "startTime": 0,
+            "duration": 7,
+            "easing": "easeInOutQuad"
+          },
+          {
+            "property": "rotation",
+            "from": -5,
+            "to": -1.2,
+            "startTime": 0,
+            "duration": 7,
+            "easing": "easeInOutQuad"
+          }
+        ]
+      },
+      {
+        "id": "clip",
+        "type": "video-layer",
+        "name": "Video from access folder",
+        "zIndex": 2,
+        "startTime": 0.8,
+        "endTime": 7,
+        "properties": {
+          "src": "access/clip.mp4",
+          "x": 940,
+          "y": 214,
+          "width": 866,
+          "height": 488,
+          "fitMode": "cover",
+          "opacity": 0,
+          "scale": 0.9,
+          "rotation": 4,
+          "radius": 28,
+          "accentColor": "rgba(125,211,252,0.95)"
+        },
+        "animations": [
+          {
+            "property": "opacity",
+            "from": 0,
+            "to": 1,
+            "startTime": 0.8,
+            "duration": 0.55,
+            "easing": "easeOutCubic"
+          },
+          {
+            "property": "x",
+            "from": 1066,
+            "to": 940,
+            "startTime": 0.8,
+            "duration": 0.9,
+            "easing": "easeOutCubic"
+          },
+          {
+            "property": "scale",
+            "from": 0.9,
+            "to": 1.035,
+            "startTime": 0.8,
+            "duration": 6.2,
+            "easing": "easeInOutQuad"
+          },
+          {
+            "property": "rotation",
+            "from": 4,
+            "to": 0.8,
+            "startTime": 0.8,
+            "duration": 6.2,
+            "easing": "easeInOutQuad"
+          }
+        ]
+      },
+      {
+        "id": "audio-ui",
+        "type": "audio-layer",
+        "name": "Music waveform",
+        "zIndex": 3,
+        "startTime": 1.35,
+        "endTime": 7,
+        "properties": {
+          "src": "access/music.wav",
+          "x": 940,
+          "y": 780,
+          "width": 866,
+          "height": 112,
+          "opacity": 0,
+          "volume": 0.58,
+          "fadeIn": 0.25,
+          "fadeOut": 0.65,
+          "accentColor": "#7dd3fc"
+        },
+        "animations": [
+          {
+            "property": "opacity",
+            "from": 0,
+            "to": 0.94,
+            "startTime": 1.35,
+            "duration": 0.6,
+            "easing": "easeOutCubic"
+          },
+          {
+            "property": "y",
+            "from": 836,
+            "to": 780,
+            "startTime": 1.35,
+            "duration": 0.6,
+            "easing": "easeOutCubic"
+          }
+        ]
+      },
+      {
+        "id": "labels",
+        "type": "custom-code",
+        "zIndex": 5,
+        "startTime": 0,
+        "endTime": 7,
+        "properties": {
+          "code": "function createRenderer(){function cl(v){return Math.max(0,Math.min(1,v))}function out(v){v=cl(v);return 1-Math.pow(1-v,3)}return{render(t,context){const ctx=context.mainContext,w=context.width,h=context.height;ctx.save();let a=out((t-.8)/.8);ctx.globalAlpha=a;ctx.fillStyle='#fff';ctx.font='900 28px system-ui, sans-serif';ctx.fillText('access/photo.png',156,900);ctx.fillText('access/clip.mp4',974,742);ctx.fillStyle='rgba(255,255,255,.64)';ctx.font='700 21px system-ui, sans-serif';ctx.fillText('preloaded image-layer',156,934);ctx.fillText('video-layer composited per frame',974,776);ctx.restore();ctx.save();a=out((t-4.7)/.8);ctx.globalAlpha=a;ctx.fillStyle='#facc15';ctx.textAlign='right';ctx.font='900 28px system-ui, sans-serif';ctx.fillText('AAC audio muxed into exported MP4',w-112,h-118);ctx.restore()}}}"
+        }
+      }
+    ]
+  }
+}

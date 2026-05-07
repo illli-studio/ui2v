@@ -23,16 +23,16 @@ npm install -g @ui2v/cli
 
 ```bash
 ui2v doctor
-ui2v validate examples/hero-ai-launch/animation.json --verbose
-ui2v preview examples/hero-ai-launch/animation.json --pixel-ratio 2
-ui2v render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-launch.mp4 --quality high
+ui2v validate examples/library-timeline/animation.json --verbose
+ui2v preview examples/library-timeline/animation.json --pixel-ratio 2
+ui2v render examples/library-timeline/animation.json -o .tmp/examples/library-timeline.mp4 --quality high
 ```
 
 Run without a global install:
 
 ```bash
 npx @ui2v/cli --version
-npx @ui2v/cli render examples/hero-ai-launch/animation.json -o hero-ai-launch.mp4 --quality high
+npx @ui2v/cli render examples/library-timeline/animation.json -o library-timeline.mp4 --quality high
 ```
 
 ## Commands

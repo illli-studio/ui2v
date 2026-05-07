@@ -152,8 +152,4 @@ Use adapter metadata when a scene clearly belongs to a non-default renderer path
 
 ## Existing runtime examples to inspect
 
-- `examples/runtime-core/uiv-runtime-one-minute-studio.json`: multi-scene AI studio promo.
-- `examples/runtime-core/uiv-runtime-commerce-command-center.json`: dashboard/data command center.
-- `examples/runtime-core/uiv-runtime-xyz-depth-demo.json`: XYZ/depth/camera concepts.
-- `examples/runtime-core/uiv-runtime-tilted-card-zoom.json`: camera/zoom/card movement.
-- `examples/runtime-core/uiv-runtime-showcase.json`: runtime feature showcase.
+- `examples/runtime-storyboard/animation.json`: maintained runtime-core example with timeline segments, active dependencies, transitions, camera metadata, and `inspect-runtime` coverage.

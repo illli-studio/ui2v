@@ -40,6 +40,8 @@ export interface RendererConfig {
   pixelRatio?: number;
   enableCache?: boolean;
   libraries?: Record<string, any>;
+  assetBaseUrl?: string;
+  assetBaseDir?: string;
 }
 
 export interface IRenderer {
@@ -74,6 +76,5 @@ export interface IRenderer {
    */
   dispose(): void;
 }
-
 
 

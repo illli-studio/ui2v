@@ -5,6 +5,33 @@ import type { TemplateConfig, TemplateLayer, LayerProperties, RenderContext } fr
 import { RendererFactory } from '../renderers/RendererFactory';
 import { getLibraryManager, type LibraryManager } from '../sandbox/LibraryManager';
 
+const CUSTOM_CODE_DEPENDENCY_PATTERNS: Array<[RegExp, string]> = [
+  [/\bTHREE\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]three['"]/, 'three'],
+  [/\banime\b|\banimate\s*\(|\bcreateTimeline\s*\(|\bstagger\s*\(|(?:import|from|require)\s*(?:\(|[^'"]*)['"]animejs?['"]/, 'animejs'],
+  [/\bgsap\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]gsap['"]/, 'gsap'],
+  [/\bd3\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]d3['"]/, 'd3'],
+  [/\bPIXI\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]pixi(?:\.js)?['"]/, 'pixi.js'],
+  [/\blottie\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]lottie(?:-web)?['"]/, 'lottie-web'],
+  [/\brough\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]roughjs?['"]/, 'rough'],
+  [/\bMatter\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]matter-js['"]/, 'matter-js'],
+  [/\bfabric\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]fabric(?:\.js)?['"]/, 'fabric'],
+  [/\bp5\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]p5['"]/, 'p5'],
+  [/\bpaper\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]paper['"]/, 'paper'],
+  [/\bKonva\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]konva['"]/, 'konva'],
+  [/\bTWEEN\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]@tweenjs\/tween\.js['"]/, '@tweenjs/tween.js'],
+  [/\bmath\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]mathjs['"]/, 'mathjs'],
+  [/\bkatex\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]katex['"]/, 'katex'],
+  [/\bGlobe\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]globe\.gl['"]/, 'globe.gl'],
+  [/\btsParticles\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]tsparticles['"]/, 'tsparticles'],
+  [/\bCANNON\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]cannon-es['"]/, 'cannon-es'],
+  [/\bPOSTPROCESSING\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]postprocessing['"]/, 'postprocessing'],
+  [/\bopentype\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]opentype\.js['"]/, 'opentype.js'],
+  [/\bSimplexNoise\b|\bsimplex\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]simplex-noise['"]/, 'simplex-noise'],
+  [/\bSplitType\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]split-type['"]/, 'split-type'],
+  [/\bhtml2canvas\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]html2canvas['"]/, 'html2canvas'],
+  [/\bmediabunny\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]mediabunny['"]/, 'mediabunny'],
+];
+
 export class TemplateRenderer {
   private mainCanvas: HTMLCanvasElement | OffscreenCanvas;
   private offscreenCanvas: HTMLCanvasElement | OffscreenCanvas;
@@ -16,6 +43,8 @@ export class TemplateRenderer {
   private rendererFactory: RendererFactory;
   private isExporting = false;
   private renderScale = 1;
+  private assetBaseUrl?: string;
+  private assetBaseDir?: string;
 
   private loadedImages: Map<string, HTMLImageElement> = new Map();
   private libraryManager: LibraryManager;
@@ -64,7 +93,9 @@ export class TemplateRenderer {
       canvas: this.offscreenCanvas,
       width: this.offscreenCanvas.width,
       height: this.offscreenCanvas.height,
-      libraries: this.libraryManager.getAllLibraries()
+      libraries: this.libraryManager.getAllLibraries(),
+      assetBaseUrl: this.assetBaseUrl,
+      assetBaseDir: this.assetBaseDir
     });
   }
 
@@ -80,7 +111,9 @@ export class TemplateRenderer {
           canvas: this.offscreenCanvas,
           width: this.offscreenCanvas.width,
           height: this.offscreenCanvas.height,
-          libraries: this.libraryManager.getAllLibraries()
+          libraries: this.libraryManager.getAllLibraries(),
+          assetBaseUrl: this.assetBaseUrl,
+          assetBaseDir: this.assetBaseDir
         });
       } catch (err) {
         console.error('Failed to reinitialize renderers:', err);
@@ -98,6 +131,8 @@ export class TemplateRenderer {
     }
 
     this.config = config;
+    this.assetBaseUrl = (config as any).__assetBaseUrl ?? (config as any).assetBaseUrl;
+    this.assetBaseDir = (config as any).__assetBaseDir ?? (config as any).assetBaseDir;
 
     if (this.mainCanvas.width > 0 && this.mainCanvas.height > 0) {
       await this.updateCanvasSize(this.mainCanvas.width, this.mainCanvas.height);
@@ -109,7 +144,9 @@ export class TemplateRenderer {
       canvas: this.offscreenCanvas,
       width: this.offscreenCanvas.width,
       height: this.offscreenCanvas.height,
-      libraries: this.libraryManager.getAllLibraries()
+      libraries: this.libraryManager.getAllLibraries(),
+      assetBaseUrl: this.assetBaseUrl,
+      assetBaseDir: this.assetBaseDir
     });
 
     const layerTypes = new Set(config.layers.map(l => l.type));
@@ -135,6 +172,10 @@ export class TemplateRenderer {
     }
 
     if (layer.animations && layer.animations.length > 0) {
+      return true;
+    }
+
+    if (layer.type === 'video-layer' || layer.type === 'audio-layer') {
       return true;
     }
 
@@ -205,7 +246,58 @@ export class TemplateRenderer {
     const visibleLayers = sortedLayers.filter(layer => this.isLayerVisible(layer, time));
 
     for (const layer of visibleLayers) {
-      await this.renderLayerWithCache(layer, time);
+      if (this.isExporting) {
+        await this.renderLayerDirect(layer, time);
+      } else {
+        await this.renderLayerWithCache(layer, time);
+      }
+    }
+  }
+
+  private async renderLayerDirect(layer: TemplateLayer, time: number): Promise<void> {
+    const runtimeLocalTime = (layer.properties as any)?.__runtimeLocalTime;
+    const relativeTime = typeof runtimeLocalTime === 'number'
+      ? runtimeLocalTime
+      : Math.max(0, time - (layer.startTime || 0));
+    const layerStartTime = layer.startTime || 0;
+    const layerEndTime = layer.endTime;
+    const layerDuration = typeof layerEndTime === 'number'
+      ? Math.max(0, layerEndTime - layerStartTime)
+      : undefined;
+    const layerProgress = typeof layerDuration === 'number' && layerDuration > 0
+      ? Math.max(0, Math.min(1, relativeTime / layerDuration))
+      : 0;
+    const fps = (this.config as any)?.fps || (this.config as any)?.frameRate || 60;
+    const renderContext: RenderContext = {
+      mainCanvas: this.offscreenCanvas,
+      mainContext: this.ctx,
+      width: this.offscreenCanvas.width / this.renderScale,
+      height: this.offscreenCanvas.height / this.renderScale,
+      pixelRatio: ((typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1) * this.renderScale,
+      time: relativeTime,
+      absoluteTime: time,
+      layerStartTime,
+      layerEndTime,
+      duration: layerDuration,
+      progress: layerProgress,
+      frame: Math.floor(relativeTime * fps),
+      fps,
+      isExporting: this.isExporting,
+      assetBaseUrl: this.assetBaseUrl,
+      assetBaseDir: this.assetBaseDir,
+      container: this.container
+    };
+
+    if (this.renderScale !== 1) {
+      this.ctx.save();
+      this.ctx.scale(this.renderScale, this.renderScale);
+      try {
+        await this.renderLayer(this.getLayerAtTime(layer, time), time, renderContext);
+      } finally {
+        this.ctx.restore();
+      }
+    } else {
+      await this.renderLayer(this.getLayerAtTime(layer, time), time, renderContext);
     }
   }
 
@@ -239,6 +331,15 @@ export class TemplateRenderer {
       const relativeTime = typeof runtimeLocalTime === 'number'
         ? runtimeLocalTime
         : Math.max(0, time - (layer.startTime || 0));
+      const layerStartTime = layer.startTime || 0;
+      const layerEndTime = layer.endTime;
+      const layerDuration = typeof layerEndTime === 'number'
+        ? Math.max(0, layerEndTime - layerStartTime)
+        : undefined;
+      const layerProgress = typeof layerDuration === 'number' && layerDuration > 0
+        ? Math.max(0, Math.min(1, relativeTime / layerDuration))
+        : 0;
+      const fps = (this.config as any)?.fps || (this.config as any)?.frameRate || 60;
 
       const logicalWidth = cacheCanvas.width / this.renderScale;
       const logicalHeight = cacheCanvas.height / this.renderScale;
@@ -249,11 +350,21 @@ export class TemplateRenderer {
         height: logicalHeight,
         pixelRatio: ((typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1) * this.renderScale,
         time: relativeTime,
+        absoluteTime: time,
+        layerStartTime,
+        layerEndTime,
+        duration: layerDuration,
+        progress: layerProgress,
+        frame: Math.floor(relativeTime * fps),
+        fps,
         isExporting: this.isExporting,
+        assetBaseUrl: this.assetBaseUrl,
+        assetBaseDir: this.assetBaseDir,
         container: this.container
       };
 
-      await this.renderLayer(layer, time, cacheRenderContext);
+      const animatedLayer = this.getLayerAtTime(layer, time);
+      await this.renderLayer(animatedLayer, time, cacheRenderContext);
 
       const cacheEntry = this.layerCache.get(layer.id)!;
       cacheEntry.lastRenderTime = time;
@@ -263,9 +374,10 @@ export class TemplateRenderer {
     }
 
     const cacheCanvas = this.layerCache.get(layer.id)!.canvas;
-    const props = layer.properties as any;
+    const animatedLayer = this.getLayerAtTime(layer, time);
+    const props = animatedLayer.properties as any;
 
-    const opacity = props?.opacity ?? layer.opacity ?? 1;
+    const opacity = props?.opacity ?? animatedLayer.opacity ?? 1;
     const hasOpacity = opacity !== 1;
 
     if (hasOpacity) {
@@ -297,6 +409,15 @@ export class TemplateRenderer {
         const relativeTime = typeof runtimeLocalTime === 'number'
           ? runtimeLocalTime
           : Math.max(0, time - (layer.startTime || 0));
+        const layerStartTime = layer.startTime || 0;
+        const layerEndTime = layer.endTime;
+        const layerDuration = typeof layerEndTime === 'number'
+          ? Math.max(0, layerEndTime - layerStartTime)
+          : undefined;
+        const layerProgress = typeof layerDuration === 'number' && layerDuration > 0
+          ? Math.max(0, Math.min(1, relativeTime / layerDuration))
+          : 0;
+        const fps = (this.config as any)?.fps || (this.config as any)?.frameRate || 60;
         return {
           mainCanvas: this.offscreenCanvas,
           mainContext: this.ctx,
@@ -304,7 +425,16 @@ export class TemplateRenderer {
           height: this.offscreenCanvas.height,
           pixelRatio: (typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1,
           time: relativeTime,
+          absoluteTime: time,
+          layerStartTime,
+          layerEndTime,
+          duration: layerDuration,
+          progress: layerProgress,
+          frame: Math.floor(relativeTime * fps),
+          fps,
           isExporting: this.isExporting,
+          assetBaseUrl: this.assetBaseUrl,
+          assetBaseDir: this.assetBaseDir,
           container: this.container
         };
       })();
@@ -389,6 +519,24 @@ export class TemplateRenderer {
     return props;
   }
 
+  private getLayerAtTime(layer: TemplateLayer, time: number): TemplateLayer {
+    if (!layer.animations || layer.animations.length === 0) {
+      return layer;
+    }
+
+    const properties = this.getPropertiesAtTime(layer, time);
+    const animatedLayer: TemplateLayer = {
+      ...layer,
+      properties,
+    };
+
+    if (properties.opacity !== undefined) {
+      animatedLayer.opacity = Number(properties.opacity);
+    }
+
+    return animatedLayer;
+  }
+
   /**
    */
   private interpolate(from: number | string, to: number | string, progress: number): number | string {
@@ -462,9 +610,14 @@ export class TemplateRenderer {
    * (Simplified: Custom-code renderer handles its own loading)
    */
   private async preloadResources(layers: TemplateLayer[]): Promise<void> {
-    // Legacy image preloading removed. 
-    // CustomCodeRenderer handles its own dependencies via LibraryManager.
-    return Promise.resolve();
+    const preloadTasks: Promise<void>[] = [];
+    for (const layer of layers) {
+      const renderer = await this.rendererFactory.getRendererForLayerType(layer.type);
+      if (renderer?.preload) {
+        preloadTasks.push(renderer.preload(layer));
+      }
+    }
+    await Promise.all(preloadTasks);
   }
 
   /**
@@ -510,6 +663,7 @@ export class TemplateRenderer {
       const layerDependencies = [
         ...this.readDependencyList((layer as any).dependencies),
         ...this.readDependencyList(layer.properties?.dependencies),
+        ...this.inferCustomCodeDependencies(layer),
       ];
 
       for (const dependency of layerDependencies) {
@@ -526,6 +680,27 @@ export class TemplateRenderer {
     }
 
     return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+  }
+
+  private inferCustomCodeDependencies(layer: TemplateLayer): string[] {
+    if (layer.type !== 'custom-code') {
+      return [];
+    }
+
+    const code = typeof layer.properties?.code === 'string'
+      ? layer.properties.code
+      : typeof (layer as any).code === 'string'
+        ? (layer as any).code
+        : '';
+    const dependencies = new Set<string>();
+
+    for (const [pattern, dependency] of CUSTOM_CODE_DEPENDENCY_PATTERNS) {
+      if (pattern.test(code)) {
+        dependencies.add(dependency);
+      }
+    }
+
+    return Array.from(dependencies);
   }
 
   getCanvas(): HTMLCanvasElement | OffscreenCanvas {
@@ -616,4 +791,3 @@ export class TemplateRenderer {
     this.ctx.clearRect(0, 0, this.offscreenCanvas.width, this.offscreenCanvas.height);
   }
 }
-

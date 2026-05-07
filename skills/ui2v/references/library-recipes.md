@@ -13,6 +13,42 @@ Before coding against a browser/npm library, confirm that the available `ui2v` C
 - If the task depends on latest package behavior or a new library version, check package metadata, update the user project deliberately, and run focused validation/rendering.
 - Keep browser-rendered dependencies reproducible. Prefer explicit dependency names and stable versions supported by the current CLI over implicit latest URLs.
 - Validate and render at least one project that exercises any newly added or updated library.
+- Do not generate "Canvas-only by accident" examples. If a scene uses or should
+  demonstrate libraries, declare them in JSON and call them in code so the
+  runtime dependency plan has real work to preload.
+
+## Runtime loading contract
+
+`@ui2v/engine` installs the supported browser/npm libraries and loads them on
+demand. `@ui2v/runtime-core` builds a dependency plan from project, segment, and
+node metadata, then also infers common libraries from custom-code references
+such as `THREE`, `d3`, `gsap`, `PIXI`, `Matter`, `math`, `simplex`, and
+`SplitType`.
+
+AI-authored examples should still list dependencies explicitly. Treat inference
+as a safety net for snippets that forgot metadata, not as the main authoring
+style.
+
+## Multi-library timeline contract
+
+For multi-library requests, create a library beat sheet before writing JSON. The beat sheet is the contract for what the rendered video must prove.
+
+| Time | Segment/layer | Libraries | Real API use | Visible proof |
+| --- | --- | --- | --- | --- |
+| 0-1.5s | kinetic title | `gsap`, `SplitType` | split words/letters, eased reveal | letters enter independently with staggered timing |
+| 1.5-3s | data proof | `d3`, `math` | scales, curves, interpolation/stat values | chart axes/bars/curve animate from data |
+| 3-4.5s | spatial beat | `THREE`, `POSTPROCESSING` | camera, mesh, lights, bloom/pass | 3D object or globe moves with depth |
+| 4.5-6s | particle/flow beat | `PIXI`, `simplex` | sprite/container or noise field | particles/flow paths move organically |
+| 6-7.5s | physics/object beat | `Matter` or `Konva` | engine bodies or stage/groups | objects collide, settle, or transform as objects |
+| 7.5-9s | icon/media beat | `iconify`, `lottie`, media layers | icon JSON/SVG path or animation asset | recognizable icon/motion/media appears correctly |
+
+Rules:
+
+- Do not list a library unless its API is called in the code path for a visible segment/layer.
+- Do not combine all requested libraries into one giant custom-code layer. Split them across `timeline.segments[]` or separate template layers.
+- Prefer one or two libraries per beat. More is acceptable only when the output clearly benefits from the combination.
+- If a library fails to load or cannot be represented honestly in the time available, reduce the library set and render a working video instead of faking usage with labels.
+- Canvas can be the final compositor, but the library must still do real work before the Canvas draw call, such as layout, physics, geometry, icon lookup, glyph parsing, or texture generation.
 
 ## Sequencing: gsap / anime / TWEEN
 
@@ -77,6 +113,12 @@ Use these when typography is part of the motion concept, not just labels.
 
 Use committed or generated assets so renders stay reproducible.
 
+For local photos, inserted video, and music, put files in `access/` next to
+`animation.json` and reference paths such as `access/photo.png`,
+`access/clip.mp4`, and `access/music.wav`. Use `image-layer`, `video-layer`,
+`audio-layer`, or root `audio.tracks` so validation/preload/export can see the
+resources. Avoid hiding local media fetches inside custom code.
+
 ## Canvas APIs / canvas2d
 
 Canvas APIs remain an important output and compositing layer, but they are not the whole project. Use them for direct 2D drawing, overlays, masks, charts, particles, and final composition when they are the simplest reliable tool.
@@ -90,3 +132,4 @@ Before writing an example, decide:
 3. Which dependencies must be declared in project/segment metadata?
 4. How will validation, preview, MP4 render, and README GIF/JPG export be verified?
 5. What CLI/project dependency check proves the selected library version is the one being rendered?
+6. Which timestamp proves each library is visible in the exported video?

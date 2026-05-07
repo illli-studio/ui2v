@@ -136,6 +136,10 @@ export interface RuntimeProject {
   fps: number;
   resolution: RuntimeResolution;
   backgroundColor?: string;
+  assetBaseUrl?: string;
+  assetBaseDir?: string;
+  __assetBaseUrl?: string;
+  __assetBaseDir?: string;
   variables?: Record<string, unknown>;
   theme?: RuntimeTheme;
   datasets?: Record<string, unknown>;
@@ -256,6 +260,10 @@ export interface RuntimeComposition {
   fps: number;
   resolution: RuntimeResolution;
   backgroundColor?: string;
+  assetBaseUrl?: string;
+  assetBaseDir?: string;
+  __assetBaseUrl?: string;
+  __assetBaseDir?: string;
   variables: Record<string, unknown>;
   theme: RuntimeTheme;
   datasets: Record<string, unknown>;

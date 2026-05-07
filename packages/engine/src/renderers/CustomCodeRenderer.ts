@@ -3,6 +3,7 @@ import { RendererType, type IRenderer, type RendererConfig, type RendererCapabil
 import type { TemplateLayer, RenderContext } from '../types';
 import { LayerSDK, BaseLayer } from '../sdk/LayerSDK';
 import { CodeSanitizer } from '../sandbox/CodeSanitizer';
+import { resolveMediaUrl } from '../utils/mediaUrl';
 import {
     createEntrypointProbe,
     errorToDiagnostic,
@@ -34,6 +35,8 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
     private libraries: Record<string, any> = {};
     private runningInstances: Map<string, any> = new Map();
     private runtimeReports: Map<string, CustomCodeRuntimeReport> = new Map();
+    private assetBaseUrl?: string;
+    private assetBaseDir?: string;
 
     constructor() {
         super();
@@ -55,6 +58,8 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
         // @ts-ignore
         this.ctx = this.canvas.getContext('2d') as any;
         this.libraries = config.libraries || {};
+        this.assetBaseUrl = config.assetBaseUrl;
+        this.assetBaseDir = config.assetBaseDir;
 
         // Add roundRect polyfill if not supported
         this.addCanvasPolyfills();
@@ -112,7 +117,7 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
         height: number
     ): Promise<void> {
         try {
-            const cacheKey = `${svgString.substring(0, 100)}_${width}_${height}`;
+            const cacheKey = `${this.hashString(svgString)}_${width}_${height}`;
 
             let img = this.svgImageCache.get(cacheKey);
 
@@ -142,6 +147,14 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
         }
     }
 
+    private hashString(input: string): string {
+        let hash = 5381;
+        for (let i = 0; i < input.length; i++) {
+            hash = ((hash << 5) + hash) ^ input.charCodeAt(i);
+        }
+        return (hash >>> 0).toString(36);
+    }
+
     /**
      * Load image helper exposed to custom-code runtime as context.loadImage(src).
      * This keeps compatibility with AI-generated snippets that expect an async loader.
@@ -151,7 +164,8 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
             throw new Error('loadImage requires a non-empty src string');
         }
 
-        const cached = this.imageCache.get(src);
+        const resolvedSrc = resolveMediaUrl(src, this.assetBaseUrl, this.assetBaseDir);
+        const cached = this.imageCache.get(resolvedSrc);
         if (cached) {
             // Return immediately if already loaded.
             if (cached.complete && cached.naturalWidth > 0) {
@@ -160,22 +174,23 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
             // Wait if the same image is still loading.
             await new Promise<void>((resolve, reject) => {
                 cached.onload = () => resolve();
-                cached.onerror = () => reject(new Error(`Failed to load image: ${src}`));
+                cached.onerror = () => reject(new Error(`Failed to load image: ${resolvedSrc}`));
             });
             return cached;
         }
 
         const img = new Image();
         img.decoding = 'async';
-        this.imageCache.set(src, img);
+        img.crossOrigin = 'anonymous';
+        this.imageCache.set(resolvedSrc, img);
 
         await new Promise<void>((resolve, reject) => {
             img.onload = () => resolve();
             img.onerror = () => {
-                this.imageCache.delete(src);
-                reject(new Error(`Failed to load image: ${src}`));
+                this.imageCache.delete(resolvedSrc);
+                reject(new Error(`Failed to load image: ${resolvedSrc}`));
             };
-            img.src = src;
+            img.src = resolvedSrc;
         });
 
         return img;
@@ -193,7 +208,10 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
                 }
                 return this.loadImage(asset.src);
             },
-            src: (id: string) => get(id)?.src,
+            src: (id: string) => {
+                const assetSrc = get(id)?.src;
+                return typeof assetSrc === 'string' ? resolveMediaUrl(assetSrc, this.assetBaseUrl, this.assetBaseDir) : assetSrc;
+            },
         };
     }
 
@@ -211,6 +229,9 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
             : asset && typeof asset === 'object'
                 ? asset
                 : undefined;
+        if (normalized?.src && typeof normalized.src === 'string') {
+            normalized.src = resolveMediaUrl(normalized.src, this.assetBaseUrl, this.assetBaseDir);
+        }
         if (normalized) {
             this.assetCache.set(id, normalized);
         }
@@ -469,8 +490,17 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
 
         const compatibleContext = this.cachedCompatibleContext;
 
-        // [FIX] Update context fields to be absolutely sure they are correct for this frame
-        compatibleContext.time = context.time; // Sync time
+        // Keep the custom-code contract explicit: context.time and the
+        // render(time, context) argument are layer-local seconds. Absolute
+        // project time is available separately for timeline-aware code.
+        compatibleContext.time = context.time;
+        compatibleContext.localTime = properties.__runtimeLocalTime ?? context.time;
+        compatibleContext.t = compatibleContext.localTime;
+        compatibleContext.absoluteTime = context.absoluteTime ?? context.time;
+        compatibleContext.globalTime = compatibleContext.absoluteTime;
+        compatibleContext.projectTime = compatibleContext.absoluteTime;
+        compatibleContext.layerStartTime = context.layerStartTime ?? (layer.startTime || 0);
+        compatibleContext.layerEndTime = context.layerEndTime ?? layer.endTime;
         compatibleContext.ctx = targetCtx;
         compatibleContext.canvas = context.mainCanvas;
         compatibleContext.mainContext = targetCtx;
@@ -478,9 +508,11 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
         compatibleContext.container = context.container; // Sync container
         compatibleContext.div = context.container;       // Sync div
         compatibleContext.realMainContext = context.mainContext; // Allow escape hatch
-        const layerDuration = layer.endTime !== undefined && layer.startTime !== undefined
-            ? layer.endTime - layer.startTime
-            : undefined;
+        const layerDuration = typeof context.duration === 'number'
+            ? context.duration
+            : layer.endTime !== undefined && layer.startTime !== undefined
+                ? layer.endTime - layer.startTime
+                : undefined;
 
         compatibleContext.params = properties.params || {};
         compatibleContext.props = properties;
@@ -501,23 +533,25 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
         compatibleContext.narration = compatibleContext.captions;
         compatibleContext.audio = { markers: properties.__runtimeAudioMarkers ?? [] };
         compatibleContext.composition = properties.__runtimeComposition;
-        compatibleContext.localTime = properties.__runtimeLocalTime ?? context.time;
         compatibleContext.duration = properties.__runtimeDuration ?? layerDuration;
         compatibleContext.segment = properties.__runtimeSegmentId || properties.__runtimeActiveSegmentId;
         compatibleContext.segmentTime = properties.__runtimeSegmentLocalTime ?? compatibleContext.localTime;
         compatibleContext.segmentProgress = properties.__runtimeSegmentProgress;
         compatibleContext.segmentData = properties.__runtimeSegmentData;
-        compatibleContext.progress = typeof compatibleContext.duration === 'number' && compatibleContext.duration > 0
+        compatibleContext.progress = typeof context.progress === 'number'
+            ? context.progress
+            : typeof compatibleContext.duration === 'number' && compatibleContext.duration > 0
             ? Math.max(0, Math.min(1, compatibleContext.localTime / compatibleContext.duration))
             : 0;
         if (typeof compatibleContext.segmentProgress === 'number') {
             compatibleContext.progress = compatibleContext.segmentProgress;
         }
-        compatibleContext.fps = (context as any).fps || properties.__runtimeFps || 60;
-        compatibleContext.frame = Math.floor((context.time || 0) * compatibleContext.fps);
+        compatibleContext.fps = context.fps || properties.__runtimeFps || 60;
+        compatibleContext.frame = typeof context.frame === 'number'
+            ? context.frame
+            : Math.floor((context.time || 0) * compatibleContext.fps);
         compatibleContext.route = properties.__runtimeAdapter || properties.__runtimeRenderer;
         compatibleContext.worldMatrix = properties.__runtimeWorldMatrix;
-        compatibleContext.t = compatibleContext.localTime;
 
         // [PERF] Reuse cached Proxy singleton (created once, reads from mutated cachedCompatibleContext)
         if (!this.cachedActiveContextProxy) {
@@ -587,14 +621,17 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
                     // before the first render call
                     if (initResult && typeof initResult.then === 'function') {
                         instance.initReady = false;
-                        initResult.then(() => { instance.initReady = true; }).catch((e: any) => {
+                        try {
+                            await initResult;
+                        } catch (e: any) {
                             console.error(`[CustomCodeRenderer] \u274C Async init error in layer ${layer.id}:`, e);
                             this.appendRuntimeDiagnostic(layer.id, errorToDiagnostic('init', e, {
                                 time: context.time,
                                 frame: compatibleContext.frame,
                             }));
-                            instance.initReady = true; // unblock render even on error
-                        });
+                        } finally {
+                            instance.initReady = true;
+                        }
                     } else {
                         instance.initReady = true;
                     }
@@ -750,6 +787,8 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
                 POSTPROCESSING: unwrap(this.libraries['POSTPROCESSING']),
                 opentype: unwrap(this.libraries['opentype']),
                 simplex: unwrap(this.libraries['simplex']),
+                html2canvas: unwrap(this.libraries['html2canvas']),
+                mediabunny: unwrap(this.libraries['mediabunny']),
                 SimplexNoise: (() => {
                     const simplexLib = unwrap(this.libraries['simplex']);
                     if (!simplexLib) return undefined;
@@ -851,6 +890,8 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
                         if (lowId === 'opentype.js' || lowId === 'opentype') return this.libraries['opentype'];
                         if (lowId === 'simplex-noise') return this.libraries['simplex'];
                         if (lowId === 'split-type') return this.libraries['SplitType'];
+                        if (lowId === 'html2canvas') return this.libraries['html2canvas'];
+                        if (lowId === 'mediabunny') return this.libraries['mediabunny'];
                         if (lowId === 'layer-sdk') return sdk;
                         return null;
                     })();
@@ -892,6 +933,8 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
             globalScope.POSTPROCESSING = unwrap(this.libraries['POSTPROCESSING']);
             globalScope.opentype = unwrap(this.libraries['opentype']);
             globalScope.simplex = unwrap(this.libraries['simplex']);
+            globalScope.html2canvas = unwrap(this.libraries['html2canvas']);
+            globalScope.mediabunny = unwrap(this.libraries['mediabunny']);
             globalScope.SimplexNoise = sandbox.SimplexNoise;
             globalScope.SplitType = unwrap(this.libraries['SplitType']);
             globalScope.fabric = unwrap(this.libraries['fabric']);

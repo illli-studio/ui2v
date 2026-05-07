@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const cli = resolve(root, 'packages/cli/dist/cli.js');
-const example = resolve(root, 'examples/basic-text/animation.json');
+const example = resolve(root, 'examples/basic-smoke/animation.json');
 
 const cases = [
   {

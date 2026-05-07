@@ -8,16 +8,7 @@ const failures = [];
 const ignoredDirs = new Set(['.git', 'node_modules', 'dist', 'out', '.tmp']);
 const mojibakeMarkers = ['????', '涓', '鏋', '鎷', '娓', '瀹', '绋', '鍣', '鐨', '浠', '銆', '锛', '蹇'];
 const maxShowcaseGifBytes = 3 * 1024 * 1024;
-const requiredShowcaseAssets = [
-  'assets/showcase/hero-ai-launch.gif',
-  'assets/showcase/hero-ai-launch.jpg',
-  'assets/showcase/product-showcase.gif',
-  'assets/showcase/product-showcase.jpg',
-  'assets/showcase/render-lab.gif',
-  'assets/showcase/render-lab.jpg',
-  'assets/showcase/commerce-command-center.gif',
-  'assets/showcase/commerce-command-center.jpg',
-];
+const requiredShowcaseAssets = [];
 const markdownFiles = await findFiles(root, file => file.endsWith('.md'));
 
 for (const file of markdownFiles) {
@@ -76,9 +67,6 @@ for (const asset of requiredShowcaseAssets) {
 
 for (const exampleDir of await listImmediateDirs(resolve(root, 'examples'))) {
   const base = relative(root, exampleDir).replace(/\\/g, '/');
-  if (base === 'examples/runtime-core') {
-    continue;
-  }
   for (const name of ['README.md', 'README.zh.md']) {
     if (!existsSync(resolve(exampleDir, name))) {
       failures.push(`${base}: missing ${name}`);

@@ -24,16 +24,16 @@ installation.
 npm install -g @ui2v/cli
 # or: bun install -g @ui2v/cli
 ui2v doctor
-ui2v validate examples/hero-ai-launch/animation.json --verbose
-ui2v preview examples/hero-ai-launch/animation.json --pixel-ratio 2
-ui2v render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-launch.mp4 --quality high
+ui2v validate examples/library-timeline/animation.json --verbose
+ui2v preview examples/library-timeline/animation.json --pixel-ratio 2
+ui2v render examples/library-timeline/animation.json -o .tmp/examples/library-timeline.mp4 --quality high
 ```
 
 Run without a global install:
 
 ```bash
 npx @ui2v/cli --version
-npx @ui2v/cli render examples/hero-ai-launch/animation.json -o hero-ai-launch.mp4 --quality high
+npx @ui2v/cli render examples/library-timeline/animation.json -o library-timeline.mp4 --quality high
 ```
 
 ## Local Workspace
@@ -42,8 +42,8 @@ npx @ui2v/cli render examples/hero-ai-launch/animation.json -o hero-ai-launch.mp
 bun install
 bun run build
 node packages/cli/dist/cli.js doctor
-node packages/cli/dist/cli.js preview examples/hero-ai-launch/animation.json --pixel-ratio 2
-node packages/cli/dist/cli.js render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-launch.mp4 --quality high
+node packages/cli/dist/cli.js preview examples/library-timeline/animation.json --pixel-ratio 2
+node packages/cli/dist/cli.js render examples/library-timeline/animation.json -o .tmp/examples/library-timeline.mp4 --quality high
 ```
 
 No browser is downloaded during install. `ui2v` uses your local Chrome, Edge, or
@@ -72,10 +72,10 @@ and then downsamples to 1920x1080.
 
 ## Choose An Example
 
-- Start with [`examples/hero-ai-launch`](../examples/hero-ai-launch/README.md) for the most impressive README hero demo.
-- Use [`examples/product-showcase`](../examples/product-showcase/README.md) for a customizable SaaS/app launch-video structure.
-- Use [`examples/render-lab`](../examples/render-lab/README.md) to stress-test data, particles, and pseudo-3D.
-- Use [`examples/basic-text`](../examples/basic-text/README.md) only when you need the smallest sanity check.
+- Start with [`examples/library-timeline`](../examples/library-timeline/README.md) to verify real browser/npm libraries on a timeline.
+- Use [`examples/access-media`](../examples/access-media/README.md) to test local photos, videos, waveform display, and muxed audio.
+- Use [`examples/runtime-storyboard`](../examples/runtime-storyboard/README.md) to inspect runtime segments, dependencies, transitions, and camera metadata.
+- Use [`examples/basic-smoke`](../examples/basic-smoke/README.md) only when you need the smallest sanity check.
 
 ## Next Steps
 

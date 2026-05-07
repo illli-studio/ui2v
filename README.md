@@ -16,8 +16,23 @@ ui2v turns structured animation JSON into polished, browser-rendered MP4 video.
 Write motion graphics as code, preview them locally, and export production-ready
 clips with system Chrome/Edge automation, Canvas, WebCodecs, and Node.js.
 
+Custom code can load browser/npm animation libraries such as `d3`, `gsap`,
+`animejs`, `three`, `pixi.js`, `matter-js`, `mathjs`, `simplex-noise`,
+`roughjs`, `katex`, `lottie-web`, `iconify`, and more through the
+`@ui2v/engine` dependency manager.
+
 Use it when you want launch clips, AI-generated product videos, data stories,
-UI demos, brand openers, or repeatable motion systems that can live in Git.
+UI demos, brand openers, local-media compositions, or repeatable motion systems
+that can live in Git.
+
+## Highlights
+
+- **JSON to MP4**: validate, preview, inspect, and render animation projects from the CLI.
+- **Browser-native rendering**: drive local Chrome, Edge, or Chromium through `puppeteer-core`.
+- **Real library usage**: declare dependencies per project, segment, layer, or custom-code layer.
+- **Timeline-first demos**: split multi-library videos into visible beats instead of one giant code blob.
+- **Runtime storyboards**: use `schema: "uiv-runtime"`, `timeline.segments[]`, transitions, camera metadata, and `inspect-runtime`.
+- **Local media**: put photos, videos, and music in `access/` and reference them from JSON.
 
 ## Codex Skill
 
@@ -27,7 +42,7 @@ Install the repo-local ui2v skill:
 npx skills add illli-studio/ui2v --skill ui2v
 ```
 
-Refresh it the same way when the repo skill changes:
+Refresh it when the repo skill changes:
 
 ```bash
 npx skills add illli-studio/ui2v --skill ui2v --force
@@ -35,51 +50,44 @@ npx skills add illli-studio/ui2v --skill ui2v --force
 
 The skill lives in [`skills/ui2v`](skills/ui2v/SKILL.md). It guides agents to
 plan segmented storyboards, choose runtime/template JSON, use XYZ/depth/camera
-features, combine browser/npm libraries such as three, d3, gsap, physics,
-particles, typography, Lottie/icons, validate/render MP4, and package README
-showcase assets. Keep the skill updated with current `@ui2v/cli` usage,
-dependency guidance, and render workflow changes so agents check the active CLI
-version before relying on stale local tooling, without upgrading packages by default.
+features, combine real browser/npm libraries, insert local media, validate, and
+render MP4. The current skill explicitly requires visible timeline-based library
+usage, not dependency lists that render like plain Canvas.
 
-## Showcase
+## Maintained Showcase Examples
 
-README demos should sell the project in the first five seconds. These clips are
-rendered by ui2v and compressed as lightweight GIFs for GitHub preview.
+The old experimental examples have been removed. `examples/` now contains four
+maintained demos that are meant to be polished, inspectable, and useful as AI
+generation references.
 
-| Hero AI Launch | Product Launch |
-| --- | --- |
-| ![Hero AI launch trailer rendered by ui2v](assets/showcase/hero-ai-launch.gif) | ![Product launch video rendered by ui2v](assets/showcase/product-showcase.gif) |
-| README-first AI launch trailer with cinematic lighting, glass UI, prompt-to-MP4 pipeline, and final CTA. | Premium SaaS launch style with glass panels, feature beats, and light sweeps. |
-
-| Render Lab | Commerce Command Center |
-| --- | --- |
-| ![Render lab video rendered by ui2v](assets/showcase/render-lab.gif) | ![Commerce command center video rendered by ui2v](assets/showcase/commerce-command-center.gif) |
-| Data, particles, pseudo-3D depth, and high-energy motion tests. | Dashboard storytelling with live metrics, revenue panels, and command-center pacing. |
-
-> Tip: keep the full MP4 exports in release assets, GitHub issue attachments, or
-> a CDN, then keep compressed GIF/JPG previews in `assets/showcase` for README.
+| Example | What It Demonstrates | Render |
+| --- | --- | --- |
+| [`examples/basic-smoke`](examples/basic-smoke/README.md) | Premium Canvas opener that still works as the smallest end-to-end smoke test. | `ui2v render examples/basic-smoke/animation.json -o .tmp/examples/basic-smoke.mp4 --quality high` |
+| [`examples/library-timeline`](examples/library-timeline/README.md) | Timeline-first multi-library showcase: GSAP/SplitType, D3/math, THREE/postprocessing, Matter/simplex/Iconify. | `ui2v render examples/library-timeline/animation.json -o .tmp/examples/library-timeline.mp4 --quality high` |
+| [`examples/access-media`](examples/access-media/README.md) | Local `access/` media: image layer, video layer, waveform layer, and muxed AAC audio. | `ui2v render examples/access-media/animation.json -o .tmp/examples/access-media.mp4 --quality high` |
+| [`examples/runtime-storyboard`](examples/runtime-storyboard/README.md) | Runtime-core segmented storytelling with transitions, segment-local dependencies, camera metadata, and inspection. | `ui2v render examples/runtime-storyboard/animation.json -o .tmp/examples/runtime-storyboard.mp4 --quality high` |
 
 ## Quick Start
 
-Install the short CLI package:
+Install the CLI:
 
 ```bash
 npm install -g @ui2v/cli
 ui2v doctor
 ```
 
-Render a polished starter example:
+Render the multi-library showcase:
 
 ```bash
-ui2v validate examples/hero-ai-launch/animation.json --verbose
-ui2v preview examples/hero-ai-launch/animation.json --pixel-ratio 2
-ui2v render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-launch.mp4 --quality high
+ui2v validate examples/library-timeline/animation.json --verbose
+ui2v preview examples/library-timeline/animation.json --pixel-ratio 2
+ui2v render examples/library-timeline/animation.json -o .tmp/examples/library-timeline.mp4 --quality high
 ```
 
 Run without a global install:
 
 ```bash
-npx @ui2v/cli render examples/hero-ai-launch/animation.json -o hero-ai-launch.mp4 --quality high
+npx @ui2v/cli render examples/library-timeline/animation.json -o library-timeline.mp4 --quality high
 ```
 
 Use a local workspace build:
@@ -87,79 +95,66 @@ Use a local workspace build:
 ```bash
 bun install
 bun run build
-node packages/cli/dist/cli.js render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-launch.mp4 --quality high
+node packages/cli/dist/cli.js render examples/library-timeline/animation.json -o .tmp/examples/library-timeline.mp4 --quality high
 ```
 
-## Example Gallery
-Preview opens a local Studio page with a searchable JSON project list, playback controls, frame scrubbing, playback speed, fit/theater/fullscreen modes, runtime debug overlay, current-frame PNG snapshots, copyable CLI render commands, and an **Export MP4** button that writes to `.tmp/examples`. The Studio keeps a project drawer available on narrow screens and live-reloads the current JSON when the file changes.
+## Preview Studio
 
-
-Use the examples as marketing assets, not only test fixtures. The strongest ones
-should show a concrete outcome a user wants to copy.
-
-| Example | Why It Sells | Render |
-| --- | --- | --- |
-| [`examples/hero-ai-launch`](examples/hero-ai-launch/README.md) | The README hero trailer: cinematic lighting, glass UI panels, prompt-to-MP4 storytelling, and a final CTA lockup. | `ui2v render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-launch.mp4 --quality high` |
-| [`examples/runtime-core/uiv-runtime-one-minute-studio.json`](examples/runtime-core/uiv-runtime-one-minute-studio.json) | A complete AI-video studio promo with multiple scenes, interface choreography, depth, and CTA pacing. | `ui2v render examples/runtime-core/uiv-runtime-one-minute-studio.json -o .tmp/examples/uiv-runtime-one-minute-studio.mp4 --quality high` |
-| [`examples/product-showcase`](examples/product-showcase/README.md) | A product launch clip users can immediately imagine replacing with their own SaaS, app, or devtool. | `ui2v render examples/product-showcase/animation.json -o .tmp/examples/product-showcase.mp4 --quality high` |
-| [`examples/render-lab`](examples/render-lab/README.md) | A capability reel for particles, data motion, pseudo-3D, lighting, and multi-scene transitions. | `ui2v render examples/render-lab/animation.json -o .tmp/examples/render-lab.mp4 --quality high` |
-| [`examples/runtime-core/uiv-runtime-commerce-command-center.json`](examples/runtime-core/uiv-runtime-commerce-command-center.json) | A dashboard storytelling demo for metrics, commerce, operations, and command-center visuals. | `ui2v render examples/runtime-core/uiv-runtime-commerce-command-center.json -o .tmp/examples/uiv-runtime-commerce-command-center.mp4 --quality high` |
-| [`examples/logo-reveal`](examples/logo-reveal/README.md) | A short first-run brand opener that proves the CLI works quickly. | `ui2v render examples/logo-reveal/animation.json -o .tmp/examples/logo-reveal.mp4 --quality high` |
-| [`examples/basic-text`](examples/basic-text/README.md) | A minimal smoke test for validating local browser/render setup. | `ui2v render examples/basic-text/animation.json -o .tmp/examples/basic-text.mp4` |
+`ui2v preview` opens a local Studio page with a searchable JSON project list,
+playback controls, frame scrubbing, playback speed, fit/theater/fullscreen
+modes, runtime debug overlay, current-frame PNG snapshots, copyable CLI render
+commands, and an **Export MP4** button that writes to `.tmp/examples`.
 
 ## README Asset Workflow
 
 Render MP4 for quality, then export short preview assets for GitHub:
 
 ```bash
-ui2v render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-launch.mp4 --quality high
+ui2v render examples/library-timeline/animation.json -o .tmp/examples/library-timeline.mp4 --quality high
 
-ffmpeg -y -ss 0 -t 4.5 -i .tmp/examples/hero-ai-launch.mp4 \
+ffmpeg -y -ss 0 -t 4.5 -i .tmp/examples/library-timeline.mp4 \
   -vf "fps=10,scale=640:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=80[p];[s1][p]paletteuse=dither=bayer:bayer_scale=5" \
-  -loop 0 assets/showcase/hero-ai-launch.gif
+  -loop 0 assets/showcase/library-timeline.gif
 
-ffmpeg -y -ss 1 -i .tmp/examples/hero-ai-launch.mp4 \
+ffmpeg -y -ss 1 -i .tmp/examples/library-timeline.mp4 \
   -frames:v 1 -vf "scale=1280:-1:flags=lanczos" -update 1 -q:v 3 \
-  assets/showcase/hero-ai-launch.jpg
+  assets/showcase/library-timeline.jpg
 ```
 
-For the README, prefer 4-6 second GIFs under 3 MB and keep full MP4 files out of
-the repository unless they are release assets.
+For the README, prefer 4-6 second GIFs under 3 MB. Keep full MP4 exports in
+`.tmp/examples`, release assets, issue attachments, or a CDN.
 
 ## Generate A New Idea
 
 ui2v projects are JSON files, so they are easy to draft with an AI coding tool
-and then render locally. A strong prompt usually includes format, duration,
-resolution, visual style, scenes, and the exact output file you want.
+and then render locally. A strong prompt includes format, duration, resolution,
+visual style, scenes, dependencies, local resources, and the exact output path.
 
 ```text
-Create a ui2v animation JSON for a 6-second 1920x1080 product launch video.
-Use a custom-code Canvas layer. Make it feel like a premium SaaS release:
-dark glass interface, clear product wordmark, animated data cards, light sweep,
-and a final CTA. Save it as examples/my-launch/animation.json and include a
-README with validate, preview, and render commands.
+Create a ui2v animation JSON with four visible library beats on the timeline:
+GSAP/SplitType typography, D3/math data, THREE/postprocessing depth, and
+Matter/simplex/Iconify interaction. Each beat must have its own layer or segment,
+dependencies, visible proof, and render command.
 ```
 
-For logo and brand videos, ask for the mark directly:
+## Local Media
+
+Put user-provided media in an `access/` folder next to `animation.json`, then
+reference it with relative paths from JSON:
 
 ```text
-Create a ui2v logo reveal for ui2v.com. Draw the logo, wordmark, browser-video
-pipeline labels, and a progress bar entirely in Canvas. Keep it polished,
-readable, and suitable for a GitHub README demo.
+my-video/
+  animation.json
+  access/
+    photo.png
+    clip.mp4
+    music.wav
 ```
 
-## Create Your Own Project
-
-```bash
-ui2v init my-video
-cd my-video
-ui2v preview animation.json --pixel-ratio 2
-ui2v render animation.json -o output.mp4 --quality high
-```
-
-The generated project is intentionally small. For a more impressive starting
-point, copy `examples/logo-reveal` or `examples/product-showcase` and edit the
-copy, colors, timing, and Canvas drawing code.
+Use `image-layer` for photos, `video-layer` for inserted video clips, and
+`audio-layer` or root `audio.tracks` for music. Root audio tracks are muxed into
+the exported MP4 as AAC. Supported audio controls include `volume`, `loop`,
+`duration`, `trimStart`, `trimEnd`, `fadeIn`, and `fadeOut`.
 
 ## CLI Commands
 
@@ -191,20 +186,6 @@ ui2v                 Short install package for the ui2v command
 @ui2v/producer       System-browser preview and MP4 render pipeline
 ```
 
-## Render Flow
-
-```text
-animation.json
-  -> CLI parses and validates input
-  -> producer starts a local static server
-  -> puppeteer-core controls local Chrome, Edge, or Chromium
-  -> browser loads core/runtime/engine bundles
-  -> runtime evaluates frame state from a shared timeline
-  -> engine renders frames to Canvas
-  -> WebCodecs encodes MP4 in the browser
-  -> producer writes the video file to disk
-```
-
 ## Requirements
 
 - Node.js 18 or newer
@@ -212,16 +193,8 @@ animation.json
 - Locally installed Chrome, Edge, or Chromium
 
 The main render path does not require Electron, FFmpeg, or `node-canvas`.
-
-ui2v uses `puppeteer-core`, so it does not download a bundled Chromium.
-Install Chrome, Edge, or Chromium locally. If auto-detection fails, point ui2v at
-your browser:
-
-```bash
-PUPPETEER_EXECUTABLE_PATH=/path/to/chrome ui2v doctor
-```
-
-Windows PowerShell:
+ui2v uses `puppeteer-core`, so it does not download a bundled Chromium. If
+auto-detection fails, point ui2v at your browser:
 
 ```powershell
 $env:PUPPETEER_EXECUTABLE_PATH='C:\Program Files\Google\Chrome\Application\chrome.exe'; ui2v doctor
@@ -236,11 +209,7 @@ $env:PUPPETEER_EXECUTABLE_PATH='C:\Program Files\Google\Chrome\Application\chrom
 - [Runtime Core](docs/runtime-core.md)
 - [Renderer Notes](docs/renderer-notes.md)
 - [Roadmap](docs/roadmap.md)
-- [Open Renderer Preview](docs/open-source-preview-article.md)
 - [CLI Reference](packages/cli/README.md)
-
-Chinese versions are available next to each document with `.zh.md` suffix, or
-as [`README_zh.md`](README_zh.md) at the repository root.
 
 ## Development
 
@@ -248,25 +217,6 @@ as [`README_zh.md`](README_zh.md) at the repository root.
 bun run build
 bun run test
 ```
-
-Focused checks:
-
-```bash
-bun run test:unit
-bun run test:examples
-bun run test:validate
-bun run test:smoke
-```
-
-## Current Constraints
-
-- MP4 is the primary production output.
-- AVC/H.264 is the default codec. HEVC can be requested only when the launched
-  browser supports it.
-- Browser ESM dependencies are currently loaded through pinned CDN URLs in the
-  producer import map.
-- Long or high-resolution renders still transfer encoded video from the browser
-  to Node as base64 before writing to disk, which is simple but memory-heavy.
 
 ## License
 

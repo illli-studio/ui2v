@@ -52,9 +52,9 @@ CLI smoke checks：
 
 ```bash
 node packages/cli/dist/cli.js doctor
-node packages/cli/dist/cli.js validate examples/hero-ai-launch/animation.json --verbose
-node packages/cli/dist/cli.js preview examples/hero-ai-launch/animation.json --pixel-ratio 2
-node packages/cli/dist/cli.js render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-launch.mp4 --quality high
+node packages/cli/dist/cli.js validate examples/library-timeline/animation.json --verbose
+node packages/cli/dist/cli.js preview examples/library-timeline/animation.json --pixel-ratio 2
+node packages/cli/dist/cli.js render examples/library-timeline/animation.json -o .tmp/examples/library-timeline.mp4 --quality high
 ```
 
 ## 项目结构
@@ -74,9 +74,9 @@ scripts                校验、smoke test 和示例刷新脚本
 
 ## 示例准则
 
-- 把精选示例当成营销资产，而不只是测试 fixture。
-- 保持 `hero-ai-launch`、`product-showcase`、`render-lab` 和 commerce command center demo 的手工精修状态。
-- 刷新脚本用于工具型示例；脚本会有意保留手工精修的精选示例。
+- 让示例保持少量、维护良好、可以直接运行。
+- 保持 `basic-smoke`、`library-timeline`、`access-media` 和 `runtime-storyboard` 在 renderer 或 CLI 变化后仍然有效。
+- 只有当新示例展示了明确不同的受支持工作流时，才添加新的 example。
 - MP4 渲染到 `.tmp/examples`，仓库只提交 `assets/showcase` 下的轻量预览素材。
 - README GIF 要短、清晰，最好控制在 3 MB 以下。
 

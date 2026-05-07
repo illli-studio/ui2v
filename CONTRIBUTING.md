@@ -52,9 +52,9 @@ CLI smoke checks:
 
 ```bash
 node packages/cli/dist/cli.js doctor
-node packages/cli/dist/cli.js validate examples/hero-ai-launch/animation.json --verbose
-node packages/cli/dist/cli.js preview examples/hero-ai-launch/animation.json --pixel-ratio 2
-node packages/cli/dist/cli.js render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-launch.mp4 --quality high
+node packages/cli/dist/cli.js validate examples/library-timeline/animation.json --verbose
+node packages/cli/dist/cli.js preview examples/library-timeline/animation.json --pixel-ratio 2
+node packages/cli/dist/cli.js render examples/library-timeline/animation.json -o .tmp/examples/library-timeline.mp4 --quality high
 ```
 
 ## Project Layout
@@ -74,9 +74,9 @@ scripts                validation, smoke-test, and example refresh scripts
 
 ## Example Guidelines
 
-- Treat featured examples as marketing assets, not only test fixtures.
-- Keep `hero-ai-launch`, `product-showcase`, `render-lab`, and the commerce command center demo hand-polished.
-- Use refresh scripts for utility examples; they intentionally preserve hand-polished featured examples.
+- Keep examples small, maintained, and directly runnable.
+- Keep `basic-smoke`, `library-timeline`, `access-media`, and `runtime-storyboard` valid after renderer or CLI changes.
+- Add new examples only when they demonstrate a distinct supported workflow.
 - Render MP4 files into `.tmp/examples` and commit only lightweight previews under `assets/showcase`.
 - Keep README GIFs short, readable, and preferably under 3 MB.
 

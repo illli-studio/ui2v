@@ -20,16 +20,16 @@
 npm install -g @ui2v/cli
 # or: bun install -g @ui2v/cli
 ui2v doctor
-ui2v validate examples/hero-ai-launch/animation.json --verbose
-ui2v preview examples/hero-ai-launch/animation.json --pixel-ratio 2
-ui2v render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-launch.mp4 --quality high
+ui2v validate examples/library-timeline/animation.json --verbose
+ui2v preview examples/library-timeline/animation.json --pixel-ratio 2
+ui2v render examples/library-timeline/animation.json -o .tmp/examples/library-timeline.mp4 --quality high
 ```
 
 也可以不全局安装：
 
 ```bash
 npx @ui2v/cli --version
-npx @ui2v/cli render examples/hero-ai-launch/animation.json -o hero-ai-launch.mp4 --quality high
+npx @ui2v/cli render examples/library-timeline/animation.json -o library-timeline.mp4 --quality high
 ```
 
 ## 使用本地 Workspace
@@ -38,8 +38,8 @@ npx @ui2v/cli render examples/hero-ai-launch/animation.json -o hero-ai-launch.mp
 bun install
 bun run build
 node packages/cli/dist/cli.js doctor
-node packages/cli/dist/cli.js preview examples/hero-ai-launch/animation.json --pixel-ratio 2
-node packages/cli/dist/cli.js render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-launch.mp4 --quality high
+node packages/cli/dist/cli.js preview examples/library-timeline/animation.json --pixel-ratio 2
+node packages/cli/dist/cli.js render examples/library-timeline/animation.json -o .tmp/examples/library-timeline.mp4 --quality high
 ```
 
 安装依赖时不会下载内置浏览器。ui2v 通过 `puppeteer-core` 使用本机 Chrome、Edge 或 Chromium。
@@ -73,11 +73,10 @@ ui2v preview animation.json --pixel-ratio 2
 
 ## 选择一个示例
 
-- 从 [`examples/hero-ai-launch`](../examples/hero-ai-launch/README.zh.md) 开始，它是最适合 README 首屏展示的 hero demo。
-- 用 [`examples/product-showcase`](../examples/product-showcase/README.zh.md) 快速改出 SaaS/App 产品发布视频。
-- 用 [`examples/render-lab`](../examples/render-lab/README.zh.md) 压测数据动效、粒子和伪 3D 视觉能力。
-- 用 [`examples/logo-reveal`](../examples/logo-reveal/README.zh.md) 快速验证品牌开场和基础渲染链路。
-- 只需要最小环境检查时，再使用 [`examples/basic-text`](../examples/basic-text/README.zh.md)。
+- 从 [`examples/library-timeline`](../examples/library-timeline/README.zh.md) 开始，它展示按时间线真实应用多个浏览器/npm 库。
+- 用 [`examples/access-media`](../examples/access-media/README.zh.md) 测试本地图片、视频、音频波形和导出 MP4 音轨。
+- 用 [`examples/runtime-storyboard`](../examples/runtime-storyboard/README.zh.md) 检查 runtime segments、转场、相机 metadata 和 inspect-runtime。
+- 只需要最小环境检查时，使用 [`examples/basic-smoke`](../examples/basic-smoke/README.zh.md)。
 
 ## 下一步
 

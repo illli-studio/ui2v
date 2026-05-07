@@ -1,35 +1,33 @@
 # ui2v Examples
 
-Use these examples as marketing assets and implementation references. Start with the polished demos, then keep the minimal examples for environment checks.
+[中文](README.zh.md)
 
-## Featured Demos
+The old experimental examples have been removed. This folder now keeps only a
+small maintained set that should stay polished, inspectable, and useful as AI
+generation references. These examples are designed to show real renderer
+capability, not only parser coverage.
 
-| Example | Best For | Render |
+| Example | Purpose | Render |
 | --- | --- | --- |
-| [`hero-ai-launch`](hero-ai-launch/README.md) | README hero trailers, AI product launches, prompt-to-video storytelling, final CTA lockups. | `ui2v render examples/hero-ai-launch/animation.json -o .tmp/examples/hero-ai-launch.mp4 --quality high` |
-| [`product-showcase`](product-showcase/README.md) | SaaS launches, app walkthroughs, devtool promos, feature announcements. | `ui2v render examples/product-showcase/animation.json -o .tmp/examples/product-showcase.mp4 --quality high` |
-| [`render-lab`](render-lab/README.md) | Capability reels for particles, data motion, pseudo-3D depth, lighting, and transitions. | `ui2v render examples/render-lab/animation.json -o .tmp/examples/render-lab.mp4 --quality high` |
-| [`runtime-core/uiv-runtime-commerce-command-center.json`](runtime-core/uiv-runtime-commerce-command-center.json) | Dashboard storytelling, commerce metrics, operations centers, runtime timeline demos. | `ui2v render examples/runtime-core/uiv-runtime-commerce-command-center.json -o .tmp/examples/uiv-runtime-commerce-command-center.mp4 --quality high` |
-| [`runtime-core/uiv-runtime-one-minute-studio.json`](runtime-core/uiv-runtime-one-minute-studio.json) | Longer AI-video studio promos with multiple scenes, UI choreography, and CTA pacing. | `ui2v render examples/runtime-core/uiv-runtime-one-minute-studio.json -o .tmp/examples/uiv-runtime-one-minute-studio.mp4 --quality high` |
+| [`basic-smoke`](basic-smoke/README.md) | Premium Canvas opener that still works as the smallest end-to-end smoke test. | `node packages/cli/dist/cli.js render examples/basic-smoke/animation.json -o .tmp/examples/basic-smoke.mp4 --quality high` |
+| [`library-timeline`](library-timeline/README.md) | Timeline-first multi-library showcase with visible library beats. | `node packages/cli/dist/cli.js render examples/library-timeline/animation.json -o .tmp/examples/library-timeline.mp4 --quality high` |
+| [`access-media`](access-media/README.md) | Local `access/` assets: image, inserted video, waveform layer, and muxed audio. | `node packages/cli/dist/cli.js render examples/access-media/animation.json -o .tmp/examples/access-media.mp4 --quality high` |
+| [`runtime-storyboard`](runtime-storyboard/README.md) | Runtime-core storyboard with segments, transitions, camera metadata, and inspect output. | `node packages/cli/dist/cli.js render examples/runtime-storyboard/animation.json -o .tmp/examples/runtime-storyboard.mp4 --quality high` |
 
-## Utility Examples
-
-| Example | Use It When |
-| --- | --- |
-| [`logo-reveal`](logo-reveal/README.md) | You want a short brand opener that proves the renderer works quickly. |
-| [`basic-text`](basic-text/README.md) | You need a small smoke test for browser discovery, Canvas rendering, and MP4 export. |
-| [`kitchen-sink`](kitchen-sink/README.md) | You want broad schema coverage while testing parser/validator behavior. |
-| [`runtime-core`](runtime-core/README.md) | You are exploring runtime timelines, segmented custom code, depth, routing, and inspection. |
-
-## Validate Everything
+## Validate
 
 ```bash
-bun run build
-bun run test:examples
-bun run test:validate
-bun run test:inspect-runtime
+node packages/cli/dist/cli.js validate examples/basic-smoke/animation.json --verbose
+node packages/cli/dist/cli.js validate examples/library-timeline/animation.json --verbose
+node packages/cli/dist/cli.js validate examples/access-media/animation.json --verbose
+node packages/cli/dist/cli.js validate examples/runtime-storyboard/animation.json --verbose
 ```
 
-## README Asset Workflow
+## Render All
 
-Render MP4s into `.tmp/examples`, then export lightweight GIF/JPG previews into `assets/showcase` before referencing them from the root README. Do not commit full MP4 files unless they are release assets.
+```bash
+node packages/cli/dist/cli.js render examples/basic-smoke/animation.json -o .tmp/examples/basic-smoke.mp4 --quality high
+node packages/cli/dist/cli.js render examples/library-timeline/animation.json -o .tmp/examples/library-timeline.mp4 --quality high
+node packages/cli/dist/cli.js render examples/access-media/animation.json -o .tmp/examples/access-media.mp4 --quality high
+node packages/cli/dist/cli.js render examples/runtime-storyboard/animation.json -o .tmp/examples/runtime-storyboard.mp4 --quality high
+```

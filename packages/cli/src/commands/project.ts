@@ -1,4 +1,5 @@
 import * as fs from 'fs-extra';
+import * as path from 'path';
 import { parseProject, validateProjectStructure } from '@ui2v/core';
 import { validateRuntimeProject } from '@ui2v/runtime-core';
 import type { AnimationProject } from '@ui2v/producer';
@@ -7,7 +8,13 @@ import type { RuntimeValidationIssue } from '@ui2v/runtime-core';
 
 export async function loadProjectFile(inputPath: string): Promise<AnimationProject> {
   const projectJson = await fs.readFile(inputPath, 'utf-8');
-  return loadProjectJson(projectJson);
+  const project = loadProjectJson(projectJson);
+  const assetBaseDir = path.dirname(path.resolve(inputPath));
+  return {
+    ...project,
+    assetBaseDir,
+    __assetBaseDir: assetBaseDir,
+  } as AnimationProject;
 }
 
 export function loadProjectJson(projectJson: string): AnimationProject {

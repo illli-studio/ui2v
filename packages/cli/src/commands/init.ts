@@ -62,11 +62,25 @@ export async function initCommand(
             endTime: 6,
             visible: true,
             opacity: 1,
+            dependencies: ['d3', 'gsap', 'animejs', 'three', 'mathjs', 'simplex-noise', 'rough'],
             properties: {
+              dependencies: ['d3', 'gsap', 'animejs', 'three', 'mathjs', 'simplex-noise', 'rough'],
               code: `function createRenderer() {
-  function clamp(value) { return Math.max(0, Math.min(1, value)); }
-  function easeOut(value) { value = clamp(value); return 1 - Math.pow(1 - value, 3); }
+  function clamp(value) {
+    if (anime && anime.utils && anime.utils.clamp) return anime.utils.clamp(value, 0, 1);
+    return Math.max(0, Math.min(1, value));
+  }
+  function easeOut(value) {
+    if (gsap && gsap.parseEase) return gsap.parseEase('power3.out')(clamp(value));
+    value = clamp(value);
+    return 1 - Math.pow(1 - value, 3);
+  }
   function easeInOut(value) { value = clamp(value); return value < 0.5 ? 4 * value * value * value : 1 - Math.pow(-2 * value + 2, 3) / 2; }
+  const seedNoise = simplex && simplex.createNoise2D ? simplex.createNoise2D(function() { return 0.42; }) : function(x, y) { return Math.sin(x * 12.9898 + y * 78.233) % 1; };
+  const metricScale = d3 && d3.scaleLinear ? d3.scaleLinear().domain([0, 1]).range([22, 210]) : function(value) { return 22 + value * 188; };
+  const formatPercent = d3 && d3.format ? d3.format('.0%') : function(value) { return Math.round(value * 100) + '%'; };
+  const palette = d3 && d3.interpolateTurbo ? [0.08, 0.26, 0.46, 0.66, 0.86].map(d3.interpolateTurbo) : ['#00D4FF', '#7BD88F', '#F2AA4C', '#FF5C7A', '#B487FF'];
+  const data = [0.72, 0.46, 0.88, 0.61, 0.79, 0.54, 0.93];
   function roundedRect(ctx, x, y, width, height, radius) {
     ctx.beginPath();
     ctx.moveTo(x + radius, y);
@@ -92,6 +106,9 @@ export async function initCommand(
     drawBackground(ctx, width, height, t);
     drawGrid(ctx, width, height, t, intro);
     drawHero(ctx, width, height, intro, final);
+    drawLibraryConstellation(ctx, width, height, t, intro);
+    drawThreeBadge(ctx, width, height, t, intro);
+    drawDataPanel(ctx, width, height, t, cards);
     drawCards(ctx, width, height, t, cards);
     drawPipeline(ctx, width, height, t, pipeline);
     drawFinalCta(ctx, width, height, final);
@@ -128,6 +145,81 @@ export async function initCommand(
       ctx.arc(x, y, 1.5 + (i % 3), 0, Math.PI * 2);
       ctx.fill();
     }
+    ctx.restore();
+  }
+  function drawLibraryConstellation(ctx, width, height, t, alpha) {
+    ctx.save();
+    ctx.globalAlpha = 0.42 * alpha;
+    ctx.globalCompositeOperation = 'screen';
+    for (let i = 0; i < 120; i++) {
+      const n = seedNoise(i * 0.17, t * 0.18);
+      const angle = i * 2.399 + t * 0.18;
+      const radius = 120 + (i % 19) * 17 + n * 24;
+      const x = width * 0.67 + Math.cos(angle) * radius;
+      const y = height * 0.42 + Math.sin(angle * 0.82) * radius * 0.62;
+      ctx.fillStyle = palette[i % palette.length];
+      ctx.beginPath();
+      ctx.arc(x, y, 1.5 + (i % 4), 0, Math.PI * 2);
+      ctx.fill();
+      if (i % 9 === 0) {
+        ctx.strokeStyle = palette[(i + 2) % palette.length] + '66';
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(width * 0.67 + Math.cos(angle + 0.4) * radius * 0.82, height * 0.42 + Math.sin(angle * 0.82 + 0.4) * radius * 0.5);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+  function drawThreeBadge(ctx, width, height, t, alpha) {
+    const hasThree = typeof THREE !== 'undefined' && THREE && THREE.Vector3;
+    const vector = hasThree ? new THREE.Vector3(Math.sin(t), Math.cos(t * 0.7), 1).normalize() : { x: 0.4, y: 0.2 };
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(1500, 210);
+    ctx.rotate(t * 0.22);
+    for (let i = 0; i < 6; i++) {
+      ctx.rotate(Math.PI / 3);
+      ctx.strokeStyle = palette[i % palette.length] + 'AA';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, -72);
+      ctx.lineTo(62 + vector.x * 16, 36 + vector.y * 12);
+      ctx.lineTo(-62 + vector.y * 16, 36 - vector.x * 12);
+      ctx.closePath();
+      ctx.stroke();
+    }
+    ctx.rotate(-t * 0.22);
+    ctx.textAlign = 'center';
+    ctx.font = '900 22px Arial, sans-serif';
+    ctx.fillStyle = '#EAF6FF';
+    ctx.fillText(hasThree ? 'THREE ready' : '3D ready', 0, 6);
+    ctx.restore();
+  }
+  function drawDataPanel(ctx, width, height, t, alpha) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    roundedRect(ctx, 1040, 575, 730, 230, 34);
+    ctx.fillStyle = 'rgba(5,12,24,0.74)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.16)';
+    ctx.stroke();
+    ctx.font = '900 24px Arial, sans-serif';
+    ctx.fillStyle = '#F8FBFF';
+    ctx.fillText('D3 + math.js live dependency panel', 1085, 625);
+    const mean = math && math.mean ? math.mean(data) : data.reduce((sum, item) => sum + item, 0) / data.length;
+    for (let i = 0; i < data.length; i++) {
+      const value = data[i] * (0.72 + 0.28 * Math.sin(t * 1.4 + i) * 0.5 + 0.14);
+      const barHeight = metricScale(clamp(value));
+      const x = 1090 + i * 88;
+      const y = 760 - barHeight;
+      ctx.fillStyle = palette[i % palette.length];
+      roundedRect(ctx, x, y, 54, barHeight, 12);
+      ctx.fill();
+    }
+    ctx.font = '800 20px Arial, sans-serif';
+    ctx.fillStyle = '#9CB7CC';
+    ctx.fillText('mean ' + formatPercent(mean) + (rough ? '  rough.js loaded' : ''), 1085, 782);
     ctx.restore();
   }
   function drawGrid(ctx, width, height, t, alpha) {
@@ -167,8 +259,8 @@ export async function initCommand(
   }
   function drawCards(ctx, width, height, t, alpha) {
     const items = [
-      ['01', 'Validate', 'catch timeline and schema issues', '#00D4FF'],
-      ['02', 'Preview', 'scrub motion in a real browser', '#7BD88F'],
+      ['01', 'Infer', 'AI code loads its browser libraries', '#00D4FF'],
+      ['02', 'Preview', 'scrub multi-library motion live', '#7BD88F'],
       ['03', 'Render', 'export deterministic MP4 clips', '#F2AA4C']
     ];
     for (let i = 0; i < items.length; i++) {
@@ -274,9 +366,11 @@ export async function initCommand(
 
     const readme = `# ${name}
 
-A polished ui2v starter project.
+A polished multi-library ui2v starter project.
 
-This project renders a 6-second, 1920x1080 launch-style MP4 from structured JSON and a custom-code Canvas scene. Replace the copy, colors, and cards to turn it into a README hero clip, product announcement, or social launch asset.
+This project renders a 6-second, 1920x1080 launch-style MP4 from structured JSON and a custom-code scene that explicitly loads and uses browser libraries including \`d3\`, \`gsap\`, \`animejs\`, \`three\`, \`mathjs\`, \`simplex-noise\`, and \`rough\`. Replace the copy, colors, datasets, and cards to turn it into a README hero clip, product announcement, or social launch asset.
+
+The generated \`animation.json\` declares dependencies on the custom-code layer. ui2v also infers common dependencies from custom code, but keeping the list explicit makes AI-generated projects easier to inspect and reproduce.
 
 ## Usage
 

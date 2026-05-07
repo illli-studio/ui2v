@@ -2,6 +2,7 @@ import type { AnimationProject, Layer, TimelineAnimation } from '@ui2v/core';
 import { getProjectDimensions } from '@ui2v/core';
 import { createDefaultTransform, createRootNode } from '../scene/defaults';
 import { SceneGraph } from '../scene/SceneGraph';
+import { extractDependenciesFromCode } from '../custom-code/CustomCodeInspection';
 import type { RuntimeAssetSource, RuntimeCameraShot, RuntimeComposition, RuntimeMotionTrack, RuntimeNarrationCue, RuntimeProjectNode, RuntimeProjectSegment, RuntimeSegment, RuntimeTheme, RuntimeTransition, SceneNode } from '../types';
 import { validateRuntimeProject } from '../validate/validateRuntimeProject';
 
@@ -32,6 +33,10 @@ export function normalizeProject(project: AnimationProject | Record<string, any>
     fps,
     resolution,
     backgroundColor: typeof rawProject.backgroundColor === 'string' ? rawProject.backgroundColor : undefined,
+    assetBaseUrl: typeof rawProject.assetBaseUrl === 'string' ? rawProject.assetBaseUrl : undefined,
+    assetBaseDir: typeof rawProject.assetBaseDir === 'string' ? rawProject.assetBaseDir : undefined,
+    __assetBaseUrl: typeof rawProject.__assetBaseUrl === 'string' ? rawProject.__assetBaseUrl : undefined,
+    __assetBaseDir: typeof rawProject.__assetBaseDir === 'string' ? rawProject.__assetBaseDir : undefined,
     variables: isObject(rawProject.variables) ? { ...rawProject.variables } : {},
     theme: normalizeTheme(rawProject.theme),
     datasets: isObject(rawProject.datasets) ? { ...rawProject.datasets } : {},
@@ -162,6 +167,11 @@ function normalizeSegmentNode(
   const segmentDependencies = normalizeDependencies(segment.dependencies);
   const nodeDependencies = normalizeDependencies((node as any).dependencies ?? node.properties?.dependencies);
   const nodeProperties = isObject(node.properties) ? { ...node.properties } : {};
+  const inferredDependencies = inferCustomCodeDependencies({
+    type: node.type ?? 'custom-code',
+    properties: nodeProperties,
+    code: (node as any).code,
+  });
 
   return {
     ...node,
@@ -170,7 +180,7 @@ function normalizeSegmentNode(
     startTime: absoluteStart,
     endTime: Math.min(timing.endTime, absoluteEnd),
     duration: Math.max(0, Math.min(timing.endTime, absoluteEnd) - absoluteStart),
-    dependencies: Array.from(new Set([...segmentDependencies, ...nodeDependencies])).sort(),
+    dependencies: Array.from(new Set([...segmentDependencies, ...nodeDependencies, ...inferredDependencies])).sort(),
     properties: {
       ...nodeProperties,
       __runtimeSegmentId: segment.id,
@@ -190,6 +200,14 @@ function normalizeRuntimeNode(node: RuntimeProjectNode, projectDuration: number)
   const duration = numberOr(node.duration, numberOr(node.endTime, projectDuration) - startTime);
   const endTime = numberOr(node.endTime, startTime + duration);
 
+  const properties = isObject(node.properties) ? { ...node.properties } : {};
+  const explicitDependencies = normalizeDependencies((node as any).dependencies ?? properties.dependencies);
+  const inferredDependencies = inferCustomCodeDependencies({
+    type: node.type ?? 'custom-code',
+    properties,
+    code: (node as any).code,
+  });
+
   return {
     id: String(node.id),
     type: String(node.type ?? 'custom-code'),
@@ -206,8 +224,8 @@ function normalizeRuntimeNode(node: RuntimeProjectNode, projectDuration: number)
       duration: Math.max(0, endTime - startTime),
     },
     transform: createDefaultTransform(node.transform),
-    properties: isObject(node.properties) ? { ...node.properties } : {},
-    dependencies: normalizeDependencies((node as any).dependencies ?? node.properties?.dependencies),
+    properties,
+    dependencies: Array.from(new Set([...explicitDependencies, ...inferredDependencies])).sort(),
     motion: [...(node.motion ?? node.animations ?? [])],
     source: node,
   };
@@ -339,6 +357,13 @@ function normalizeLayer(layer: Layer | Record<string, any>, projectDuration: num
   const duration = numberOr(layer.duration, numberOr(layer.endTime, projectDuration) - startTime);
   const endTime = numberOr(layer.endTime, startTime + duration);
 
+  const explicitDependencies = normalizeDependencies((layer as any).dependencies ?? properties.dependencies);
+  const inferredDependencies = inferCustomCodeDependencies({
+    type: layer.type ?? 'custom-code',
+    properties,
+    code: (layer as any).code,
+  });
+
   return {
     id: String(layer.id),
     type: String(layer.type ?? 'custom-code'),
@@ -356,7 +381,7 @@ function normalizeLayer(layer: Layer | Record<string, any>, projectDuration: num
     },
     transform,
     properties,
-    dependencies: normalizeDependencies((layer as any).dependencies ?? properties.dependencies),
+    dependencies: Array.from(new Set([...explicitDependencies, ...inferredDependencies])).sort(),
     motion: extractMotionTracks(layer, startTime),
     source: layer,
   };
@@ -410,6 +435,24 @@ function normalizeDependencies(value: unknown): string[] {
   }
 
   return Array.from(new Set(value.filter((item): item is string => typeof item === 'string' && item.length > 0))).sort();
+}
+
+function inferCustomCodeDependencies(input: {
+  type: unknown;
+  properties?: Record<string, unknown>;
+  code?: unknown;
+}): string[] {
+  if (String(input.type ?? 'custom-code') !== 'custom-code') {
+    return [];
+  }
+
+  const code = typeof input.properties?.code === 'string'
+    ? input.properties.code
+    : typeof input.code === 'string'
+      ? input.code
+      : '';
+
+  return extractDependenciesFromCode(code);
 }
 
 function collectLayerProperties(layer: Record<string, any>): Record<string, unknown> {

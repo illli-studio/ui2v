@@ -60,7 +60,9 @@ export class LibraryManager {
       this.loadPostProcessing(),
       this.loadOpentype(),
       this.loadSimplexNoise(),
-      this.loadSplitType()
+      this.loadSplitType(),
+      this.loadHtml2Canvas(),
+      this.loadMediabunny()
     ];
     
     // We wait for all to finish, regardless of success or failure
@@ -128,6 +130,8 @@ export class LibraryManager {
       'simplex-noise': 'simplex',
       splittype: 'SplitType',
       'split-type': 'SplitType',
+      html2canvas: 'html2canvas',
+      mediabunny: 'mediabunny',
     };
 
     return aliases[key] ?? name;
@@ -159,6 +163,8 @@ export class LibraryManager {
       case 'opentype': return this.loadOpentype();
       case 'simplex': return this.loadSimplexNoise();
       case 'SplitType': return this.loadSplitType();
+      case 'html2canvas': return this.loadHtml2Canvas();
+      case 'mediabunny': return this.loadMediabunny();
       default:
         console.warn(`[LibraryManager] Unknown dependency "${name}"`);
         return null;
@@ -845,13 +851,43 @@ export class LibraryManager {
 
     const loadPromise = (async () => {
       try {
-        // @ts-ignore
-        const iconifyModule = await import('iconify-icon');
-        const instance = iconifyModule.default || iconifyModule;
+        const [iconifyModule, iconifyIconModule] = await Promise.all([
+          // @ts-ignore
+          import('@iconify/iconify'),
+          // @ts-ignore
+          import('iconify-icon')
+        ]);
+        const utilsModule: any = await import('@iconify/utils');
+        const mdiCollection: any = await import('@iconify-json/mdi/icons.json');
+        const core = iconifyModule.default || iconifyModule;
+        const webComponent: any = iconifyIconModule.default || iconifyIconModule;
+        const mdi = mdiCollection.default || mdiCollection;
+        const instance = {
+          ...core,
+          getIconData: utilsModule.getIconData,
+          iconToSVG: utilsModule.iconToSVG,
+          replaceIDs: utilsModule.replaceIDs,
+          iconToHTML: utilsModule.iconToHTML,
+          collections: { mdi },
+          getOfflineIcon: (name: string) => {
+            const [prefix, iconName] = String(name).split(':');
+            if (prefix !== 'mdi' || !iconName) return null;
+            const iconData = utilsModule.getIconData(mdi, iconName);
+            if (!iconData) return null;
+            const renderData = utilsModule.iconToSVG(iconData, {
+              height: '1em',
+              width: '1em',
+            });
+            const body = utilsModule.replaceIDs(renderData.body);
+            return utilsModule.iconToHTML(body, renderData.attributes);
+          },
+          webComponent,
+          IconifyIcon: webComponent?.IconifyIcon || webComponent?.IconifyIconHTMLElement,
+        };
 
         this.libraries.set('iconify', {
           name: 'Iconify',
-          version: '1.x',
+          version: '3.x',
           loaded: true,
           instance
         });
@@ -1166,6 +1202,68 @@ export class LibraryManager {
     return loadPromise;
   }
 
+  async loadHtml2Canvas(): Promise<any> {
+    if (this.libraries.has('html2canvas')) {
+      return this.libraries.get('html2canvas')!.instance;
+    }
+
+    if (this.loadPromises.has('html2canvas')) {
+      return this.loadPromises.get('html2canvas');
+    }
+
+    const loadPromise = (async () => {
+      try {
+        const html2canvasModule = await this.withTimeout(import('html2canvas'), 15000, 'html2canvas');
+        const instance = html2canvasModule.default || html2canvasModule;
+
+        this.libraries.set('html2canvas', {
+          name: 'html2canvas',
+          version: '1.x',
+          loaded: true,
+          instance
+        });
+        return instance;
+      } catch (error) {
+        console.warn('鉂?html2canvas load failed:', error);
+        return null;
+      }
+    })();
+
+    this.loadPromises.set('html2canvas', loadPromise);
+    return loadPromise;
+  }
+
+  async loadMediabunny(): Promise<any> {
+    if (this.libraries.has('mediabunny')) {
+      return this.libraries.get('mediabunny')!.instance;
+    }
+
+    if (this.loadPromises.has('mediabunny')) {
+      return this.loadPromises.get('mediabunny');
+    }
+
+    const loadPromise = (async () => {
+      try {
+        const mediabunnyModule: any = await this.withTimeout(import('mediabunny'), 15000, 'mediabunny');
+        const instance = mediabunnyModule.default || mediabunnyModule;
+
+        this.libraries.set('mediabunny', {
+          name: 'mediabunny',
+          version: '1.x',
+          loaded: true,
+          instance
+        });
+        return instance;
+      } catch (error) {
+        console.warn('鉂?mediabunny load failed:', error);
+        return null;
+      }
+    })();
+
+    this.loadPromises.set('mediabunny', loadPromise);
+    return loadPromise;
+  }
+
   /**
    */
   getLibrary(name: string): any {
@@ -1244,6 +1342,3 @@ export function getLibraryManager(): LibraryManager {
   }
   return instance;
 }
-
-
-

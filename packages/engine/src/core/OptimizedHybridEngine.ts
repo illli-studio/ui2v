@@ -132,6 +132,9 @@ export class OptimizedHybridEngine {
         throw new Error('No template or layers found in project');
       }
 
+      (project.template as any).__assetBaseUrl = project.__assetBaseUrl ?? project.assetBaseUrl;
+      (project.template as any).__assetBaseDir = project.__assetBaseDir ?? project.assetBaseDir;
+
       this.convertBackgroundToLayer(project);
 
       await this.templateRenderer?.load(project.template);
@@ -446,5 +449,4 @@ export class OptimizedHybridEngine {
     this.currentProject = null;
   }
 }
-
 

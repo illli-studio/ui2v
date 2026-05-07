@@ -7,8 +7,8 @@ const { parseProject } = require('../packages/core/dist/index.js');
 const { startPreviewServer } = require('../packages/producer/dist/index.js');
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const input = resolve(root, 'examples/hero-ai-launch/animation.json');
-const runtimeInput = resolve(root, 'examples/runtime-core/animation.json');
+const input = resolve(root, 'examples/library-timeline/animation.json');
+const runtimeInput = resolve(root, 'examples/runtime-storyboard/animation.json');
 const invalidInput = resolve(root, '.tmp/preview-invalid-project.json');
 mkdirSync(dirname(invalidInput), { recursive: true });
 writeFileSync(invalidInput, JSON.stringify({ id: 'invalid-preview-project', duration: 1, fps: 30, resolution: { width: 1920, height: 1080 } }, null, 2));
@@ -45,13 +45,13 @@ try {
 
   const projectUrl = session.url.replace('/preview.html', '/project.json');
   const attached = await fetch(projectUrl).then(response => response.json());
-  assert(attached.options?.width === 1920 && attached.options?.height === 1080, 'preview project defaults should start at 1920x1080');
+  assert(attached.options?.width === 1920 && attached.options?.height === 1080, 'preview project defaults should match library timeline resolution');
 
   const projectsUrl = session.url.replace('/preview.html', '/preview/projects');
   const projects = await fetch(projectsUrl).then(response => response.json());
   assert(Array.isArray(projects.projects), 'project list should be an array');
-  assert(projects.projects.some(item => item.label === 'examples/hero-ai-launch/animation.json'), 'project list should include hero example');
-  assert(projects.projects.some(item => item.label === 'examples/runtime-core/animation.json'), 'project list should include runtime example');
+  assert(projects.projects.some(item => item.label === 'examples/library-timeline/animation.json'), 'project list should include library timeline example');
+  assert(projects.projects.some(item => item.label === 'examples/runtime-storyboard/animation.json'), 'project list should include runtime storyboard example');
 
   const stateUrl = session.url.replace('/preview.html', `/preview/state?path=${encodeURIComponent(input)}`);
   const state = await fetch(stateUrl).then(response => response.json());

@@ -10,6 +10,7 @@ import {
   Output,
   Mp4OutputFormat,
   BufferTarget,
+  AudioBufferSource,
   EncodedVideoPacketSource,
   EncodedPacket
 } from 'mediabunny';
@@ -36,6 +37,19 @@ export interface WebCodecsExportOptions {
   codec?: 'avc' | 'hevc';
   bitrate?: number;
   framePlan?: Array<VideoFramePlan | SegmentFramePlanItem>;
+  audioTracks?: WebCodecsAudioTrackOptions[];
+}
+
+export interface WebCodecsAudioTrackOptions {
+  src: string;
+  startTime?: number;
+  duration?: number;
+  volume?: number;
+  loop?: boolean;
+  trimStart?: number;
+  trimEnd?: number;
+  fadeIn?: number;
+  fadeOut?: number;
 }
 
 export interface WebCodecsExportProgress {
@@ -93,6 +107,7 @@ export class WebCodecsExporter {
       codec = 'avc',
       bitrate: customBitrate,
       framePlan: providedFramePlan,
+      audioTracks = [],
     } = options;
 
     const framePlan = providedFramePlan && providedFramePlan.length > 0
@@ -160,6 +175,15 @@ export class WebCodecsExporter {
       this.output.addVideoTrack(this.videoSource, {
         frameRate: fps,
       });
+      const audioSource = audioTracks.length > 0
+        ? new AudioBufferSource({
+            codec: 'aac',
+            bitrate: 160_000,
+          })
+        : null;
+      if (audioSource) {
+        this.output.addAudioTrack(audioSource);
+      }
 
       await this.output.start();
 
@@ -233,6 +257,13 @@ export class WebCodecsExporter {
 
       await encoderPromise;
 
+      if (audioSource) {
+        const audioBuffer = await this.createMixedAudioBuffer(audioTracks, duration);
+        if (audioBuffer) {
+          await audioSource.add(audioBuffer);
+        }
+      }
+
       onProgress?.({
         phase: 'finalizing',
         progress: 95,
@@ -301,6 +332,8 @@ export class WebCodecsExporter {
       const captureContext = captureCanvas === canvas
         ? null
         : captureCanvas.getContext('2d', { alpha: true });
+      const blankFrameProbe = createBlankFrameProbe(outputWidth, outputHeight);
+      let previousFrameWasBlank = false;
 
       if (captureCanvas !== canvas && !captureContext) {
         throw new Error('Unable to create export downsample canvas');
@@ -403,6 +436,7 @@ export class WebCodecsExporter {
                   } else {
                     engine.renderFrame(time);
                   }
+                  await waitForCanvasPaint();
                 } catch (renderError) {
                   console.error(`[WebCodecsExporter] Render error at frame ${frameIndex}:`, renderError);
                   rejectFrames(renderError);
@@ -437,9 +471,26 @@ export class WebCodecsExporter {
 
                 let videoFrame: VideoFrame | null = null;
                 try {
-                  const frameSource = captureContext
+                  let frameSource = captureContext
                     ? downsampleFrame(canvas, captureCanvas, captureContext)
                     : canvas;
+
+                  const isBlank = isCanvasVisuallyBlank(frameSource, blankFrameProbe);
+                  if (isBlank && !previousFrameWasBlank && frameIndex > 0) {
+                    const asyncRender = (engine as unknown as { renderFrameAsync?: (t: number) => Promise<void> })
+                      .renderFrameAsync;
+                    if (typeof asyncRender === 'function') {
+                      await asyncRender.call(engine, time);
+                    } else {
+                      engine.renderFrame(time);
+                    }
+                    await waitForCanvasPaint();
+                    frameSource = captureContext
+                      ? downsampleFrame(canvas, captureCanvas, captureContext)
+                      : canvas;
+                  }
+                  previousFrameWasBlank = isCanvasVisuallyBlank(frameSource, blankFrameProbe);
+
                   videoFrame = new VideoFrame(frameSource, {
                     timestamp: plannedFrame.timestampUs,
                     duration: plannedFrame.durationUs,
@@ -530,6 +581,70 @@ export class WebCodecsExporter {
         }
       }
     }
+
+  private async createMixedAudioBuffer(tracks: WebCodecsAudioTrackOptions[], outputDuration: number): Promise<AudioBuffer | null> {
+    const sampleRate = 48_000;
+    const length = Math.max(1, Math.ceil(outputDuration * sampleRate));
+    const audioContext = new OfflineAudioContext(2, length, sampleRate);
+    let hasAudio = false;
+
+    for (const track of tracks) {
+      if (!track?.src) continue;
+      try {
+        const response = await fetch(track.src);
+        if (!response.ok) {
+          console.warn(`[WebCodecsExporter] Audio fetch failed (${response.status}): ${track.src}`);
+          continue;
+        }
+        const sourceBuffer = await audioContext.decodeAudioData(await response.arrayBuffer());
+        const startTime = Math.max(0, Number(track.startTime) || 0);
+        const trimStart = Math.max(0, Number(track.trimStart) || 0);
+        const trimEnd = Math.max(0, Number(track.trimEnd) || 0);
+        const maxDuration = Math.max(0, outputDuration - startTime);
+        const availableSourceDuration = Math.max(0, sourceBuffer.duration - trimStart - trimEnd);
+        const requestedDuration = Number.isFinite(track.duration as number)
+          ? Math.max(0, Math.min(track.duration as number, maxDuration, availableSourceDuration || maxDuration))
+          : Math.min(maxDuration, availableSourceDuration || maxDuration);
+        if (requestedDuration <= 0) continue;
+
+        const volume = Math.max(0, Math.min(1, Number.isFinite(track.volume as number) ? track.volume as number : 1));
+        const fadeIn = Math.max(0, Math.min(Number(track.fadeIn) || 0, requestedDuration));
+        const fadeOut = Math.max(0, Math.min(Number(track.fadeOut) || 0, requestedDuration));
+        const loop = Boolean(track.loop);
+        let offset = 0;
+        do {
+          const source = audioContext.createBufferSource();
+          const gain = audioContext.createGain();
+          source.buffer = sourceBuffer;
+          gain.gain.setValueAtTime(volume, startTime + offset);
+          source.connect(gain).connect(audioContext.destination);
+          const remaining = requestedDuration - offset;
+          const sourcePlayableDuration = Math.max(0, sourceBuffer.duration - trimStart - trimEnd);
+          const playDuration = Math.min(sourcePlayableDuration || sourceBuffer.duration, remaining);
+          if (playDuration <= 0) break;
+          const segmentStart = startTime + offset;
+          const segmentEnd = segmentStart + playDuration;
+          if (fadeIn > 0 && offset < fadeIn) {
+            const fadeSegmentEnd = Math.min(segmentEnd, startTime + fadeIn);
+            gain.gain.setValueAtTime(0, segmentStart);
+            gain.gain.linearRampToValueAtTime(volume, fadeSegmentEnd);
+          }
+          if (fadeOut > 0 && offset + playDuration > requestedDuration - fadeOut) {
+            const fadeStart = Math.max(segmentStart, startTime + requestedDuration - fadeOut);
+            gain.gain.setValueAtTime(volume, fadeStart);
+            gain.gain.linearRampToValueAtTime(0, segmentEnd);
+          }
+          source.start(segmentStart, trimStart, playDuration);
+          hasAudio = true;
+          offset += playDuration;
+        } while (loop && offset < requestedDuration - 1 / sampleRate);
+      } catch (error) {
+        console.warn(`[WebCodecsExporter] Unable to mix audio track ${track.src}:`, error);
+      }
+    }
+
+    return hasAudio ? audioContext.startRendering() : null;
+  }
 
   
   cancel(): void {
@@ -683,6 +798,39 @@ function downsampleFrame(
   captureContext.imageSmoothingQuality = 'high';
   captureContext.drawImage(sourceCanvas, 0, 0, captureCanvas.width, captureCanvas.height);
   return captureCanvas;
+}
+
+function waitForCanvasPaint(): Promise<void> {
+  return new Promise(resolve => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  });
+}
+
+function createBlankFrameProbe(width: number, height: number): HTMLCanvasElement {
+  const probe = document.createElement('canvas');
+  probe.width = Math.max(1, Math.min(32, width));
+  probe.height = Math.max(1, Math.min(18, height));
+  return probe;
+}
+
+function isCanvasVisuallyBlank(sourceCanvas: HTMLCanvasElement, probeCanvas: HTMLCanvasElement): boolean {
+  const ctx = probeCanvas.getContext('2d', { willReadFrequently: true });
+  if (!ctx) return false;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, probeCanvas.width, probeCanvas.height);
+  ctx.drawImage(sourceCanvas, 0, 0, probeCanvas.width, probeCanvas.height);
+  const data = ctx.getImageData(0, 0, probeCanvas.width, probeCanvas.height).data;
+  let lumaTotal = 0;
+  let varianceTotal = 0;
+  const pixels = data.length / 4;
+  for (let i = 0; i < data.length; i += 4) {
+    const luma = data[i] * 0.2126 + data[i + 1] * 0.7152 + data[i + 2] * 0.0722;
+    lumaTotal += luma;
+    varianceTotal += Math.abs(data[i] - data[i + 1]) + Math.abs(data[i + 1] - data[i + 2]);
+  }
+  const meanLuma = lumaTotal / pixels;
+  const meanColorVariance = varianceTotal / pixels;
+  return meanLuma < 8 && meanColorVariance < 3;
 }
 
 function formatCodecSupportError(

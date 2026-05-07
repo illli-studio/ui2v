@@ -208,18 +208,33 @@ function detectEntrypoint(code: string): StaticCustomCodeEntrypoint {
   return 'unknown';
 }
 
-function extractDependenciesFromCode(code: string): string[] {
+export function extractDependenciesFromCode(code: string): string[] {
   const dependencies = new Set<string>();
   const patterns: Array<[RegExp, string]> = [
-    [/\bTHREE\b|require\(['"]three['"]\)/, 'three'],
-    [/\banime\b|\banimate\s*\(|require\(['"]animejs?['"]\)/, 'animejs'],
-    [/\bgsap\b|require\(['"]gsap['"]\)/, 'gsap'],
-    [/\bd3\b|require\(['"]d3['"]\)/, 'd3'],
-    [/\bPIXI\b|require\(['"]pixi(?:\.js)?['"]\)/, 'pixi.js'],
-    [/\blottie\b|require\(['"]lottie(?:-web)?['"]\)/, 'lottie-web'],
-    [/\brough\b|require\(['"]roughjs?['"]\)/, 'rough'],
-    [/\bMatter\b|require\(['"]matter-js['"]\)/, 'matter-js'],
-    [/\bfabric\b|require\(['"]fabric(?:\.js)?['"]\)/, 'fabric'],
+    [/\bTHREE\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]three['"]/, 'three'],
+    [/\banime\b|\banimate\s*\(|\bcreateTimeline\s*\(|\bstagger\s*\(|(?:import|from|require)\s*(?:\(|[^'"]*)['"]animejs?['"]/, 'animejs'],
+    [/\bgsap\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]gsap['"]/, 'gsap'],
+    [/\bd3\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]d3['"]/, 'd3'],
+    [/\bPIXI\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]pixi(?:\.js)?['"]/, 'pixi.js'],
+    [/\blottie\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]lottie(?:-web)?['"]/, 'lottie-web'],
+    [/\brough\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]roughjs?['"]/, 'rough'],
+    [/\bMatter\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]matter-js['"]/, 'matter-js'],
+    [/\bfabric\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]fabric(?:\.js)?['"]/, 'fabric'],
+    [/\bp5\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]p5['"]/, 'p5'],
+    [/\bpaper\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]paper['"]/, 'paper'],
+    [/\bKonva\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]konva['"]/, 'konva'],
+    [/\bTWEEN\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]@tweenjs\/tween\.js['"]/, '@tweenjs/tween.js'],
+    [/\bmath\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]mathjs['"]/, 'mathjs'],
+    [/\bkatex\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]katex['"]/, 'katex'],
+    [/\bGlobe\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]globe\.gl['"]/, 'globe.gl'],
+    [/\btsParticles\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]tsparticles['"]/, 'tsparticles'],
+    [/\bCANNON\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]cannon-es['"]/, 'cannon-es'],
+    [/\bPOSTPROCESSING\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]postprocessing['"]/, 'postprocessing'],
+    [/\bopentype\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]opentype\.js['"]/, 'opentype.js'],
+    [/\bSimplexNoise\b|\bsimplex\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]simplex-noise['"]/, 'simplex-noise'],
+    [/\bSplitType\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]split-type['"]/, 'split-type'],
+    [/\bhtml2canvas\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]html2canvas['"]/, 'html2canvas'],
+    [/\bmediabunny\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]mediabunny['"]/, 'mediabunny'],
   ];
 
   for (const [pattern, dependency] of patterns) {

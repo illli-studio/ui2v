@@ -35,6 +35,7 @@ export async function previewCommand(
     const previewOptions = {
       ...normalizePreviewOptions(options),
       sourcePath: inputPath,
+      assetBaseDir: path.dirname(inputPath),
       workspaceRoot: process.cwd(),
       exportDir: path.resolve(process.cwd(), '.tmp/examples'),
     };

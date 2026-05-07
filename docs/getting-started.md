@@ -18,7 +18,7 @@ steps.
 
 ```json
 {
-  "id": "basic-text",
+  "id": "basic-smoke",
   "mode": "template",
   "duration": 2,
   "fps": 30,
@@ -57,7 +57,9 @@ structure before the browser renderer starts.
 ui2v preview animation.json --pixel-ratio 2
 ```
 
-The preview page includes a searchable project list, live reload for the current JSON file, play, pause, restart, scrubbing, a responsive project drawer, and a debug overlay toggled with `d`.
+The preview page includes a searchable project list, live reload for the current
+JSON file, play, pause, restart, scrubbing, a responsive project drawer, and a
+debug overlay toggled with `d`.
 
 ## Render
 

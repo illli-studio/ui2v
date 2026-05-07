@@ -6,18 +6,20 @@ import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const cli = resolve(root, 'packages/cli/dist/cli.js');
 const tmpDir = resolve(root, '.tmp');
-const bomFixture = resolve(tmpDir, 'bom-basic-text.json');
+const bomFixture = resolve(tmpDir, 'bom-basic-smoke.json');
 
 mkdirSync(tmpDir, { recursive: true });
 writeFileSync(
   bomFixture,
-  `\ufeff${readFileSync(resolve(root, 'examples/basic-text/animation.json'), 'utf8')}`,
+  `\ufeff${readFileSync(resolve(root, 'examples/basic-smoke/animation.json'), 'utf8')}`,
   'utf8'
 );
 
 const cases = [
-  resolve(root, 'examples/basic-text/animation.json'),
-  resolve(root, 'examples/runtime-core/animation.json'),
+  resolve(root, 'examples/basic-smoke/animation.json'),
+  resolve(root, 'examples/library-timeline/animation.json'),
+  resolve(root, 'examples/access-media/animation.json'),
+  resolve(root, 'examples/runtime-storyboard/animation.json'),
   bomFixture,
 ];
 

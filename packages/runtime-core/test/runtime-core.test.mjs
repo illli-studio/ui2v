@@ -384,10 +384,58 @@ const runtimeProject = {
   assert.equal(wrapped.entrypoint, 'export-default');
   assert.equal(wrapped.sanitizedChanged, true);
   assert.ok(wrapped.diagnostics.some(diagnostic => diagnostic.code === 'CUSTOM_CODE_MARKDOWN_FENCE'));
-  assert.ok(wrapped.diagnostics.some(diagnostic => diagnostic.code === 'CUSTOM_CODE_IMPLICIT_DEPENDENCY'));
+  assert.equal(wrapped.diagnostics.some(diagnostic => diagnostic.code === 'CUSTOM_CODE_IMPLICIT_DEPENDENCY'), false);
+  assert.deepEqual(wrapped.dependencies, ['gsap']);
   assert.equal(jsonCode.entrypoint, 'createRenderer');
   assert.ok(jsonCode.diagnostics.some(diagnostic => diagnostic.code === 'CUSTOM_CODE_JSON_WRAPPER'));
   assert.deepEqual(jsonCode.dependencies, ['d3']);
+}
+
+{
+  const normalized = normalizeProject({
+    schema: 'uiv-runtime',
+    id: 'inferred-custom-code-dependencies',
+    duration: 2,
+    fps: 30,
+    resolution: { width: 100, height: 100 },
+    scene: {
+      root: {
+        id: 'root',
+        type: 'root',
+        children: [
+          {
+            id: 'implicit-libs',
+            type: 'custom-code',
+            properties: {
+              code: [
+                'function render(t, context) {',
+                '  const v = new THREE.Vector3(1, 2, 3);',
+                '  const scale = d3.scaleLinear().domain([0, 1]).range([0, 100]);',
+                '  gsap.parseEase("power2.out")(t);',
+                '  const noise = simplex.createNoise2D ? simplex.createNoise2D() : null;',
+                '  return v.x + scale(t) + (noise ? 1 : 0);',
+                '}',
+              ].join('\n'),
+            },
+          },
+        ],
+      },
+    },
+  });
+
+  const snapshot = normalized.scene.snapshot();
+  const node = snapshot.nodes.find(item => item.id === 'implicit-libs');
+  assert.ok(node);
+  assert.deepEqual(node.dependencies, ['d3', 'gsap', 'simplex-noise', 'three']);
+
+  const dependencyPlan = createDependencyPlan(normalized.composition, snapshot);
+  assert.deepEqual(dependencyPlan.dependencies, ['d3', 'gsap', 'simplex-noise', 'three']);
+
+  const inspection = inspectStaticCustomCode(snapshot);
+  const item = inspection.items.find(entry => entry.nodeId === 'implicit-libs');
+  assert.ok(item);
+  assert.deepEqual(item.dependencies, ['d3', 'gsap', 'simplex-noise', 'three']);
+  assert.equal(item.diagnostics.some(diagnostic => diagnostic.code === 'CUSTOM_CODE_IMPLICIT_DEPENDENCY'), false);
 }
 
 {

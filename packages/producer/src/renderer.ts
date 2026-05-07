@@ -53,6 +53,8 @@ export interface RenderOptions {
   headless?: boolean;
   timeoutMs?: number;
   browserExecutablePath?: string;
+  sourcePath?: string;
+  assetBaseDir?: string;
   keepTemp?: boolean;
   onProgress?: (progress: RenderProgress) => void;
 }
@@ -90,6 +92,7 @@ export interface PreviewOptions {
   timeoutMs?: number;
   browserExecutablePath?: string;
   sourcePath?: string;
+  assetBaseDir?: string;
   workspaceRoot?: string;
   exportDir?: string;
 }
@@ -125,6 +128,18 @@ declare global {
   var __ui2vPreview: (project: AnimationProject, options: ReturnType<typeof normalizePreviewOptions>) => Promise<void>;
   // eslint-disable-next-line no-var
   var __ui2vWriteOutputChunk: ((chunkBase64: string) => Promise<void>) | undefined;
+}
+
+interface ProjectAudioTrack {
+  src: string;
+  startTime?: number;
+  duration?: number;
+  volume?: number;
+  loop?: boolean;
+  trimStart?: number;
+  trimEnd?: number;
+  fadeIn?: number;
+  fadeOut?: number;
 }
 
 const IMPORT_MAP: Record<string, string> = {
@@ -207,9 +222,13 @@ export async function renderToFile(
       message: 'Starting browser renderer',
     });
 
+    const assetBaseDir = resolveAssetBaseDir(project, options);
     server = await createStaticServer(resolveEngineDistDir(), resolveRuntimeCoreDistDir(), {
       coreDistDir: resolveCoreDistDir(),
+      assetBaseDir,
     });
+    const assetBaseUrl = `${getServerOrigin(server)}/assets/`;
+    project = attachProjectAssetBase(project, assetBaseUrl, assetBaseDir);
     const pageUrl = `${getServerOrigin(server)}/render.html`;
 
     browser = await puppeteer.launch({
@@ -423,12 +442,14 @@ export async function startPreviewServer(
   project: AnimationProject,
   options: PreviewOptions = {}
 ): Promise<PreviewSession> {
+  const assetBaseDir = resolveAssetBaseDir(project, options);
   const server = await createStaticServer(resolveEngineDistDir(), resolveRuntimeCoreDistDir(), {
     coreDistDir: resolveCoreDistDir(),
-    project,
+    project: attachProjectAssetBase(project, '/assets/', assetBaseDir),
     previewOptions: normalizePreviewOptions(project, options),
     previewOptionOverrides: options,
     previewSourcePath: options.sourcePath,
+    assetBaseDir,
     previewWorkspaceRoot: options.workspaceRoot,
     previewExportDir: options.exportDir,
   });
@@ -491,6 +512,7 @@ function normalizePageOptions(project: AnimationProject, options: RenderOptions)
     quality: normalizeQuality(options.quality),
     codec: options.codec === 'hevc' ? 'hevc' : 'avc',
     bitrate: options.bitrate,
+    audioTracks: collectAudioTracks(project),
   };
 }
 
@@ -536,6 +558,89 @@ function normalizeQuality(quality?: RenderQuality): RenderQuality {
   return 'high';
 }
 
+function resolveAssetBaseDir(project: AnimationProject, options: RenderOptions | PreviewOptions): string | undefined {
+  const explicit = (options as any).assetBaseDir ?? (project as any).__assetBaseDir ?? (project as any).assetBaseDir;
+  if (typeof explicit === 'string' && explicit.trim()) {
+    return path.resolve(explicit);
+  }
+
+  const sourcePath = (options as any).sourcePath;
+  if (typeof sourcePath === 'string' && sourcePath.trim()) {
+    return path.dirname(path.resolve(sourcePath));
+  }
+
+  return undefined;
+}
+
+function resolveStaticAssetBaseDir(options: StaticServerOptions): string | undefined {
+  if (typeof options.assetBaseDir === 'string' && options.assetBaseDir.trim()) {
+    return path.resolve(options.assetBaseDir);
+  }
+  if (typeof options.previewSourcePath === 'string' && options.previewSourcePath.trim()) {
+    return path.dirname(path.resolve(options.previewSourcePath));
+  }
+  return undefined;
+}
+
+function attachProjectAssetBase(project: AnimationProject, assetBaseUrl: string | undefined, assetBaseDir?: string): AnimationProject {
+  const normalizedBaseUrl = assetBaseUrl
+    ? (assetBaseUrl.endsWith('/') ? assetBaseUrl : `${assetBaseUrl}/`)
+    : undefined;
+  const existingBaseUrl = (project as any).__assetBaseUrl ?? (project as any).assetBaseUrl;
+  const baseUrl = normalizedBaseUrl || existingBaseUrl;
+  const baseDir = assetBaseDir ?? (project as any).__assetBaseDir ?? (project as any).assetBaseDir;
+  return {
+    ...project,
+    ...(baseUrl ? { assetBaseUrl: baseUrl, __assetBaseUrl: baseUrl } : {}),
+    ...(baseDir ? { assetBaseDir: baseDir, __assetBaseDir: baseDir } : {}),
+  } as AnimationProject;
+}
+
+function collectAudioTracks(project: AnimationProject): ProjectAudioTrack[] {
+  const tracks: ProjectAudioTrack[] = [];
+  const pushTrack = (candidate: any, fallbackStartTime?: number, fallbackEndTime?: number) => {
+    if (!candidate || typeof candidate !== 'object' || typeof candidate.src !== 'string' || !candidate.src.trim()) {
+      return;
+    }
+    const startTime = numberOrUndefined(candidate.startTime) ?? fallbackStartTime;
+    const duration = numberOrUndefined(candidate.duration)
+      ?? (typeof fallbackEndTime === 'number' && typeof startTime === 'number' ? Math.max(0, fallbackEndTime - startTime) : undefined);
+    tracks.push({
+      src: candidate.src,
+      startTime,
+      duration,
+      volume: numberOrUndefined(candidate.volume),
+      loop: Boolean(candidate.loop),
+      trimStart: numberOrUndefined(candidate.trimStart),
+      trimEnd: numberOrUndefined(candidate.trimEnd),
+      fadeIn: numberOrUndefined(candidate.fadeIn),
+      fadeOut: numberOrUndefined(candidate.fadeOut),
+    });
+  };
+
+  const rootAudio = (project as any).audio;
+  if (Array.isArray(rootAudio?.tracks)) {
+    for (const track of rootAudio.tracks) {
+      pushTrack(track);
+    }
+  }
+
+  const layers = (project as any).template?.layers ?? (project as any).layers;
+  if (Array.isArray(layers)) {
+    for (const layer of layers) {
+      if (layer?.type !== 'audio-layer') continue;
+      pushTrack(layer.properties, numberOrUndefined(layer.startTime), numberOrUndefined(layer.endTime));
+    }
+  }
+
+  return tracks;
+}
+
+function numberOrUndefined(value: unknown): number | undefined {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
 function resolveEngineDistDir(): string {
   return resolvePackageDistDir('@ui2v/engine');
 }
@@ -559,6 +664,7 @@ interface StaticServerOptions {
   previewOptions?: ReturnType<typeof normalizePreviewOptions>;
   previewOptionOverrides?: PreviewOptions;
   previewSourcePath?: string;
+  assetBaseDir?: string;
   previewWorkspaceRoot?: string;
   previewExportDir?: string;
 }
@@ -618,7 +724,8 @@ async function createStaticServer(
       if (url.pathname === '/preview/load') {
         const requestedPath = url.searchParams.get('path');
         const projectFile = resolvePreviewProjectPath(requestedPath, options);
-        const project = await readPreviewProject(projectFile);
+        const assetBaseDir = path.dirname(projectFile);
+        const project = attachProjectAssetBase(await readPreviewProject(projectFile), '/assets/', assetBaseDir);
         sendJson(res, {
           project,
           options: normalizePreviewOptions(project, options.previewOptionOverrides ?? {}),
@@ -631,6 +738,7 @@ async function createStaticServer(
         const body = await readRequestJson(req);
         const projectFile = resolvePreviewProjectPath(body?.path, options);
         const project = await readPreviewProject(projectFile);
+        const assetBaseDir = path.dirname(projectFile);
         const previewOptions = normalizePreviewOptions(project, options.previewOptionOverrides ?? {});
         const outputPath = resolvePreviewExportPath(projectFile, project, options, body?.outputPath);
         const result = await renderToFile(project, outputPath, {
@@ -640,6 +748,8 @@ async function createStaticServer(
           height: previewOptions.height,
           renderScale: body?.renderScale ? Number(body.renderScale) : 1,
           codec: body?.codec === 'hevc' ? 'hevc' : 'avc',
+          sourcePath: projectFile,
+          assetBaseDir,
         });
         sendJson(res, { ...result, outputPath });
         return;
@@ -649,6 +759,7 @@ async function createStaticServer(
         const body = await readRequestJson(req);
         const projectFile = resolvePreviewProjectPath(body?.path, options);
         const project = await readPreviewProject(projectFile);
+        const assetBaseDir = path.dirname(projectFile);
         const previewOptions = normalizePreviewOptions(project, options.previewOptionOverrides ?? {});
         const tempOutput = resolvePreviewExportPath(projectFile, project, options);
         const result = await renderToFile(project, tempOutput, {
@@ -658,6 +769,8 @@ async function createStaticServer(
           height: previewOptions.height,
           renderScale: body?.renderScale ? Number(body.renderScale) : 1,
           codec: body?.codec === 'hevc' ? 'hevc' : 'avc',
+          sourcePath: projectFile,
+          assetBaseDir,
         });
         if (!result.success) {
           res.writeHead(500, {
@@ -693,6 +806,11 @@ async function createStaticServer(
         const corePath = path.join(options.coreDistDir ?? resolveCoreDistDir(), 'index.mjs');
         const code = await fsp.readFile(corePath, 'utf8');
         sendText(res, code, 'text/javascript; charset=utf-8');
+        return;
+      }
+
+      if (url.pathname.startsWith('/assets/')) {
+        await serveAssetFile(url, res, options);
         return;
       }
 
@@ -757,6 +875,56 @@ function sendBinary(res: http.ServerResponse, buffer: Buffer, contentType: strin
     'access-control-allow-origin': '*',
   });
   res.end(buffer);
+}
+
+async function serveAssetFile(url: URL, res: http.ServerResponse, options: StaticServerOptions): Promise<void> {
+  const baseDir = resolveStaticAssetBaseDir(options);
+  if (!baseDir) {
+    res.writeHead(404);
+    res.end('No asset base directory configured');
+    return;
+  }
+
+  const relativePath = decodeURIComponent(url.pathname.slice('/assets/'.length));
+  const assetPath = path.resolve(baseDir, relativePath);
+  if (!isPathInside(baseDir, assetPath) || !fs.existsSync(assetPath) || !fs.statSync(assetPath).isFile()) {
+    res.writeHead(404);
+    res.end('Asset not found');
+    return;
+  }
+
+  const buffer = await fsp.readFile(assetPath);
+  res.writeHead(200, {
+    'content-type': getAssetContentType(assetPath),
+    'content-length': String(buffer.length),
+    'cache-control': 'no-store',
+    'access-control-allow-origin': '*',
+    'accept-ranges': 'bytes',
+  });
+  res.end(buffer);
+}
+
+function getAssetContentType(filePath: string): string {
+  const ext = path.extname(filePath).toLowerCase();
+  switch (ext) {
+    case '.png': return 'image/png';
+    case '.jpg':
+    case '.jpeg': return 'image/jpeg';
+    case '.webp': return 'image/webp';
+    case '.gif': return 'image/gif';
+    case '.svg': return 'image/svg+xml';
+    case '.mp4':
+    case '.m4v': return 'video/mp4';
+    case '.webm': return 'video/webm';
+    case '.mov': return 'video/quicktime';
+    case '.mp3': return 'audio/mpeg';
+    case '.m4a': return 'audio/mp4';
+    case '.aac': return 'audio/aac';
+    case '.wav': return 'audio/wav';
+    case '.ogg': return 'audio/ogg';
+    case '.json': return 'application/json; charset=utf-8';
+    default: return 'application/octet-stream';
+  }
 }
 
 function readRequestJson(req: http.IncomingMessage): Promise<any> {
@@ -1003,6 +1171,17 @@ function isPathInside(root: string, target: string): boolean {
   return relativePath === '' || (!relativePath.startsWith('..') && !path.isAbsolute(relativePath));
 }
 
+function resolveBrowserMediaUrl(src: string, assetBaseUrl?: string): string {
+  if (/^(?:https?:|data:|blob:|file:)/i.test(src)) {
+    return src;
+  }
+  if (!assetBaseUrl) {
+    return src;
+  }
+  const base = assetBaseUrl.endsWith('/') ? assetBaseUrl : `${assetBaseUrl}/`;
+  return new URL(src.replace(/\\/g, '/').replace(/^\.?\//, ''), base).toString();
+}
+
 function attachDiagnostics(page: Page, options: RenderOptions, diagnostics: string[]): void {
   const record = (message: string) => {
     diagnostics.push(message);
@@ -1116,6 +1295,14 @@ function createRenderHTML(): string {
       if (typeof window.__ui2vReportProgress === 'function') {
         window.__ui2vReportProgress(progress);
       }
+    };
+
+    const resolveBrowserMediaUrl = (src, assetBaseUrl) => {
+      if (!src || typeof src !== 'string') return src;
+      if (/^(?:https?:|data:|blob:|file:)/i.test(src)) return src;
+      if (!assetBaseUrl) return src;
+      const base = assetBaseUrl.endsWith('/') ? assetBaseUrl : assetBaseUrl + '/';
+      return new URL(src.replace(/\\\\/g, '/').replace(/^\\.?\\//, ''), base).toString();
     };
 
     const blobToBase64 = async (blob) => {
@@ -1250,6 +1437,10 @@ function createRenderHTML(): string {
             codec: options.codec,
             bitrate: options.bitrate,
             framePlan: segmentFramePlan.frames,
+            audioTracks: (options.audioTracks || []).map(track => ({
+              ...track,
+              src: resolveBrowserMediaUrl(track.src, project.__assetBaseUrl || project.assetBaseUrl),
+            })),
           },
           (progressInfo) => {
             report({

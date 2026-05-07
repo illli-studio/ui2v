@@ -56,6 +56,8 @@ export async function renderCommand(
 
     const result = await renderToFile(project, outputPath, {
       ...renderOptions,
+      sourcePath: inputPath,
+      assetBaseDir: path.dirname(inputPath),
       onProgress: (progress: RenderProgress) => {
         if (!options.progress) {
           return;

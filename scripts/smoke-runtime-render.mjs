@@ -6,8 +6,8 @@ import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const cli = resolve(root, 'packages/cli/dist/cli.js');
-const input = resolve(root, 'examples/runtime-core/animation.json');
-const output = resolve(root, 'out/smoke/runtime-core.mp4');
+const input = resolve(root, 'examples/runtime-storyboard/animation.json');
+const output = resolve(root, 'out/smoke/runtime-storyboard.mp4');
 const minBytes = 1024;
 
 await mkdir(dirname(output), { recursive: true });

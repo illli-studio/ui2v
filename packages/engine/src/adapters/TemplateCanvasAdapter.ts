@@ -27,7 +27,7 @@ export class TemplateCanvasAdapter implements EngineAdapter {
   readonly capabilities: EngineAdapterCapabilities = {
     renderer: 'canvas2d-template',
     renderers: ['canvas2d-template'],
-    nodeTypes: ['custom-code', 'poster-static', 'image-layer', 'static-text', 'static-image', 'static-shape', 'static-gradient'],
+    nodeTypes: ['custom-code', 'poster-static', 'image-layer', 'video-layer', 'audio-layer', 'static-text', 'static-image', 'static-shape', 'static-gradient'],
     dependencies: ['canvas2d'],
     supportsPreview: true,
     supportsExport: true,
@@ -95,6 +95,8 @@ export class TemplateCanvasAdapter implements EngineAdapter {
             duration: frame.composition.duration,
             fps: frame.composition.fps,
             resolution: frame.composition.resolution,
+            assetBaseUrl: frame.composition.__assetBaseUrl ?? frame.composition.assetBaseUrl,
+            assetBaseDir: frame.composition.__assetBaseDir ?? frame.composition.assetBaseDir,
           },
         },
         source: node.source,
@@ -135,6 +137,12 @@ export class TemplateCanvasAdapter implements EngineAdapter {
         ...this.project,
         template: {
           layers: collectedLayers,
+          ...(this.project.__assetBaseUrl || this.project.assetBaseUrl
+            ? { __assetBaseUrl: this.project.__assetBaseUrl ?? this.project.assetBaseUrl }
+            : {}),
+          ...(this.project.__assetBaseDir || this.project.assetBaseDir
+            ? { __assetBaseDir: this.project.__assetBaseDir ?? this.project.assetBaseDir }
+            : {}),
         },
       };
       await this.engine.hotUpdateProject(this.project);
@@ -235,7 +243,7 @@ export function registerTemplateCanvasAdapter(): void {
     {
       renderer: 'canvas2d-template',
       renderers: ['canvas2d-template'],
-      nodeTypes: ['custom-code', 'poster-static', 'image-layer', 'static-text', 'static-image', 'static-shape', 'static-gradient'],
+      nodeTypes: ['custom-code', 'poster-static', 'image-layer', 'video-layer', 'audio-layer', 'static-text', 'static-image', 'static-shape', 'static-gradient'],
       dependencies: ['canvas2d'],
       supportsPreview: true,
       supportsExport: true,
@@ -268,6 +276,10 @@ function runtimeContextToProject(context: EngineAdapterContext): AnimationProjec
     fps: context.composition.fps,
     resolution: context.composition.resolution,
     backgroundColor: context.composition.backgroundColor,
+    assetBaseUrl: (context.composition as any).assetBaseUrl,
+    assetBaseDir: (context.composition as any).assetBaseDir,
+    __assetBaseUrl: (context.composition as any).__assetBaseUrl,
+    __assetBaseDir: (context.composition as any).__assetBaseDir,
     template: {
       layers: context.scene.nodes
         .filter(node => node.id !== context.scene.rootId)

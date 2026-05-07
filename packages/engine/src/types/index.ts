@@ -17,6 +17,10 @@ export interface AnimationProject {
     height: number;
   };
   backgroundColor?: string;
+  assetBaseUrl?: string;
+  assetBaseDir?: string;
+  __assetBaseUrl?: string;
+  __assetBaseDir?: string;
 }
 
 export interface TemplateConfig {
@@ -149,8 +153,28 @@ export interface RenderContext {
   width: number;
   height: number;
   pixelRatio: number;
+  /**
+   * Local layer time in seconds. For a layer with startTime=10, this is 0
+   * at project time 10. Custom-code render(time, context) receives this value.
+   */
   time: number;
+  /** Absolute project timeline time in seconds. */
+  absoluteTime?: number;
+  /** Layer start time on the project timeline in seconds. */
+  layerStartTime?: number;
+  /** Layer end time on the project timeline in seconds. */
+  layerEndTime?: number;
+  /** Layer duration in seconds. */
+  duration?: number;
+  /** Layer-local progress clamped to 0..1. */
+  progress?: number;
+  /** Current frame based on local layer time and fps. */
+  frame?: number;
+  /** Render frame rate. */
+  fps?: number;
   isExporting?: boolean;
+  assetBaseUrl?: string;
+  assetBaseDir?: string;
   libraries?: Record<string, any>;
   container?: HTMLElement;
   loadIcon?: (iconName: string) => Promise<string>;
