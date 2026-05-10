@@ -1,6 +1,6 @@
 {
   "name": "@ui2v/producer",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "System-browser MP4 rendering pipeline for ui2v using Canvas and WebCodecs",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -45,9 +45,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@ui2v/core": "1.0.8",
-    "@ui2v/engine": "1.0.8",
-    "@ui2v/runtime-core": "1.0.8",
+    "@ui2v/core": "1.0.9",
+    "@ui2v/engine": "1.0.9",
+    "@ui2v/runtime-core": "1.0.9",
     "fs-extra": "^11.2.0",
     "puppeteer-core": "^24.42.0"
   },

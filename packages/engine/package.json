@@ -1,6 +1,6 @@
 {
   "name": "@ui2v/engine",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Browser Canvas and WebCodecs rendering engine for ui2v video projects",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -44,8 +44,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@ui2v/core": "1.0.8",
-    "@ui2v/runtime-core": "1.0.8",
+    "@ui2v/core": "1.0.9",
+    "@ui2v/runtime-core": "1.0.9",
     "@emotion/css": "^11.13.5",
     "@iconify/iconify": "^3.1.1",
     "@iconify/utils": "^3.1.3",
