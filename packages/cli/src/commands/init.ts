@@ -42,6 +42,8 @@ export async function initCommand(
 
     const project = {
       id: name,
+      title: name,
+      description: 'A polished multi-library ui2v starter composition.',
       version: '1.0.0',
       mode: 'template',
       duration: 6,

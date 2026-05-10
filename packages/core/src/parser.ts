@@ -61,6 +61,9 @@ export function validateProject(data: any): AnimationProject {
 
   const project: AnimationProject = {
     id: data.id,
+    title: typeof data.title === 'string' ? data.title : undefined,
+    description: typeof data.description === 'string' ? data.description : undefined,
+    name: typeof data.name === 'string' ? data.name : undefined,
     version: data.version || '1.0.0',
     mode: data.mode,
     duration: data.duration,

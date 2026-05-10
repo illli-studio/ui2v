@@ -129,6 +129,8 @@ export interface RuntimeProjectNode {
 
 export interface RuntimeProject {
   id: string;
+  title?: string;
+  description?: string;
   name?: string;
   version?: string;
   schema: 'uiv-runtime';
@@ -254,6 +256,8 @@ export interface SceneGraphSnapshot {
 
 export interface RuntimeComposition {
   id: string;
+  title?: string;
+  description?: string;
   name?: string;
   version?: string;
   duration: number;

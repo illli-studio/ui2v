@@ -132,6 +132,11 @@ export class LibraryManager {
       'split-type': 'SplitType',
       html2canvas: 'html2canvas',
       mediabunny: 'mediabunny',
+      canvas: 'canvas2d',
+      canvas2d: 'canvas2d',
+      'canvas-2d': 'canvas2d',
+      context2d: 'canvas2d',
+      '2d': 'canvas2d',
     };
 
     return aliases[key] ?? name;
@@ -165,10 +170,46 @@ export class LibraryManager {
       case 'SplitType': return this.loadSplitType();
       case 'html2canvas': return this.loadHtml2Canvas();
       case 'mediabunny': return this.loadMediabunny();
+      case 'canvas2d': return this.loadCanvas2D();
       default:
         console.warn(`[LibraryManager] Unknown dependency "${name}"`);
         return null;
     }
+  }
+
+  async loadCanvas2D(): Promise<any> {
+    if (this.libraries.has('canvas2d')) {
+      return this.libraries.get('canvas2d')!.instance;
+    }
+
+    const instance = {
+      name: 'Canvas 2D',
+      builtin: true,
+      getContext(canvas: HTMLCanvasElement | OffscreenCanvas) {
+        return canvas?.getContext?.('2d') ?? null;
+      },
+      createCanvas(width: number, height: number) {
+        if (typeof OffscreenCanvas !== 'undefined') {
+          return new OffscreenCanvas(width, height);
+        }
+        if (typeof document !== 'undefined') {
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          return canvas;
+        }
+        return null;
+      }
+    };
+
+    this.libraries.set('canvas2d', {
+      name: 'Canvas 2D',
+      version: 'builtin',
+      loaded: true,
+      instance
+    });
+
+    return instance;
   }
 
   /**

@@ -1,0 +1,38 @@
+{
+  "id": "lottie-status-pack",
+  "title": "Lottie Status Pack",
+  "description": "A status-card scene with a generated Lottie animation loaded through lottie-web and composited into the ui2v canvas.",
+  "name": "Lottie Status Pack",
+  "mode": "template",
+  "duration": 8,
+  "fps": 30,
+  "resolution": {
+    "width": 1920,
+    "height": 1080
+  },
+  "backgroundColor": "#091018",
+  "dependencies": [
+    "lottie"
+  ],
+  "template": {
+    "layers": [
+      {
+        "id": "lottie-status-scene",
+        "name": "Lottie status pack",
+        "type": "custom-code",
+        "zIndex": 0,
+        "startTime": 0,
+        "endTime": 8,
+        "dependencies": [
+          "lottie"
+        ],
+        "properties": {
+          "dependencies": [
+            "lottie"
+          ],
+          "code": "function createRenderer(){\n  let lottieLib, holder, anim, svg;\n  function rr(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath()}\n  return{init(context){lottieLib=(context.libs&&context.libs.lottie&&(context.libs.lottie.instance||context.libs.lottie))||lottie||globalThis.lottie;if(lottieLib&&lottieLib.loadAnimation){holder=document.createElement('div');holder.style.width='420px';holder.style.height='420px';holder.style.position='fixed';holder.style.left='-10000px';holder.style.top='-10000px';document.body.appendChild(holder);const data={v:'5.7.4',fr:30,ip:0,op:120,w:420,h:420,nm:'ui2v pulse',ddd:0,assets:[],layers:[{ddd:0,ind:1,ty:4,nm:'ring',sr:1,ks:{o:{a:0,k:100},r:{a:1,k:[{t:0,s:[0]},{t:120,s:[360]}]},p:{a:0,k:[210,210,0]},a:{a:0,k:[0,0,0]},s:{a:1,k:[{t:0,s:[72,72,100]},{t:60,s:[108,108,100]},{t:120,s:[72,72,100]}]}},shapes:[{ty:'gr',it:[{ty:'el',p:{a:0,k:[0,0]},s:{a:0,k:[240,240]}},{ty:'st',c:{a:0,k:[0.49,0.83,0.99,1]},o:{a:0,k:100},w:{a:0,k:16},lc:2,lj:2},{ty:'tr',p:{a:0,k:[0,0]},a:{a:0,k:[0,0]},s:{a:0,k:[100,100]},r:{a:0,k:0},o:{a:0,k:100}}]}],ip:0,op:120,st:0,bm:0},{ddd:0,ind:2,ty:4,nm:'dot',sr:1,ks:{o:{a:0,k:100},r:{a:0,k:0},p:{a:0,k:[210,210,0]},a:{a:0,k:[0,0,0]},s:{a:1,k:[{t:0,s:[90,90,100]},{t:60,s:[118,118,100]},{t:120,s:[90,90,100]}]}},shapes:[{ty:'gr',it:[{ty:'el',p:{a:0,k:[0,0]},s:{a:0,k:[112,112]}},{ty:'fl',c:{a:0,k:[0.48,0.85,0.56,1]},o:{a:0,k:100}},{ty:'tr',p:{a:0,k:[0,0]},a:{a:0,k:[0,0]},s:{a:0,k:[100,100]},r:{a:0,k:0},o:{a:0,k:100}}]}],ip:0,op:120,st:0,bm:0}]};anim=lottieLib.loadAnimation({container:holder,renderer:'svg',loop:true,autoplay:false,animationData:data});svg=holder.querySelector('svg')}},render(t,context){const ctx=context.mainContext,w=context.width,h=context.height;if(anim&&anim.goToAndStop)anim.goToAndStop((t*30)%120,true);ctx.fillStyle='#091018';ctx.fillRect(0,0,w,h);let bg=ctx.createLinearGradient(0,0,w,h);bg.addColorStop(0,'#091018');bg.addColorStop(.5,'#10202a');bg.addColorStop(1,'#1a1025');ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);ctx.fillStyle='#fff';ctx.font='900 58px system-ui,sans-serif';ctx.fillText('Lottie Status Pack',96,118);ctx.fillStyle='rgba(255,255,255,.7)';ctx.font='700 24px system-ui,sans-serif';ctx.fillText('lottie-web loads generated animationData and the frame uses its live animation state.',100,158);for(let i=0;i<4;i++){const x=160+i*410,y=330;ctx.fillStyle='rgba(255,255,255,.075)';rr(ctx,x,y,320,360,28);ctx.fill();ctx.strokeStyle=['#7dd3fc','#7bd88f','#facc15','#f9a8d4'][i];ctx.lineWidth=3;ctx.stroke();ctx.save();ctx.translate(x+160,y+145);ctx.rotate(t*.8+i);ctx.strokeStyle=['#7dd3fc','#7bd88f','#facc15','#f9a8d4'][i];ctx.lineWidth=12;ctx.beginPath();ctx.arc(0,0,72,0,Math.PI*1.55);ctx.stroke();ctx.fillStyle=['#7dd3fc','#7bd88f','#facc15','#f9a8d4'][i];ctx.beginPath();ctx.arc(0,0,46+Math.sin(t*2+i)*8,0,Math.PI*2);ctx.fill();ctx.restore();ctx.fillStyle='#fff';ctx.font='900 28px system-ui,sans-serif';ctx.fillText(['Loaded','Synced','Rendered','Shipped'][i],x+52,y+286)}ctx.fillStyle='#7bd88f';ctx.font='800 21px ui-monospace,Consolas,monospace';ctx.fillText('real lottie.loadAnimation='+(!!anim)+' generated animationData frames are seeked every render',100,930)},dispose(){try{if(anim&&anim.destroy)anim.destroy();if(holder&&holder.parentNode)holder.parentNode.removeChild(holder)}catch(e){}}}\n}"
+        }
+      }
+    ]
+  }
+}

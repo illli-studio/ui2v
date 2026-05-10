@@ -1,0 +1,38 @@
+{
+  "id": "tween-control-room",
+  "title": "TWEEN Control Room",
+  "description": "A control-room dashboard where TWEEN.js updates gauge, slider, and card states that are drawn to canvas every frame.",
+  "name": "TWEEN Control Room",
+  "mode": "template",
+  "duration": 8,
+  "fps": 30,
+  "resolution": {
+    "width": 1920,
+    "height": 1080
+  },
+  "backgroundColor": "#071018",
+  "dependencies": [
+    "TWEEN"
+  ],
+  "template": {
+    "layers": [
+      {
+        "id": "tween-room-scene",
+        "name": "Tween.js control room",
+        "type": "custom-code",
+        "zIndex": 0,
+        "startTime": 0,
+        "endTime": 8,
+        "dependencies": [
+          "TWEEN"
+        ],
+        "properties": {
+          "dependencies": [
+            "TWEEN"
+          ],
+          "code": "function createRenderer(){\n  let T, group, knobs=[];\n  function rr(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath()}\n  return{init(context){T=(context.libs&&context.libs.TWEEN&&(context.libs.TWEEN.instance||context.libs.TWEEN))||TWEEN||globalThis.TWEEN;if(T){group=new T.Group();for(let i=0;i<8;i++){const s={v:.1+i*.04,phase:i};knobs.push(s);new T.Tween(s,group).to({v:.82-.035*i},1800+i*160).easing(T.Easing.Cubic.InOut).repeat(Infinity).yoyo(true).start(0)}}else{for(let i=0;i<8;i++)knobs.push({v:.1+i*.04,phase:i})}},render(t,context){const ctx=context.mainContext,w=context.width,h=context.height;if(group)group.update((t*1000)%6000);else for(const k of knobs)k.v=.5+.38*Math.sin(t*1.4+k.phase);ctx.fillStyle='#071018';ctx.fillRect(0,0,w,h);ctx.fillStyle='#fff';ctx.font='900 56px system-ui,sans-serif';ctx.fillText('TWEEN Control Room',96,118);ctx.fillStyle='rgba(255,255,255,.7)';ctx.font='700 24px system-ui,sans-serif';ctx.fillText('TWEEN.Group updates dashboard states before the canvas frame is drawn.',100,158);ctx.strokeStyle='rgba(255,255,255,.07)';for(let y=230;y<890;y+=70){ctx.beginPath();ctx.moveTo(100,y);ctx.lineTo(w-100,y);ctx.stroke()}for(let i=0;i<knobs.length;i++){const x=180+(i%4)*410,y=300+Math.floor(i/4)*290,v=knobs[i].v;ctx.fillStyle='rgba(255,255,255,.075)';rr(ctx,x,y,300,210,24);ctx.fill();ctx.strokeStyle=i%3===0?'#7dd3fc':i%3===1?'#7bd88f':'#facc15';ctx.lineWidth=3;ctx.stroke();ctx.beginPath();ctx.arc(x+150,y+105,62,-Math.PI*.82,-Math.PI*.82+Math.PI*1.64*v);ctx.strokeStyle=i%3===0?'#7dd3fc':i%3===1?'#7bd88f':'#facc15';ctx.lineWidth=14;ctx.lineCap='round';ctx.stroke();ctx.fillStyle='#fff';ctx.font='900 34px system-ui,sans-serif';ctx.fillText(Math.round(v*100)+'%',x+110,y+116);ctx.fillStyle='rgba(255,255,255,.58)';ctx.font='800 16px ui-monospace,Consolas,monospace';ctx.fillText('Tween '+String(i+1).padStart(2,'0'),x+34,y+44)}ctx.fillStyle='#7bd88f';ctx.font='800 21px ui-monospace,Consolas,monospace';ctx.fillText('real TWEEN.Group='+(!!group)+' tweens='+knobs.length,100,930)}}\n}"
+        }
+      }
+    ]
+  }
+}

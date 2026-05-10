@@ -12,6 +12,9 @@ const baseProject = {
 
 assert.deepEqual(normalizeResolution({ width: '1920', height: '1080' }), { width: 1920, height: 1080 });
 assert.deepEqual(parseProject(JSON.stringify(baseProject)).resolution, { width: 1280, height: 720 });
+const projectWithMetadata = parseProject(JSON.stringify({ ...baseProject, title: 'Parser Title', description: 'Parser description.' }));
+assert.equal(projectWithMetadata.title, 'Parser Title');
+assert.equal(projectWithMetadata.description, 'Parser description.');
 
 for (const resolution of [
   { width: 0, height: 720 },

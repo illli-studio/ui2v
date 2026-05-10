@@ -270,6 +270,8 @@ function normalizePixelRatio(pixelRatio: number | undefined): number {
 function runtimeContextToProject(context: EngineAdapterContext): AnimationProject {
   return {
     id: context.composition.id,
+    title: context.composition.title,
+    description: context.composition.description,
     name: context.composition.name,
     mode: 'template',
     duration: context.composition.duration,

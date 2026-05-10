@@ -1,0 +1,44 @@
+{
+  "id": "type-systems-map",
+  "title": "Type Systems Map",
+  "description": "A technical infographics scene where KaTeX renders real formulas, Iconify renders offline SVG icons, and opentype.js contributes visible vector glyph tooling.",
+  "name": "Type Systems Map",
+  "mode": "template",
+  "duration": 8,
+  "fps": 30,
+  "resolution": {
+    "width": 1920,
+    "height": 1080
+  },
+  "backgroundColor": "#0b1020",
+  "dependencies": [
+    "katex",
+    "iconify",
+    "opentype"
+  ],
+  "template": {
+    "layers": [
+      {
+        "id": "type-systems-scene",
+        "name": "KaTeX Iconify opentype infographic",
+        "type": "custom-code",
+        "zIndex": 0,
+        "startTime": 0,
+        "endTime": 8,
+        "dependencies": [
+          "katex",
+          "iconify",
+          "opentype"
+        ],
+        "properties": {
+          "dependencies": [
+            "katex",
+            "iconify",
+            "opentype"
+          ],
+          "code": "function createRenderer(){\n  let kt, ic, ot, glyphPath;\n  const formulas=['E=mc^2','\\\\int_0^1 f(x)\\\\,dx','\\\\nabla\\\\cdot F=0'];\n  const formulaTitles=['Energy equation','Integral proof','Field rule'];\n  const iconNames=['mdi:function-variant','mdi:vector-polyline','mdi:chart-bell-curve','mdi:shape-polygon-plus'];\n  const formulaImgs=[], iconImgs=[];\n  function rr(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath()}\n  function esc(s){return String(s).replace(/[&<>]/g,function(ch){return ch==='&'?'&amp;':ch==='<'?'&lt;':'&gt;'})}\n  function queueSvg(svg,list){try{const item={img:new Image(),ready:false,failed:false};item.img.onload=function(){item.ready=true};item.img.onerror=function(){item.failed=true};item.img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);list.push(item)}catch(e){list.push({img:null,ready:false,failed:true})}}\n  function katexSvg(html,color,label){return '<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"560\" height=\"220\"><rect x=\"2\" y=\"2\" width=\"556\" height=\"216\" rx=\"24\" fill=\"#141b2c\" stroke=\"'+color+'\" stroke-width=\"4\"/><text x=\"34\" y=\"48\" fill=\"white\" font-size=\"28\" font-weight=\"900\" font-family=\"Arial, sans-serif\">'+esc(label)+'</text><foreignObject x=\"34\" y=\"68\" width=\"500\" height=\"104\"><div xmlns=\"http://www.w3.org/1999/xhtml\" style=\"font-size:42px;color:'+color+';font-family:KaTeX_Main, Georgia, serif;line-height:1.2;white-space:nowrap\">'+html+'</div></foreignObject><text x=\"34\" y=\"190\" fill=\"rgba(255,255,255,0.72)\" font-size=\"18\" font-weight=\"800\" font-family=\"Consolas, monospace\">real katex.renderToString()</text></svg>'}\n  function iconSvg(html,color,label){let svg=html||'';svg=svg.replace('<svg ','<svg width=\"164\" height=\"164\" color=\"'+color+'\" ');return '<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"300\" height=\"250\"><rect x=\"2\" y=\"2\" width=\"296\" height=\"246\" rx=\"24\" fill=\"#111a26\" stroke=\"'+color+'\" stroke-width=\"4\"/><g transform=\"translate(68 34)\">'+svg+'</g><text x=\"28\" y=\"214\" fill=\"rgba(255,255,255,0.78)\" font-size=\"17\" font-weight=\"800\" font-family=\"Consolas, monospace\">'+esc(label)+'</text></svg>'}\n  function drawFormulaFallback(ctx,x,y,i,color,t){ctx.fillStyle='rgba(255,255,255,.08)';rr(ctx,x,y,520,205,24);ctx.fill();ctx.strokeStyle=color;ctx.lineWidth=4;ctx.stroke();ctx.fillStyle='#fff';ctx.font='900 27px system-ui,sans-serif';ctx.fillText(formulaTitles[i],x+34,y+46);ctx.fillStyle=color;ctx.font='900 48px Georgia,serif';ctx.fillText(['E = mc^2','int f(x) dx','nabla dot F = 0'][i],x+34,y+122);ctx.strokeStyle=color;ctx.lineWidth=3;ctx.beginPath();for(let k=0;k<28;k++){const px=x+34+k*16,py=y+148+Math.sin(t*2+k*.6+i)*12;if(k===0)ctx.moveTo(px,py);else ctx.lineTo(px,py)}ctx.stroke();ctx.fillStyle='rgba(255,255,255,.68)';ctx.font='800 17px ui-monospace,Consolas,monospace';ctx.fillText('waiting for KaTeX SVG image',x+34,y+178)}\n  function drawIconFallback(ctx,x,y,i,color,t){ctx.fillStyle='rgba(255,255,255,.075)';rr(ctx,x,y,300,250,24);ctx.fill();ctx.strokeStyle=color;ctx.lineWidth=4;ctx.stroke();ctx.save();ctx.translate(x+150,y+105);ctx.rotate(Math.sin(t*1.2+i)*.08);ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=12;ctx.lineCap='round';if(i===0){ctx.font='900 86px system-ui,sans-serif';ctx.fillText('fx',-46,26)}else if(i===1){ctx.beginPath();ctx.moveTo(-66,36);ctx.lineTo(-14,-36);ctx.lineTo(42,28);ctx.lineTo(72,-18);ctx.stroke();[-66,-14,42,72].forEach(function(px,idx){ctx.beginPath();ctx.arc(px,[36,-36,28,-18][idx],12,0,Math.PI*2);ctx.fill()})}else if(i===2){ctx.beginPath();ctx.arc(0,0,64,Math.PI*.15,Math.PI*1.75);ctx.stroke();ctx.beginPath();ctx.moveTo(0,-64);ctx.lineTo(0,64);ctx.stroke()}else{ctx.beginPath();ctx.moveTo(-56,-28);ctx.lineTo(0,-62);ctx.lineTo(58,-28);ctx.lineTo(58,38);ctx.lineTo(0,72);ctx.lineTo(-56,38);ctx.closePath();ctx.stroke()}ctx.restore();ctx.fillStyle='rgba(255,255,255,.78)';ctx.font='800 17px ui-monospace,Consolas,monospace';ctx.fillText(iconNames[i],x+28,y+214)}\n  return{init:function(context){try{kt=(context.libs&&context.libs.katex&&(context.libs.katex.instance||context.libs.katex))||katex||globalThis.katex}catch(e){kt=null}try{ic=(context.libs&&context.libs.iconify&&(context.libs.iconify.instance||context.libs.iconify))||iconify||globalThis.iconify}catch(e){ic=null}try{ot=(context.libs&&context.libs.opentype&&(context.libs.opentype.instance||context.libs.opentype))||opentype||globalThis.opentype}catch(e){ot=null}const colors=['#7dd3fc','#7bd88f','#facc15'];if(kt&&kt.renderToString){for(let i=0;i<formulas.length;i++){try{const html=kt.renderToString(formulas[i],{throwOnError:false,output:'html'});queueSvg(katexSvg(html,colors[i],formulaTitles[i]),formulaImgs)}catch(e){formulaImgs.push({ready:false,failed:true})}}}const iconColors=['#7dd3fc','#7bd88f','#facc15','#f9a8d4'];if(ic&&ic.getOfflineIcon){for(let i=0;i<iconNames.length;i++){try{queueSvg(iconSvg(ic.getOfflineIcon(iconNames[i])||'',iconColors[i],iconNames[i]),iconImgs)}catch(e){iconImgs.push({ready:false,failed:true})}}}if(ot&&ot.Path){glyphPath=new ot.Path();glyphPath.moveTo(0,130);glyphPath.curveTo(55,-10,145,-10,200,130);glyphPath.moveTo(42,72);glyphPath.lineTo(158,72);glyphPath.moveTo(260,132);glyphPath.lineTo(260,0);glyphPath.curveTo(360,0,380,72,292,82);glyphPath.lineTo(386,132)}},render:function(t,context){const ctx=context.mainContext,w=context.width,h=context.height;ctx.fillStyle='#0b1020';ctx.fillRect(0,0,w,h);let bg=ctx.createRadialGradient(w*.5,h*.48,0,w*.5,h*.48,900);bg.addColorStop(0,'rgba(125,211,252,.18)');bg.addColorStop(.55,'rgba(249,168,212,.09)');bg.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);ctx.strokeStyle='rgba(255,255,255,.07)';for(let x=120;x<w;x+=120){ctx.beginPath();ctx.moveTo(x,170);ctx.lineTo(x,h-120);ctx.stroke()}ctx.fillStyle='#fff';ctx.font='900 56px system-ui,sans-serif';ctx.fillText('Type Systems Map',96,118);ctx.fillStyle='rgba(255,255,255,.7)';ctx.font='700 24px system-ui,sans-serif';ctx.fillText('KaTeX and Iconify are rendered as SVG images; async loading no longer blocks first paint.',100,158);const formulaColors=['#7dd3fc','#7bd88f','#facc15'];for(let i=0;i<3;i++){const x=120+i*600,y=248,item=formulaImgs[i];if(item&&item.ready&&item.img)ctx.drawImage(item.img,x,y,520,205);else drawFormulaFallback(ctx,x,y,i,formulaColors[i],t)}const iconColors=['#7dd3fc','#7bd88f','#facc15','#f9a8d4'];for(let i=0;i<4;i++){const x=142+i*430,y=545,item=iconImgs[i];ctx.save();ctx.translate(x+150,y+125);ctx.rotate(Math.sin(t*1.1+i)*.08);ctx.translate(-x-150,-y-125);if(item&&item.ready&&item.img)ctx.drawImage(item.img,x,y,300,250);else drawIconFallback(ctx,x,y,i,iconColors[i],t);ctx.restore()}ctx.save();ctx.translate(705,860);ctx.fillStyle='rgba(125,211,252,.1)';rr(ctx,0,-72,520,122,22);ctx.fill();ctx.strokeStyle='#7dd3fc';ctx.lineWidth=3;ctx.stroke();ctx.translate(44,-40);ctx.strokeStyle='#facc15';ctx.lineWidth=5;if(glyphPath&&glyphPath.commands){ctx.beginPath();for(const c of glyphPath.commands){if(c.type==='M')ctx.moveTo(c.x,c.y);else if(c.type==='L')ctx.lineTo(c.x,c.y);else if(c.type==='C')ctx.bezierCurveTo(c.x1,c.y1,c.x2,c.y2,c.x,c.y)}ctx.stroke()}else{ctx.font='900 82px Arial Black,Arial,sans-serif';ctx.fillStyle='#facc15';ctx.fillText('Aa',0,42)}ctx.restore();ctx.fillStyle='#facc15';ctx.font='800 21px ui-monospace,Consolas,monospace';ctx.fillText('real libs: KaTeX='+!!kt+' formulas='+formulaImgs.filter(x=>x.ready).length+' Iconify='+!!ic+' icons='+iconImgs.filter(x=>x.ready).length+' opentype.Path='+!!glyphPath+' initPending='+!!context.initPending,100,990)}}\n}"
+        }
+      }
+    ]
+  }
+}

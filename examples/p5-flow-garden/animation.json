@@ -1,0 +1,38 @@
+{
+  "id": "p5-flow-garden",
+  "title": "p5 Flow Garden",
+  "description": "A generative garden where p5.js owns the offscreen drawing, seeded flow paths, petals, and animated light field.",
+  "name": "p5 Flow Garden",
+  "mode": "template",
+  "duration": 9,
+  "fps": 30,
+  "resolution": {
+    "width": 1920,
+    "height": 1080
+  },
+  "backgroundColor": "#07130f",
+  "dependencies": [
+    "p5"
+  ],
+  "template": {
+    "layers": [
+      {
+        "id": "p5-garden-scene",
+        "name": "p5 generative garden",
+        "type": "custom-code",
+        "zIndex": 0,
+        "startTime": 0,
+        "endTime": 9,
+        "dependencies": [
+          "p5"
+        ],
+        "properties": {
+          "dependencies": [
+            "p5"
+          ],
+          "code": "function createRenderer(){\n  let p, off, blooms=[];\n  function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath()}\n  return{init(context){const P5=(context.libs&&context.libs.p5&&(context.libs.p5.instance||context.libs.p5))||p5||globalThis.p5;if(!P5)return;off=document.createElement('div');p=new P5(sk=>{sk.setup=()=>{sk.createCanvas(context.width,context.height);sk.pixelDensity(1);sk.noStroke();sk.randomSeed(42);sk.noiseSeed(42);for(let i=0;i<34;i++){blooms.push({x:220+sk.random(1480),y:260+sk.random(560),r:18+sk.random(44),phase:sk.random(6.28),h:sk.random(['#7bd88f','#7dd3fc','#facc15','#f9a8d4'])})}}},off)},render(t,context){const ctx=context.mainContext,w=context.width,h=context.height;ctx.fillStyle='#07130f';ctx.fillRect(0,0,w,h);if(p){p.clear();let sky=p.drawingContext.createLinearGradient(0,0,w,h);sky.addColorStop(0,'#07130f');sky.addColorStop(.55,'#0d2a2a');sky.addColorStop(1,'#1b1027');p.drawingContext.fillStyle=sky;p.drawingContext.fillRect(0,0,w,h);p.noFill();for(let strand=0;strand<85;strand++){let x=120+(strand%17)*104;let y=160+Math.floor(strand/17)*150;p.stroke(strand%3===0?'rgba(125,211,252,.24)':strand%3===1?'rgba(123,216,143,.26)':'rgba(250,204,21,.18)');p.strokeWeight(2+(strand%4));p.beginShape();for(let k=0;k<48;k++){let n=p.noise(x*.004+k*.05,y*.004,t*.12+strand*.01);let ang=n*6.28+t*.16;let px=x+Math.cos(ang)*k*9+Math.sin(t+strand)*30;let py=y+Math.sin(ang)*k*5+Math.cos(t*.8+strand)*22;p.curveVertex(px,py)}p.endShape()}p.noStroke();for(let i=0;i<blooms.length;i++){const b=blooms[i];const pulse=.78+.22*Math.sin(t*2.2+b.phase);p.push();p.translate(b.x+Math.sin(t*.7+b.phase)*18,b.y+Math.cos(t*.6+b.phase)*14);p.rotate(Math.sin(t*.5+b.phase)*.35);for(let petal=0;petal<9;petal++){p.rotate(Math.PI*2/9);p.fill(b.h);p.drawingContext.globalAlpha=.16+.1*pulse;p.ellipse(b.r*pulse,0,b.r*1.25*pulse,b.r*.38*pulse)}p.drawingContext.globalAlpha=.88;p.fill('#fff7c2');p.circle(0,0,b.r*.28*pulse);p.pop()}p.drawingContext.globalAlpha=1;ctx.drawImage(p.canvas,0,0,w,h)}else{ctx.fillStyle='#12352d';ctx.fillRect(0,0,w,h);ctx.fillStyle='#7bd88f';for(let i=0;i<80;i++){ctx.beginPath();ctx.arc(180+(i%16)*105,260+Math.floor(i/16)*120+Math.sin(t+i)*30,12+(i%8),0,Math.PI*2);ctx.fill()}}ctx.save();ctx.fillStyle='rgba(2,8,10,.56)';roundRect(ctx,90,78,560,112,26);ctx.fill();ctx.fillStyle='#ffffff';ctx.font='900 40px system-ui,sans-serif';ctx.fillText('p5 Flow Garden',126,128);ctx.fillStyle='rgba(255,255,255,.68)';ctx.font='800 18px ui-monospace,Consolas,monospace';ctx.fillText('p5.noise + p5 curveVertex + p5 ellipse',128,162);ctx.restore();ctx.save();ctx.globalCompositeOperation='screen';const rg=ctx.createRadialGradient(w*.78,h*.26,0,w*.78,h*.26,460);rg.addColorStop(0,'rgba(250,204,21,.22)');rg.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=rg;ctx.fillRect(0,0,w,h);ctx.restore()}}\n}"
+        }
+      }
+    ]
+  }
+}

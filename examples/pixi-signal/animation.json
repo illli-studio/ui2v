@@ -1,0 +1,38 @@
+﻿{
+    "id":  "pixi-signal",
+    "title":  "PIXI Signal Rescue",
+    "description":  "A cinematic rescue-radar scene where PixiJS particles, scan rings, beams, and signal nodes form the primary image.",
+    "name":  "PIXI Signal Rescue",
+    "mode":  "template",
+    "duration":  8,
+    "fps":  30,
+    "resolution":  {
+                       "width":  1920,
+                       "height":  1080
+                   },
+    "backgroundColor":  "#03111d",
+    "dependencies":  [
+                         "PIXI"
+                     ],
+    "template":  {
+                     "layers":  [
+                                    {
+                                        "id":  "pixi-scene",
+                                        "name":  "PIXI radar story",
+                                        "type":  "custom-code",
+                                        "zIndex":  0,
+                                        "startTime":  0,
+                                        "endTime":  8,
+                                        "dependencies":  [
+                                                             "PIXI"
+                                                         ],
+                                        "properties":  {
+                                                           "dependencies":  [
+                                                                                "PIXI"
+                                                                            ],
+                                                           "code":  "function createRenderer(){\n  let app, stage, canvas, particles=[], rings=[], beams=[], nodes=[], ready=false;\n  function rr(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath()}\n  return{async init(context){const PixiLib=(context.libs\u0026\u0026context.libs.PIXI\u0026\u0026(context.libs.PIXI.instance||context.libs.PIXI))||PIXI||globalThis.PIXI;if(!PixiLib)return;canvas=document.createElement(\u0027canvas\u0027);canvas.width=context.width;canvas.height=context.height;app=new PixiLib.Application();await app.init({canvas,width:context.width,height:context.height,backgroundAlpha:0,antialias:true,resolution:1,autoStart:false});stage=app.stage;for(let i=0;i\u003c120;i++){const g=new PixiLib.Graphics();const c=i%5===0?0xfacc15:i%3===0?0x7dd3fc:0x7bd88f;g.circle(0,0,2+(i%5)).fill(c);g.alpha=.36+(i%7)*.06;g.__baseX=150+(i%24)*72;g.__baseY=210+Math.floor(i/24)*138;g.__phase=i*.37;particles.push(g);stage.addChild(g)}for(let i=0;i\u003c7;i++){const r=new PixiLib.Graphics();rings.push(r);stage.addChild(r)}for(let i=0;i\u003c10;i++){const b=new PixiLib.Graphics();beams.push(b);stage.addChild(b)}const coords=[[360,350],[690,610],[950,430],[1210,660],[1510,380]];for(let i=0;i\u003ccoords.length;i++){const n=new PixiLib.Graphics();n.__x=coords[i][0];n.__y=coords[i][1];n.__phase=i*.9;nodes.push(n);stage.addChild(n)}ready=true},render(t,context){const ctx=context.mainContext,w=context.width,h=context.height;let bg=ctx.createLinearGradient(0,0,w,h);bg.addColorStop(0,\u0027#02101b\u0027);bg.addColorStop(.48,\u0027#062435\u0027);bg.addColorStop(1,\u0027#190f28\u0027);ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);ctx.save();ctx.globalCompositeOperation=\u0027screen\u0027;for(let i=0;i\u003c4;i++){const cx=[280,780,1260,1640][i]+Math.sin(t*.25+i)*70,cy=[230,780,280,720][i]+Math.cos(t*.2+i)*50;const rg=ctx.createRadialGradient(cx,cy,0,cx,cy,[520,680,560,620][i]);rg.addColorStop(0,[\u0027rgba(125,211,252,.22)\u0027,\u0027rgba(123,216,143,.18)\u0027,\u0027rgba(250,204,21,.16)\u0027,\u0027rgba(249,168,212,.16)\u0027][i]);rg.addColorStop(1,\u0027rgba(0,0,0,0)\u0027);ctx.fillStyle=rg;ctx.fillRect(0,0,w,h)}ctx.restore();ctx.save();ctx.globalAlpha=.08;ctx.strokeStyle=\u0027#fff\u0027;for(let x=120;x\u003cw;x+=80){ctx.beginPath();ctx.moveTo(x,160);ctx.lineTo(x+Math.sin(t+x*.01)*42,h-120);ctx.stroke()}for(let y=190;y\u003ch-120;y+=78){ctx.beginPath();ctx.moveTo(90,y+Math.sin(t+y*.01)*10);ctx.lineTo(w-90,y+Math.cos(t+y*.01)*10);ctx.stroke()}ctx.restore();ctx.save();ctx.fillStyle=\u0027rgba(2,8,18,.42)\u0027;rr(ctx,82,74,w-164,h-140,38);ctx.fill();ctx.strokeStyle=\u0027rgba(125,211,252,.22)\u0027;ctx.lineWidth=2;ctx.stroke();ctx.restore();if(app\u0026\u0026ready){const cx=960,cy=555;for(let i=0;i\u003cparticles.length;i++){const p=particles[i];p.x=p.__baseX+Math.sin(t*1.6+p.__phase)*38+Math.cos(t*.7+p.__phase)*18;p.y=p.__baseY+Math.cos(t*1.3+p.__phase)*32;p.scale.set(.75+.35*Math.sin(t*3+p.__phase))}for(let i=0;i\u003crings.length;i++){const r=rings[i];const radius=((t*220+i*130)%880)+28;const alpha=Math.max(0,.78-radius/920);r.clear();r.circle(cx,cy,radius).stroke({width:3+i%3,alpha,color:i%2?0x7bd88f:0x7dd3fc});r.circle(cx,cy,radius*.42).stroke({width:1,alpha:alpha*.5,color:0xfacc15})}for(let i=0;i\u003cbeams.length;i++){const b=beams[i];const a=t*.72+i*Math.PI*2/beams.length;const len=410+Math.sin(t+i)*90;b.clear();b.moveTo(cx,cy).lineTo(cx+Math.cos(a)*len,cy+Math.sin(a)*len).stroke({width:2,alpha:.16,color:i%2?0x7dd3fc:0x7bd88f})}for(let i=0;i\u003cnodes.length;i++){const n=nodes[i];const pulse=.65+.35*Math.sin(t*4+n.__phase);n.clear();n.circle(n.__x,n.__y,30+18*pulse).fill({color:i%2?0x7bd88f:0x7dd3fc,alpha:.12});n.circle(n.__x,n.__y,12+5*pulse).fill(i===3?0xfacc15:i%2?0x7bd88f:0x7dd3fc);n.circle(n.__x,n.__y,44+22*pulse).stroke({width:3,alpha:.38,color:i===3?0xfacc15:i%2?0x7bd88f:0x7dd3fc})}if(app.render)app.render();else if(app.renderer\u0026\u0026stage)app.renderer.render(stage);ctx.save();ctx.globalCompositeOperation=\u0027screen\u0027;ctx.drawImage(canvas,0,0,w,h);ctx.restore()}else{ctx.save();ctx.globalCompositeOperation=\u0027screen\u0027;for(let i=0;i\u003c90;i++){ctx.fillStyle=i%3?\u0027rgba(125,211,252,.45)\u0027:\u0027rgba(123,216,143,.45)\u0027;ctx.beginPath();ctx.arc(160+(i%18)*92,260+Math.floor(i/18)*130+Math.sin(t*2+i)*30,4+i%5,0,Math.PI*2);ctx.fill()}ctx.strokeStyle=\u0027rgba(125,211,252,.55)\u0027;ctx.lineWidth=5;for(let r=80;r\u003c760;r+=120){ctx.beginPath();ctx.arc(960,555,(r+t*90)%760,0,Math.PI*2);ctx.stroke()}ctx.restore()}ctx.save();ctx.fillStyle=\u0027rgba(2,8,18,.58)\u0027;rr(ctx,112,94,545,92,26);ctx.fill();ctx.strokeStyle=\u0027rgba(125,211,252,.24)\u0027;ctx.stroke();ctx.fillStyle=\u0027#ffffff\u0027;ctx.font=\u0027900 34px system-ui,sans-serif\u0027;ctx.fillText(\u0027SIGNAL RESCUE\u0027,140,138);ctx.fillStyle=\u0027#7dd3fc\u0027;ctx.font=\u0027800 17px ui-monospace,Consolas,monospace\u0027;ctx.fillText(\u0027radar sweep / active beacon lock\u0027,142,166);ctx.restore();ctx.save();ctx.fillStyle=\u0027rgba(2,8,18,.46)\u0027;rr(ctx,w-438,h-210,310,88,22);ctx.fill();ctx.fillStyle=\u0027#facc15\u0027;ctx.font=\u0027900 42px system-ui,sans-serif\u0027;ctx.fillText(String(Math.round(Math.min(99,38+t*8))).padStart(2,\u00270\u0027)+\u0027%\u0027,w-404,h-154);ctx.fillStyle=\u0027rgba(255,255,255,.66)\u0027;ctx.font=\u0027800 16px system-ui,sans-serif\u0027;ctx.fillText(\u0027beacon confidence\u0027,w-300,h-158);ctx.restore();ctx.fillStyle=\u0027rgba(255,255,255,.14)\u0027;rr(ctx,110,h-58,w-220,10,5);ctx.fill();const pg=Math.min(1,t/8);let bar=ctx.createLinearGradient(110,0,w-110,0);bar.addColorStop(0,\u0027#7dd3fc\u0027);bar.addColorStop(.55,\u0027#7bd88f\u0027);bar.addColorStop(1,\u0027#facc15\u0027);ctx.fillStyle=bar;rr(ctx,110,h-58,(w-220)*pg,10,5);ctx.fill()}}\n}"
+                                                       }
+                                    }
+                                ]
+                 }
+}

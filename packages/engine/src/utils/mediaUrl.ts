@@ -11,6 +11,9 @@ export function resolveMediaUrl(src: string, assetBaseUrl?: string, assetBaseDir
 
   if (assetBaseUrl) {
     const base = assetBaseUrl.endsWith('/') ? assetBaseUrl : `${assetBaseUrl}/`;
+    if (base.startsWith('/')) {
+      return `${base}${normalized}`;
+    }
     return new URL(normalized, base).toString();
   }
 

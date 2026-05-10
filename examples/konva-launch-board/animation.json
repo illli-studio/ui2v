@@ -1,0 +1,38 @@
+{
+  "id": "konva-launch-board",
+  "title": "Konva Launch Board",
+  "description": "A product-launch storyboard assembled by real Konva nodes.",
+  "name": "Konva Launch Board",
+  "mode": "template",
+  "duration": 8,
+  "fps": 30,
+  "resolution": {
+    "width": 1920,
+    "height": 1080
+  },
+  "backgroundColor": "#070c17",
+  "dependencies": [
+    "Konva"
+  ],
+  "template": {
+    "layers": [
+      {
+        "id": "konva-scene",
+        "name": "Konva board story",
+        "type": "custom-code",
+        "zIndex": 0,
+        "startTime": 0,
+        "endTime": 8,
+        "dependencies": [
+          "Konva"
+        ],
+        "properties": {
+          "dependencies": [
+            "Konva"
+          ],
+          "code": "function createRenderer(){\n  let stage, layer, off, cards=[];\n  return{init(context){const Konva=(context.libs&&context.libs.Konva&&context.libs.Konva.instance)||globalThis.Konva;if(!Konva)return;off=document.createElement('div');off.style.width=context.width+'px';off.style.height=context.height+'px';stage=new Konva.Stage({container:off,width:context.width,height:context.height});layer=new Konva.Layer();stage.add(layer);for(let i=0;i<5;i++){const group=new Konva.Group({x:300+i*280,y:420,rotation:i%2?-4:4});const rect=new Konva.Rect({width:210,height:260,cornerRadius:22,fill:i%2?'#123042':'#1d2438',stroke:i%2?'#7dd3fc':'#f9a8d4',strokeWidth:4,shadowColor:'#000',shadowBlur:20,shadowOpacity:.4});const title=new Konva.Text({text:['Brief','Assets','Motion','Review','Ship'][i],x:24,y:28,fontSize:30,fontStyle:'900',fontFamily:'system-ui',fill:'#fff'});const dot=new Konva.Circle({x:105,y:148,radius:42,fill:i%2?'#7bd88f':'#facc15'});group.add(rect,title,dot);cards.push(group);layer.add(group)}},render(t,context){const ctx=context.mainContext,w=context.width,h=context.height;ctx.fillStyle='#070c17';ctx.fillRect(0,0,w,h);ctx.fillStyle='#fff';ctx.font='900 54px system-ui,sans-serif';ctx.fillText('Konva Launch Board',96,112);ctx.fillStyle='rgba(255,255,255,.66)';ctx.font='700 24px system-ui,sans-serif';ctx.fillText('Konva groups, rects, text, and circles assemble a staged product board.',100,152);if(stage){for(let i=0;i<cards.length;i++){cards[i].y(420+Math.sin(t*1.7+i)*28);cards[i].rotation(Math.sin(t+i)*5);cards[i].scale({x:.92+.08*Math.sin(t+i),y:.92+.08*Math.sin(t+i)})}layer.draw();ctx.drawImage(stage.toCanvas(),0,0,w,h)}ctx.fillStyle='#f9a8d4';ctx.font='800 22px ui-monospace,Consolas,monospace';ctx.fillText('real Konva.Stage + Layer + Group produce the launch cards',100,820)}}\n}"
+        }
+      }
+    ]
+  }
+}

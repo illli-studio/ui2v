@@ -6,6 +6,8 @@ export type AnimationMode = 'template';
 
 export interface AnimationProject {
   id: string;
+  title?: string;
+  description?: string;
   name?: string;
   mode: AnimationMode;
   template?: TemplateConfig;
@@ -66,6 +68,21 @@ export interface LayerProperties {
   opacity?: number;
   width?: number;
   height?: number;
+  /** Primary media source for image-layer, video-layer, and audio-layer. */
+  src?: string;
+  /**
+   * Optional still frame for video-layer. Export uses this as a visual fallback
+   * if the browser has not decoded the requested video frame yet.
+   */
+  posterSrc?: string;
+  fitMode?: 'contain' | 'cover' | 'stretch';
+  muted?: boolean;
+  volume?: number;
+  loop?: boolean;
+  trimStart?: number;
+  trimEnd?: number;
+  fadeIn?: number;
+  fadeOut?: number;
   code?: string;
   dependencies?: string[];
   _cachedBounds?: {

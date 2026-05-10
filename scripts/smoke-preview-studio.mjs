@@ -4,9 +4,10 @@ import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { parseProject } = require('../packages/core/dist/index.js');
-const { startPreviewServer } = require('../packages/producer/dist/index.js');
+const { findBrowserExecutable, startPreviewServer } = require('../packages/producer/dist/index.js');
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const producerRequire = createRequire(resolve(root, 'packages/producer/package.json'));
 const input = resolve(root, 'examples/library-timeline/animation.json');
 const runtimeInput = resolve(root, 'examples/runtime-storyboard/animation.json');
 const invalidInput = resolve(root, '.tmp/preview-invalid-project.json');
@@ -39,6 +40,9 @@ try {
   assert(html.includes('runtime.renderFrame(currentSecond, adapter)'), 'preview HTML should render through the runtime-core API');
   assert(html.includes('data-ui2v-ready="false"'), 'preview canvas should expose ready state');
   assert(html.includes('requestFullscreen'), 'preview HTML should include fullscreen control');
+  assert(html.includes('ResizeObserver(scheduleCanvasDisplaySize)'), 'preview canvas should resize when the stage container changes');
+  assert(html.includes("max-width:100%; max-height:100%"), 'preview canvas should be constrained by the visible stage');
+  assert(html.includes('await runtime.initializeAdapter(adapter);\n      scheduleCanvasDisplaySize();'), 'preview should restore fitted display size after adapter initialization');
   assert(html.includes('ui2v Preview'), 'preview HTML should present a focused preview workspace');
   assert(!html.includes('Snapshot'), 'preview HTML should not include snapshot controls');
   assert(!html.includes('Copy render'), 'preview HTML should not include copy command controls');
@@ -76,6 +80,44 @@ try {
   assert(!blockedResponse.ok, 'outside workspace load should fail');
   assert(String(blocked.error).includes('workspace root'), 'outside workspace error should mention workspace root');
 
+  const browserExecutable = findBrowserExecutable();
+  if (browserExecutable) {
+    const puppeteer = producerRequire('puppeteer-core');
+    const browser = await puppeteer.launch({
+      headless: true,
+      executablePath: browserExecutable,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--autoplay-policy=no-user-gesture-required'],
+    });
+    try {
+      const page = await browser.newPage();
+      await page.setViewport({ width: 1000, height: 700, deviceScaleFactor: 1 });
+      await page.goto(session.url, { waitUntil: 'networkidle0' });
+      await page.waitForSelector('canvas[data-ui2v-ready="true"]');
+      const normalFit = await page.evaluate(() => {
+        const stage = document.getElementById('stageInner').getBoundingClientRect();
+        const canvas = document.getElementById('previewCanvas').getBoundingClientRect();
+        return { stageWidth: stage.width, stageHeight: stage.height, canvasWidth: canvas.width, canvasHeight: canvas.height };
+      });
+      assertPreviewFit(normalFit, 1920 / 1080, 'normal preview');
+
+      await page.setViewport({ width: 1400, height: 800, deviceScaleFactor: 1 });
+      await page.waitForFunction(() => {
+        const stage = document.getElementById('stageInner').getBoundingClientRect();
+        const canvas = document.getElementById('previewCanvas').getBoundingClientRect();
+        return canvas.width > 0 && canvas.width <= stage.width && canvas.height <= stage.height;
+      });
+      const resizedFit = await page.evaluate(() => {
+        const stage = document.getElementById('stageInner').getBoundingClientRect();
+        const canvas = document.getElementById('previewCanvas').getBoundingClientRect();
+        return { stageWidth: stage.width, stageHeight: stage.height, canvasWidth: canvas.width, canvasHeight: canvas.height };
+      });
+      assertPreviewFit(resizedFit, 1920 / 1080, 'resized preview');
+      await page.close();
+    } finally {
+      await browser.close();
+    }
+  }
+
   console.log(`Preview Studio smoke passed: ${projects.projects.length} projects`);
 } finally {
   await session.close();
@@ -86,4 +128,16 @@ function assert(condition, message) {
   if (!condition) {
     throw new Error(message);
   }
+}
+
+function assertPreviewFit(measurement, expectedRatio, label) {
+  const ratio = measurement.canvasWidth / measurement.canvasHeight;
+  assert(Math.abs(ratio - expectedRatio) < 0.02, `${label} should preserve project aspect ratio`);
+  assert(measurement.canvasWidth <= measurement.stageWidth + 1, `${label} should not overflow stage width`);
+  assert(measurement.canvasHeight <= measurement.stageHeight + 1, `${label} should not overflow stage height`);
+  assert(
+    Math.abs(measurement.canvasWidth - measurement.stageWidth) <= 3 ||
+      Math.abs(measurement.canvasHeight - measurement.stageHeight) <= 3,
+    `${label} should fill one axis of the stage: ${JSON.stringify(measurement)}`
+  );
 }

@@ -1,0 +1,38 @@
+{
+  "id": "anime-motion-rig",
+  "title": "Anime Motion Rig",
+  "description": "A kinetic motion-board where anime.js v4 timeline/animate APIs generate the visible object state before canvas draws it.",
+  "name": "Anime Motion Rig",
+  "mode": "template",
+  "duration": 8,
+  "fps": 30,
+  "resolution": {
+    "width": 1920,
+    "height": 1080
+  },
+  "backgroundColor": "#080b12",
+  "dependencies": [
+    "anime"
+  ],
+  "template": {
+    "layers": [
+      {
+        "id": "anime-rig-scene",
+        "name": "anime.js motion rig",
+        "type": "custom-code",
+        "zIndex": 0,
+        "startTime": 0,
+        "endTime": 8,
+        "dependencies": [
+          "anime"
+        ],
+        "properties": {
+          "dependencies": [
+            "anime"
+          ],
+          "code": "function createRenderer(){\n  let timeline, animeLib, state={orbit:0,spread:0,tilt:-18,glow:0,scale:.72};\n  function easeOutBack(x){const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2)}\n  function rr(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath()}\n  return{init(context){animeLib=(context.libs&&context.libs.anime&&(context.libs.anime.instance||context.libs.anime))||anime||globalThis.anime;if(animeLib&&animeLib.createTimeline){timeline=animeLib.createTimeline({autoplay:false}).add(state,{spread:1,scale:1,glow:1,tilt:0,duration:1800,ease:'outElastic(1,.65)'}).add(state,{orbit:1,duration:3800,ease:'inOutSine'},0).add(state,{tilt:10,duration:1600,ease:'inOutQuad'},1900)}else if(animeLib&&animeLib.animate){timeline=animeLib.animate(state,{spread:1,scale:1,glow:1,tilt:0,orbit:1,duration:5600,autoplay:false,ease:'inOutSine'})}},render(t,context){const ctx=context.mainContext,w=context.width,h=context.height;if(timeline){if(timeline.seek)timeline.seek(Math.min(5600,t*1000));else if(timeline.currentTime!==undefined)timeline.currentTime=Math.min(5600,t*1000)}else{const p=Math.min(1,t/2.2);state.spread=easeOutBack(p);state.scale=.72+.28*p;state.glow=p;state.tilt=-18+18*p;state.orbit=(t%8)/8}let bg=ctx.createLinearGradient(0,0,w,h);bg.addColorStop(0,'#080b12');bg.addColorStop(.5,'#12122a');bg.addColorStop(1,'#051b21');ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);ctx.save();ctx.globalCompositeOperation='screen';for(let i=0;i<3;i++){const rg=ctx.createRadialGradient([360,960,1540][i],[300,720,330][i],0,[360,960,1540][i],[300,720,330][i],520);rg.addColorStop(0,['rgba(125,211,252,.18)','rgba(249,168,212,.15)','rgba(123,216,143,.14)'][i]);rg.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=rg;ctx.fillRect(0,0,w,h)}ctx.restore();ctx.fillStyle='#fff';ctx.font='900 58px system-ui,sans-serif';ctx.fillText('Anime Motion Rig',96,118);ctx.fillStyle='rgba(255,255,255,.7)';ctx.font='700 24px system-ui,sans-serif';ctx.fillText('anime.js drives the rig state; canvas draws the resulting kinetic board.',100,158);const cx=w/2,cy=560;ctx.save();ctx.translate(cx,cy);ctx.rotate(state.tilt*Math.PI/180);ctx.scale(state.scale,state.scale);for(let i=0;i<16;i++){const a=i*Math.PI*2/16+state.orbit*Math.PI*2;const r=120+state.spread*(210+(i%4)*34);const x=Math.cos(a)*r,y=Math.sin(a)*r*.62;ctx.save();ctx.translate(x,y);ctx.rotate(a);ctx.shadowColor=i%3===0?'#7dd3fc':i%3===1?'#f9a8d4':'#7bd88f';ctx.shadowBlur=16+38*state.glow;ctx.fillStyle=ctx.shadowColor;rr(ctx,-58,-34,116,68,18);ctx.fill();ctx.fillStyle='rgba(255,255,255,.88)';ctx.font='900 20px system-ui,sans-serif';ctx.fillText(String(i+1).padStart(2,'0'),-18,7);ctx.restore()}ctx.strokeStyle='rgba(255,255,255,.34)';ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(0,0,390*state.spread,238*state.spread,0,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#ffffff';ctx.font='900 86px system-ui,sans-serif';ctx.textAlign='center';ctx.fillText('ANIME',0,24);ctx.restore();ctx.textAlign='left';ctx.fillStyle='#7dd3fc';ctx.font='800 21px ui-monospace,Consolas,monospace';ctx.fillText('real anime.js='+(!!animeLib)+' timeline='+(!!timeline)+' spread='+state.spread.toFixed(2),100,914)}}\n}"
+        }
+      }
+    ]
+  }
+}

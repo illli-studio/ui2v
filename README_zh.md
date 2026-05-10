@@ -107,7 +107,7 @@ ffmpeg -y -ss 1 -i .tmp/examples/library-timeline.mp4 \
 
 ## 用 AI 生成新项目
 
-ui2v 项目本质上是 JSON，非常适合让 AI 起草，然后用 CLI 验证和渲染。好的提示词应该包含画幅、时长、分辨率、视觉风格、分镜、依赖库、资源目录和输出路径。
+ui2v 项目本质上是 JSON，非常适合让 AI 起草，然后用 CLI 验证和渲染。好的提示词应该包含根级元数据（`id`、`title` 和 `description`）、画幅、时长、分辨率、视觉风格、分镜、依赖库、资源目录和输出路径。
 
 ```text
 Create a ui2v animation JSON with four visible library beats on the timeline:
@@ -125,11 +125,14 @@ my-video/
   animation.json
   access/
     photo.png
-    clip.mp4
+    clip.webm
+    clip-poster.jpg
     music.wav
 ```
 
 使用 `image-layer` 插入照片，使用 `video-layer` 插入视频，使用 `audio-layer` 显示音频波形，使用根级 `audio.tracks` 把音乐 mux 进导出的 MP4。支持的音频控制包括 `volume`、`loop`、`duration`、`trimStart`、`trimEnd`、`fadeIn` 和 `fadeOut`。
+
+`video-layer` 建议使用浏览器能稳定解码的 H.264 MP4 或 VP9 WebM。能提供封面帧时加上 `posterSrc`；如果浏览器某一帧还没解码好，导出会先画这张封面，避免把缺失媒体占位写进 MP4。
 
 ## 常用命令
 

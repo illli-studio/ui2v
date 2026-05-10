@@ -175,6 +175,9 @@ export class WebCodecsExporter {
       this.output.addVideoTrack(this.videoSource, {
         frameRate: fps,
       });
+      if (audioTracks.length > 0) {
+        await this.assertAudioEncodingSupported();
+      }
       const audioSource = audioTracks.length > 0
         ? new AudioBufferSource({
             codec: 'aac',
@@ -644,6 +647,27 @@ export class WebCodecsExporter {
     }
 
     return hasAudio ? audioContext.startRendering() : null;
+  }
+
+  private async assertAudioEncodingSupported(): Promise<void> {
+    if (typeof AudioEncoder === 'undefined') {
+      throw new Error('Audio tracks require WebCodecs AudioEncoder support in the launched browser.');
+    }
+
+    if (typeof AudioEncoder.isConfigSupported !== 'function') {
+      return;
+    }
+
+    const support = await AudioEncoder.isConfigSupported({
+      codec: 'mp4a.40.2',
+      sampleRate: 48_000,
+      numberOfChannels: 2,
+      bitrate: 160_000,
+    });
+
+    if (!support.supported) {
+      throw new Error('Audio tracks require AAC WebCodecs support (mp4a.40.2) in the launched browser.');
+    }
   }
 
   

@@ -27,6 +27,8 @@ export function normalizeProject(project: AnimationProject | Record<string, any>
   const segments = normalizeSegments(rawProject.timeline?.segments ?? rawProject.segments, duration);
   const composition: RuntimeComposition = {
     id: String(project.id ?? 'ui2v-composition'),
+    title: typeof rawProject.title === 'string' ? rawProject.title : undefined,
+    description: typeof rawProject.description === 'string' ? rawProject.description : undefined,
     name: typeof rawProject.name === 'string' ? rawProject.name : undefined,
     version: typeof rawProject.version === 'string' ? rawProject.version : undefined,
     duration,

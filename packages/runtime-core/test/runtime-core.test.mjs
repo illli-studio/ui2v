@@ -22,6 +22,8 @@ import {
 const runtimeProject = {
   schema: 'uiv-runtime',
   id: 'nested-runtime',
+  title: 'Nested Runtime',
+  description: 'Runtime metadata should survive normalization.',
   duration: 5,
   fps: 30,
   resolution: { width: 1280, height: 720 },
@@ -72,6 +74,8 @@ const runtimeProject = {
   const child = frame.nodes.find(node => node.id === 'child');
 
   assert.equal(normalized.scene.snapshot().nodes.length, 3);
+  assert.equal(normalized.composition.title, 'Nested Runtime');
+  assert.equal(normalized.composition.description, 'Runtime metadata should survive normalization.');
   assert.ok(group);
   assert.ok(child);
   assert.equal(child.localTime, 0.5);

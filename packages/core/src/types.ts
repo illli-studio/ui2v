@@ -11,6 +11,9 @@ export interface Resolution {
 
 export interface AnimationProject {
   id: string;
+  title?: string;
+  description?: string;
+  name?: string;
   version?: string;
   mode: 'template' | 'code';
   duration: number;

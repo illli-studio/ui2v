@@ -7,6 +7,7 @@ type MediaLayerKind = 'image-layer' | 'video-layer' | 'audio-layer';
 
 interface MediaLayerProperties {
   src?: string;
+  posterSrc?: string;
   fitMode?: 'contain' | 'cover' | 'stretch';
   x?: number;
   y?: number;
@@ -22,6 +23,7 @@ interface MediaLayerProperties {
   accentColor?: string;
   muted?: boolean;
   volume?: number;
+  loop?: boolean;
   trimStart?: number;
   trimEnd?: number;
   fadeIn?: number;
@@ -43,8 +45,11 @@ export class MediaLayerRenderer extends BaseRenderer implements IRenderer {
     supportsBatchRendering: false,
   };
 
-  private imageCache = new Map<string, HTMLImageElement>();
+  private imageCache = new Map<string, CanvasImageSource>();
+  private objectUrlCache = new Map<string, string>();
   private videoCache = new Map<string, HTMLVideoElement>();
+  private videoSeekTargets = new WeakMap<HTMLVideoElement, number>();
+  private videoPlaybackStarted = new WeakSet<HTMLVideoElement>();
   private assetBaseUrl?: string;
   private assetBaseDir?: string;
 
@@ -68,7 +73,7 @@ export class MediaLayerRenderer extends BaseRenderer implements IRenderer {
     if (kind === 'image-layer') {
       const image = await this.getImage(props.src);
       if (!image) {
-        throw new Error(`Failed to preload image-layer "${layer.name || layer.id}": ${props.src}`);
+        console.warn(`Failed to preload image-layer "${layer.name || layer.id}": ${props.src}`);
       }
       return;
     }
@@ -76,7 +81,13 @@ export class MediaLayerRenderer extends BaseRenderer implements IRenderer {
     if (kind === 'video-layer') {
       const video = await this.getVideo(props.src);
       if (!video) {
-        throw new Error(`Failed to preload video-layer "${layer.name || layer.id}": ${props.src}`);
+        console.warn(`Failed to preload video-layer "${layer.name || layer.id}": ${props.src}`);
+      }
+      if (props.posterSrc) {
+        const poster = await this.getImage(props.posterSrc);
+        if (!poster) {
+          console.warn(`Failed to preload video-layer poster "${layer.name || layer.id}": ${props.posterSrc}`);
+        }
       }
       return;
     }
@@ -90,7 +101,7 @@ export class MediaLayerRenderer extends BaseRenderer implements IRenderer {
         }
         await response.arrayBuffer();
       } catch (error) {
-        throw new Error(`Failed to preload audio-layer "${layer.name || layer.id}": ${props.src} (${(error as Error).message})`);
+        console.warn(`Failed to preload audio-layer "${layer.name || layer.id}": ${props.src} (${(error as Error).message})`);
       }
     }
   }
@@ -103,7 +114,10 @@ export class MediaLayerRenderer extends BaseRenderer implements IRenderer {
     const height = context.height;
 
     if (kind === 'audio-layer') {
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, Math.min(1, props.opacity ?? layer.opacity ?? 1));
       this.renderAudioPlaceholder(ctx, layer, props, width, height, context.time);
+      ctx.restore();
       return;
     }
 
@@ -124,22 +138,40 @@ export class MediaLayerRenderer extends BaseRenderer implements IRenderer {
       const img = await this.getImage(src, context);
       if (img) {
         this.drawMediaFrame(ctx, img, 0, 0, drawWidth, drawHeight, props);
+      } else {
+        this.drawMissingMedia(ctx, 0, 0, drawWidth, drawHeight, props, 'Image not loaded');
       }
     } else if (kind === 'video-layer') {
       const video = await this.getVideo(src, context);
-      if (video && video.readyState >= 2) {
+      let drewVideo = false;
+      if (video) {
         const localTime = Math.max(0, context.time);
         if (Number.isFinite(video.duration) && video.duration > 0) {
-          const targetTime = Math.min(localTime, video.duration - 0.05);
-          if (Math.abs(video.currentTime - targetTime) > 0.08) {
-            try {
-              await this.seekVideo(video, targetTime);
-            } catch {
-              // ignore seek jitter
+          const duration = Math.max(0.001, video.duration - 0.05);
+          const targetTime = (props.loop ?? true) ? localTime % duration : Math.min(localTime + (props.trimStart ?? 0), duration);
+          if (context.isExporting) {
+            if (Math.abs(video.currentTime - targetTime) > 0.035) {
+              try {
+                await this.seekVideo(video, targetTime);
+              } catch {
+                // keep the last decoded frame if a browser seek times out
+              }
             }
+            await this.waitForVideoFrame(video, true);
+          } else {
+            this.syncPreviewVideo(video, targetTime);
           }
         }
-        this.drawMediaFrame(ctx, video, 0, 0, drawWidth, drawHeight, props);
+        drewVideo = this.tryDrawMediaFrame(ctx, video, 0, 0, drawWidth, drawHeight, props);
+      }
+
+      if (!drewVideo) {
+        const poster = props.posterSrc ? await this.getImage(props.posterSrc, context) : null;
+        if (poster) {
+          this.drawMediaFrame(ctx, poster, 0, 0, drawWidth, drawHeight, props);
+        } else {
+          this.drawMissingMedia(ctx, 0, 0, drawWidth, drawHeight, props, 'Video not ready');
+        }
       }
     }
 
@@ -232,6 +264,28 @@ export class MediaLayerRenderer extends BaseRenderer implements IRenderer {
     ctx.restore();
   }
 
+  private tryDrawMediaFrame(
+    ctx: CanvasRenderingContext2D,
+    source: CanvasImageSource & { width?: number; height?: number; videoWidth?: number; videoHeight?: number },
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    props: MediaLayerProperties,
+  ): boolean {
+    const video = source instanceof HTMLVideoElement ? source : null;
+    if (video && (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !video.videoWidth || !video.videoHeight)) {
+      return false;
+    }
+
+    try {
+      this.drawMediaFrame(ctx, source, x, y, width, height, props);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   private roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number): void {
     const r = Math.min(radius, Math.abs(width) / 2, Math.abs(height) / 2);
     ctx.beginPath();
@@ -303,19 +357,91 @@ export class MediaLayerRenderer extends BaseRenderer implements IRenderer {
     ctx.restore();
   }
 
-  private async getImage(src: string, context?: RenderContext): Promise<HTMLImageElement | null> {
+  private drawMissingMedia(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    props: MediaLayerProperties,
+    label: string,
+  ): void {
+    const radius = Math.max(0, props.radius ?? 18);
+    ctx.save();
+    this.roundRect(ctx, x, y, width, height, radius);
+    const fill = ctx.createLinearGradient(x, y, x + width, y + height);
+    fill.addColorStop(0, 'rgba(255,255,255,0.12)');
+    fill.addColorStop(1, 'rgba(255,255,255,0.04)');
+    ctx.fillStyle = fill;
+    ctx.fill();
+    ctx.strokeStyle = props.accentColor ?? 'rgba(255,255,255,0.35)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.76)';
+    ctx.font = '700 22px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, x + width / 2, y + height / 2);
+    ctx.restore();
+  }
+
+  private async getImage(src: string, context?: RenderContext): Promise<CanvasImageSource | null> {
     const url = this.toMediaUrl(src, context);
     if (this.imageCache.has(url)) return this.imageCache.get(url)!;
 
+    const loaded = await this.loadImageBitmap(url) ?? await this.loadImageElement(url) ?? await this.loadImageViaBlob(url);
+    if (loaded) this.imageCache.set(url, loaded);
+    return loaded;
+  }
+
+  private async loadImageBitmap(url: string): Promise<ImageBitmap | null> {
+    if (typeof createImageBitmap !== 'function' || !/^https?:|^\//i.test(url)) {
+      return null;
+    }
+
+    try {
+      const response = await fetch(url, { cache: 'no-store' });
+      if (!response.ok) {
+        return null;
+      }
+      return await createImageBitmap(await response.blob());
+    } catch {
+      return null;
+    }
+  }
+
+  private async loadImageElement(url: string): Promise<HTMLImageElement | null> {
     const image = new Image();
     image.crossOrigin = 'anonymous';
-    const loaded = await new Promise<HTMLImageElement | null>((resolve) => {
+    return new Promise<HTMLImageElement | null>((resolve) => {
       image.onload = () => resolve(image);
       image.onerror = () => resolve(null);
       image.src = url;
     });
-    if (loaded) this.imageCache.set(url, loaded);
-    return loaded;
+  }
+
+  private async loadImageViaBlob(url: string): Promise<HTMLImageElement | null> {
+    if (!/^https?:|^\//i.test(url)) {
+      return null;
+    }
+
+    try {
+      const response = await fetch(url, { cache: 'no-store' });
+      if (!response.ok) {
+        return null;
+      }
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const image = await this.loadImageElement(objectUrl);
+      if (image) {
+        this.objectUrlCache.set(url, objectUrl);
+        return image;
+      }
+      URL.revokeObjectURL(objectUrl);
+      return null;
+    } catch {
+      return null;
+    }
   }
 
   private async getVideo(src: string, context?: RenderContext): Promise<HTMLVideoElement | null> {
@@ -327,6 +453,7 @@ export class MediaLayerRenderer extends BaseRenderer implements IRenderer {
     video.muted = true;
     video.playsInline = true;
     video.crossOrigin = 'anonymous';
+    video.loop = true;
     video.src = url;
 
     const loaded = await new Promise<HTMLVideoElement | null>((resolve) => {
@@ -367,8 +494,105 @@ export class MediaLayerRenderer extends BaseRenderer implements IRenderer {
     });
   }
 
+  private async waitForVideoFrame(video: HTMLVideoElement, forceDecodedFrame = false): Promise<void> {
+    if (!forceDecodedFrame && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && video.videoWidth > 0 && video.videoHeight > 0) {
+      return;
+    }
+
+    await new Promise<void>((resolve) => {
+      let settled = false;
+      let timeout = 0;
+      let callbackHandle = 0;
+      const requestFrame = (video as HTMLVideoElement & {
+        requestVideoFrameCallback?: (callback: () => void) => number;
+        cancelVideoFrameCallback?: (handle: number) => void;
+      }).requestVideoFrameCallback;
+      const cancelFrame = (video as HTMLVideoElement & {
+        cancelVideoFrameCallback?: (handle: number) => void;
+      }).cancelVideoFrameCallback;
+
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(timeout);
+        if (callbackHandle && cancelFrame) {
+          try {
+            cancelFrame.call(video, callbackHandle);
+          } catch {
+            // ignore browsers that do not allow cancelling a completed callback
+          }
+        }
+        video.removeEventListener('loadeddata', finish);
+        video.removeEventListener('canplay', finish);
+        video.removeEventListener('seeked', finish);
+        video.removeEventListener('error', finish);
+        resolve();
+      };
+
+      timeout = window.setTimeout(finish, 700);
+      video.addEventListener('loadeddata', finish, { once: true });
+      video.addEventListener('canplay', finish, { once: true });
+      video.addEventListener('seeked', finish, { once: true });
+      video.addEventListener('error', finish, { once: true });
+
+      if (requestFrame) {
+        try {
+          callbackHandle = requestFrame.call(video, finish);
+        } catch {
+          // fall back to media events and timeout
+        }
+      }
+    });
+  }
+
+  private schedulePreviewSeek(video: HTMLVideoElement, targetTime: number): void {
+    if (!Number.isFinite(targetTime) || Math.abs(video.currentTime - targetTime) <= 0.12) {
+      return;
+    }
+
+    const pendingTarget = this.videoSeekTargets.get(video);
+    if (video.seeking && pendingTarget !== undefined && Math.abs(pendingTarget - targetTime) <= 0.18) {
+      return;
+    }
+
+    try {
+      this.videoSeekTargets.set(video, targetTime);
+      video.currentTime = targetTime;
+    } catch {
+      // Browsers can reject rapid preview seeks. The current decoded frame is still usable.
+    }
+  }
+
+  private syncPreviewVideo(video: HTMLVideoElement, targetTime: number): void {
+    if (!Number.isFinite(targetTime)) {
+      return;
+    }
+
+    if (!this.videoPlaybackStarted.has(video)) {
+      try {
+        video.muted = true;
+        video.playbackRate = 1;
+        video.currentTime = targetTime;
+        const playPromise = video.play();
+        if (playPromise && typeof playPromise.catch === 'function') {
+          playPromise.catch(() => {});
+        }
+        this.videoPlaybackStarted.add(video);
+      } catch {
+        this.schedulePreviewSeek(video, targetTime);
+      }
+      return;
+    }
+
+    if (Math.abs(video.currentTime - targetTime) > 0.45) {
+      this.schedulePreviewSeek(video, targetTime);
+    }
+  }
+
   dispose(): void {
     this.imageCache.clear();
+    this.objectUrlCache.forEach((objectUrl) => URL.revokeObjectURL(objectUrl));
+    this.objectUrlCache.clear();
     this.videoCache.forEach((video) => {
       try {
         video.pause();

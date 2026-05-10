@@ -36,6 +36,14 @@ Node.js CLI
 生产路径当前主要输出 MP4。AVC/H.264 是默认 codec，因为它是 Chromium
 WebCodecs 中最通用的路径。HEVC 支持取决于启动的浏览器。
 
+媒体层和其他 layer 一样走浏览器 Canvas 渲染路径。插入视频时，优先使用浏览器
+能稳定解码的 H.264 MP4 或 VP9 WebM。`video-layer` 可以提供 `posterSrc`；
+导出时 renderer 会在 seek 后等待解码帧，如果某一帧还没准备好，就用 poster
+兜底，而不是把缺失媒体占位画进最终 MP4。
+
+根级 `audio.tracks` 会以 AAC mux 进导出的 MP4。`audio-layer` 是画布上的波形
+视觉层；如果既要画面里的波形，又要导出后听得到声音，需要同时使用两者。
+
 通过 `@ui2v/cli` 的常见用法：
 
 ```bash

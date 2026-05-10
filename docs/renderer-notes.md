@@ -40,6 +40,16 @@ The production path currently targets MP4. AVC/H.264 is the default codec
 because it is the most broadly available Chromium WebCodecs path. HEVC support
 depends on the launched browser.
 
+Media layers are rendered through the same browser canvas path as other layers.
+For inserted video, prefer browser-decodable H.264 MP4 or VP9 WebM sources. A
+`video-layer` may also provide `posterSrc`; during export the media renderer
+waits for decoded frames after seeking and falls back to the poster instead of
+drawing a missing-media placeholder when a frame is not ready.
+
+Root `audio.tracks` are muxed into the exported MP4 as AAC. `audio-layer` remains
+a canvas waveform/visual layer, so use both when the video needs an on-screen
+waveform and an audible exported track.
+
 Typical CLI usage through `@ui2v/cli`:
 
 ```bash

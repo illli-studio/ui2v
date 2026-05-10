@@ -16,7 +16,7 @@ import * as http from 'http';
 import * as path from 'path';
 import { pathToFileURL } from 'url';
 import { createRequire } from 'module';
-import { execFileSync } from 'child_process';
+import { execFile, execFileSync } from 'child_process';
 import puppeteer, { type Browser, type ConsoleMessage, type HTTPRequest, type Page } from 'puppeteer-core';
 
 export type RenderQuality = 'low' | 'medium' | 'high' | 'ultra' | 'cinema';
@@ -316,7 +316,8 @@ export async function renderToFile(
       throw new Error('Browser renderer completed without returning video data');
     }
 
-    const stat = await fsp.stat(absoluteOutput);
+    await muxAudioTracksWithFfmpegIfNeeded(absoluteOutput, project, normalizePageOptions(project, options).audioTracks, assetBaseDir, diagnostics);
+    const finalStat = await fsp.stat(absoluteOutput);
     options.onProgress?.({
       phase: 'complete',
       progress: 100,
@@ -328,7 +329,7 @@ export async function renderToFile(
     return {
       success: true,
       outputPath: absoluteOutput,
-      fileSize: stat.size,
+      fileSize: finalStat.size,
       duration: Date.now() - startTime,
     };
   } catch (error) {
@@ -443,9 +444,12 @@ export async function startPreviewServer(
   options: PreviewOptions = {}
 ): Promise<PreviewSession> {
   const assetBaseDir = resolveAssetBaseDir(project, options);
+  const assetBaseUrl = options.sourcePath
+    ? createPreviewAssetBaseUrl(path.resolve(options.sourcePath))
+    : '/assets/';
   const server = await createStaticServer(resolveEngineDistDir(), resolveRuntimeCoreDistDir(), {
     coreDistDir: resolveCoreDistDir(),
-    project: attachProjectAssetBase(project, '/assets/', assetBaseDir),
+    project: attachProjectAssetBase(project, assetBaseUrl, assetBaseDir),
     previewOptions: normalizePreviewOptions(project, options),
     previewOptionOverrides: options,
     previewSourcePath: options.sourcePath,
@@ -582,6 +586,10 @@ function resolveStaticAssetBaseDir(options: StaticServerOptions): string | undef
   return undefined;
 }
 
+function createPreviewAssetBaseUrl(projectFile: string): string {
+  return `/assets/${encodeURIComponent(path.resolve(projectFile))}/`;
+}
+
 function attachProjectAssetBase(project: AnimationProject, assetBaseUrl: string | undefined, assetBaseDir?: string): AnimationProject {
   const normalizedBaseUrl = assetBaseUrl
     ? (assetBaseUrl.endsWith('/') ? assetBaseUrl : `${assetBaseUrl}/`)
@@ -639,6 +647,117 @@ function collectAudioTracks(project: AnimationProject): ProjectAudioTrack[] {
 function numberOrUndefined(value: unknown): number | undefined {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+async function muxAudioTracksWithFfmpegIfNeeded(
+  outputPath: string,
+  project: AnimationProject,
+  tracks: ProjectAudioTrack[],
+  assetBaseDir: string | undefined,
+  diagnostics: string[]
+): Promise<void> {
+  if (!tracks.length || await outputHasAudioStream(outputPath)) {
+    return;
+  }
+
+  const sourceTrack = tracks.find(track => typeof track.src === 'string' && track.src.trim());
+  if (!sourceTrack) {
+    return;
+  }
+
+  const audioPath = resolveLocalAudioTrackPath(sourceTrack.src, assetBaseDir);
+  if (!audioPath) {
+    diagnostics.push(`Audio mux skipped because track is not local: ${sourceTrack.src}`);
+    return;
+  }
+
+  const tempPath = `${outputPath}.audio-${process.pid}-${Date.now()}.mp4`;
+  const duration = Math.max(0.001, Number(sourceTrack.duration) || Number(project.duration) || 0.001);
+  const audioFilters: string[] = [];
+  const volume = Number.isFinite(sourceTrack.volume as number) ? Math.max(0, sourceTrack.volume as number) : 1;
+  if (volume !== 1) {
+    audioFilters.push(`volume=${volume}`);
+  }
+  const fadeIn = Math.max(0, Number(sourceTrack.fadeIn) || 0);
+  const fadeOut = Math.max(0, Number(sourceTrack.fadeOut) || 0);
+  if (fadeIn > 0) {
+    audioFilters.push(`afade=t=in:st=0:d=${fadeIn}`);
+  }
+  if (fadeOut > 0) {
+    audioFilters.push(`afade=t=out:st=${Math.max(0, duration - fadeOut)}:d=${fadeOut}`);
+  }
+
+  const args = [
+    '-y',
+    '-i', outputPath,
+    ...(sourceTrack.loop ? ['-stream_loop', '-1'] : []),
+    '-i', audioPath,
+    '-map', '0:v:0',
+    '-map', '1:a:0',
+    '-c:v', 'copy',
+    '-c:a', 'aac',
+    '-b:a', '160k',
+    '-t', String(duration),
+    ...(audioFilters.length ? ['-af', audioFilters.join(',')] : []),
+    '-avoid_negative_ts', 'make_zero',
+    '-movflags', '+faststart',
+    tempPath,
+  ];
+
+  try {
+    await execFileAsync('ffmpeg', args);
+    await fsp.rm(outputPath, { force: true });
+    await fsp.rename(tempPath, outputPath);
+  } catch (error) {
+    await fsp.rm(tempPath, { force: true }).catch(() => {});
+    diagnostics.push(`Audio mux skipped because ffmpeg failed: ${(error as Error).message}`);
+  }
+}
+
+function resolveLocalAudioTrackPath(src: string, assetBaseDir: string | undefined): string | undefined {
+  if (/^file:/i.test(src)) {
+    return path.normalize(new URL(src).pathname);
+  }
+
+  if (/^(?:https?:|data:|blob:)/i.test(src)) {
+    return undefined;
+  }
+
+  const normalized = src.replace(/\\/g, path.sep).replace(/^\.?[\\/]/, '');
+  const candidate = path.isAbsolute(normalized)
+    ? normalized
+    : assetBaseDir
+      ? path.resolve(assetBaseDir, normalized)
+      : path.resolve(normalized);
+
+  return fs.existsSync(candidate) ? candidate : undefined;
+}
+
+async function outputHasAudioStream(outputPath: string): Promise<boolean> {
+  try {
+    const result = await execFileAsync('ffprobe', [
+      '-v', 'error',
+      '-select_streams', 'a',
+      '-show_entries', 'stream=codec_type',
+      '-of', 'csv=p=0',
+      outputPath,
+    ]);
+    return result.stdout.includes('audio');
+  } catch {
+    return false;
+  }
+}
+
+function execFileAsync(command: string, args: string[]): Promise<{ stdout: string; stderr: string }> {
+  return new Promise((resolve, reject) => {
+    execFile(command, args, { encoding: 'utf8', windowsHide: true }, (error, stdout, stderr) => {
+      if (error) {
+        reject(new Error(stderr || error.message));
+        return;
+      }
+      resolve({ stdout: stdout || '', stderr: stderr || '' });
+    });
+  });
 }
 
 function resolveEngineDistDir(): string {
@@ -725,7 +844,7 @@ async function createStaticServer(
         const requestedPath = url.searchParams.get('path');
         const projectFile = resolvePreviewProjectPath(requestedPath, options);
         const assetBaseDir = path.dirname(projectFile);
-        const project = attachProjectAssetBase(await readPreviewProject(projectFile), '/assets/', assetBaseDir);
+        const project = attachProjectAssetBase(await readPreviewProject(projectFile), createPreviewAssetBaseUrl(projectFile), assetBaseDir);
         sendJson(res, {
           project,
           options: normalizePreviewOptions(project, options.previewOptionOverrides ?? {}),
@@ -878,14 +997,13 @@ function sendBinary(res: http.ServerResponse, buffer: Buffer, contentType: strin
 }
 
 async function serveAssetFile(url: URL, res: http.ServerResponse, options: StaticServerOptions): Promise<void> {
-  const baseDir = resolveStaticAssetBaseDir(options);
+  const { baseDir, relativePath } = resolveAssetRequest(url, options);
   if (!baseDir) {
     res.writeHead(404);
     res.end('No asset base directory configured');
     return;
   }
 
-  const relativePath = decodeURIComponent(url.pathname.slice('/assets/'.length));
   const assetPath = path.resolve(baseDir, relativePath);
   if (!isPathInside(baseDir, assetPath) || !fs.existsSync(assetPath) || !fs.statSync(assetPath).isFile()) {
     res.writeHead(404);
@@ -902,6 +1020,29 @@ async function serveAssetFile(url: URL, res: http.ServerResponse, options: Stati
     'accept-ranges': 'bytes',
   });
   res.end(buffer);
+}
+
+function resolveAssetRequest(url: URL, options: StaticServerOptions): { baseDir: string | undefined; relativePath: string } {
+  const rawPath = url.pathname.slice('/assets/'.length);
+  const slashIndex = rawPath.indexOf('/');
+  if (slashIndex > 0) {
+    const encodedProjectFile = rawPath.slice(0, slashIndex);
+    const relativePath = decodeURIComponent(rawPath.slice(slashIndex + 1));
+    try {
+      const projectFile = path.resolve(decodeURIComponent(encodedProjectFile));
+      const root = resolvePreviewWorkspaceRoot(options);
+      if (isPathInside(root, projectFile)) {
+        return { baseDir: path.dirname(projectFile), relativePath };
+      }
+    } catch {
+      // Fall through to the server-level asset directory.
+    }
+  }
+
+  return {
+    baseDir: resolveStaticAssetBaseDir(options),
+    relativePath: decodeURIComponent(rawPath),
+  };
 }
 
 function getAssetContentType(filePath: string): string {
@@ -966,6 +1107,8 @@ async function createPreviewProjectList(options: StaticServerOptions) {
         path: file,
         label: path.relative(root, file).replace(/\\/g, '/'),
         id: project?.id,
+        title: project?.title,
+        description: project?.description,
         name: project?.name,
         duration: project?.duration,
         fps: project?.fps,
@@ -1067,10 +1210,10 @@ function safeReadProjectSummary(file: string): any | null {
   try {
     const json = JSON.parse(stripUtf8Bom(fs.readFileSync(file, 'utf8')));
     if (json?.schema === 'uiv-runtime') {
-      return { id: json.id, name: json.name, duration: json.duration, fps: json.fps, resolution: json.resolution };
+      return { id: json.id, title: json.title, description: json.description, name: json.name, duration: json.duration, fps: json.fps, resolution: json.resolution };
     }
     if (json && typeof json === 'object' && typeof json.id === 'string' && Number.isFinite(Number(json.duration))) {
-      return { id: json.id, name: json.name, duration: json.duration, fps: json.fps, resolution: json.resolution };
+      return { id: json.id, title: json.title, description: json.description, name: json.name, duration: json.duration, fps: json.fps, resolution: json.resolution };
     }
   } catch {
     return null;
@@ -1437,10 +1580,7 @@ function createRenderHTML(): string {
             codec: options.codec,
             bitrate: options.bitrate,
             framePlan: segmentFramePlan.frames,
-            audioTracks: (options.audioTracks || []).map(track => ({
-              ...track,
-              src: resolveBrowserMediaUrl(track.src, project.__assetBaseUrl || project.assetBaseUrl),
-            })),
+            audioTracks: [],
           },
           (progressInfo) => {
             report({
@@ -1497,7 +1637,7 @@ function createPreviewHTML(): string {
     :root { color-scheme: dark; --bg:#08090b; --surface:#11141a; --panel:#151922; --panel-2:#0f1218; --line:rgba(255,255,255,.12); --text:#f5f7fb; --muted:#9aa4b2; --accent:#48c7ff; --ok:#7dd3a7; --danger:#ff7474; }
     * { box-sizing:border-box; }
     html, body { margin:0; width:100%; height:100%; overflow:hidden; background:var(--bg); color:var(--text); font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    body { height:100vh; display:grid; grid-template-columns:300px minmax(0,1fr); }
+    body { width:100vw; height:100vh; height:100dvh; display:grid; grid-template-columns:clamp(260px, 18.75vw, 384px) minmax(0,1fr); grid-template-rows:minmax(0,1fr); }
     #sidebar { min-width:0; min-height:0; display:grid; grid-template-rows:auto auto minmax(0,1fr); border-right:1px solid var(--line); background:var(--panel-2); }
     #brand { padding:16px 14px 12px; border-bottom:1px solid var(--line); }
     #brand h1 { margin:0; font-size:17px; line-height:1.2; font-weight:780; }
@@ -1514,20 +1654,20 @@ function createPreviewHTML(): string {
     .project span { grid-column:1; grid-row:2; color:var(--muted); font-size:11px; line-height:16px; }
     .projectRatio { grid-column:2; grid-row:1 / span 2; justify-self:start; color:#c7d2df; font:10px/1 ui-monospace, SFMono-Regular, Consolas, monospace; white-space:nowrap; }
     .projectSize { grid-column:3; grid-row:1 / span 2; justify-self:start; color:#c7d2df; font:10px/1 ui-monospace, SFMono-Regular, Consolas, monospace; white-space:nowrap; }
-    #workspace { min-width:0; min-height:0; display:grid; grid-template-rows:auto minmax(0,1fr) auto; background:var(--surface); }
-    #topbar { min-width:0; display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid var(--line); background:var(--panel); }
+    #workspace { width:100%; height:100%; min-width:0; min-height:0; display:grid; grid-template-rows:minmax(72px, auto) minmax(0,1fr) minmax(56px, auto); background:var(--surface); }
+    #topbar { width:100%; min-width:0; display:grid; grid-template-columns:minmax(0,1fr) auto minmax(180px, 320px); align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid var(--line); background:var(--panel); }
     #identity { min-width:0; }
     #title { margin:0; font-size:15px; line-height:1.2; font-weight:760; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     #subtitle { margin-top:4px; color:var(--muted); font:11px/1.35 ui-monospace, SFMono-Regular, Consolas, monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    #status { max-width:320px; padding:8px 10px; border:1px solid rgba(72,199,255,.28); border-radius:7px; color:#d8f3ff; background:rgba(72,199,255,.07); font:11px/1.25 ui-monospace, SFMono-Regular, Consolas, monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    #status { min-width:0; max-width:100%; padding:8px 10px; border:1px solid rgba(72,199,255,.28); border-radius:7px; color:#d8f3ff; background:rgba(72,199,255,.07); font:11px/1.25 ui-monospace, SFMono-Regular, Consolas, monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     #status.error { color:#ffdada; border-color:rgba(255,116,116,.5); }
     #topActions { display:flex; gap:8px; align-items:center; }
-    #stage { min-width:0; min-height:0; display:grid; place-items:center; padding:18px; background:#090b0f; overflow:hidden; }
-    #stageInner { width:100%; height:100%; min-width:0; min-height:0; display:grid; place-items:center; border:1px solid var(--line); border-radius:8px; background:#0b0d12; overflow:hidden; }
+    #stage { width:100%; height:100%; min-width:0; min-height:0; display:grid; place-items:center; padding:0; background:#090b0f; overflow:hidden; }
+    #stageInner { width:100%; height:100%; min-width:0; min-height:0; display:grid; place-items:center; border:0; border-radius:0; background:#0b0d12; overflow:hidden; }
     #stage:fullscreen { padding:0; background:#000; }
     #stage:fullscreen #stageInner { border:0; border-radius:0; }
-    #previewCanvas { display:block; width:0; height:0; max-width:none; max-height:none; background:#000; outline:1px solid rgba(255,255,255,.22); box-shadow:0 18px 50px rgba(0,0,0,.42); }
-    #controls { min-width:0; height:56px; display:grid; grid-template-columns:auto auto minmax(180px,1fr) auto; gap:10px; align-items:center; padding:9px 14px; border-top:1px solid var(--line); background:var(--panel); }
+    #previewCanvas { display:block; width:0; height:0; max-width:100%; max-height:100%; background:#000; outline:1px solid rgba(255,255,255,.22); box-shadow:none; }
+    #controls { width:100%; min-width:0; min-height:56px; display:grid; grid-template-columns:auto auto minmax(160px,1fr) auto; gap:10px; align-items:center; padding:9px 14px; border-top:1px solid var(--line); background:var(--panel); }
     button { width:38px; height:38px; display:grid; place-items:center; border:1px solid var(--line); border-radius:7px; color:var(--text); background:rgba(255,255,255,.08); cursor:pointer; }
     button:hover { border-color:rgba(72,199,255,.44); background:rgba(72,199,255,.12); }
     button:disabled { opacity:.45; cursor:default; }
@@ -1539,14 +1679,42 @@ function createPreviewHTML(): string {
     .textButton { width:auto; min-width:72px; padding:0 12px; font-size:12px; font-weight:760; }
     #exportResult { position:fixed; right:14px; top:58px; z-index:8; max-width:460px; display:none; padding:9px 11px; border:1px solid var(--line); border-radius:7px; color:#d8f3ff; background:#10141b; font:11px/1.35 ui-monospace, SFMono-Regular, Consolas, monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; box-shadow:0 18px 54px rgba(0,0,0,.35); }
     #exportResult.visible { display:block; }
-    @media (max-width:820px) {
-      body { grid-template-columns:1fr; }
-      #sidebar { display:none; }
+    @media (max-width:980px) {
+      body { grid-template-columns:1fr; grid-template-rows:auto minmax(0,1fr); }
+      #sidebar { grid-template-columns:minmax(170px, .8fr) minmax(180px, 1fr) minmax(0, 1.5fr); grid-template-rows:auto; border-right:0; border-bottom:1px solid var(--line); }
+      #brand { min-width:0; padding:10px 12px; border-right:1px solid var(--line); border-bottom:0; }
+      #brand h1 { font-size:15px; }
+      #brand p { margin-top:4px; }
+      #searchWrap { min-width:0; padding:9px 10px; border-right:1px solid var(--line); border-bottom:0; }
+      #listStatus { display:none; }
+      #projectList { display:flex; min-width:0; overflow-x:auto; overflow-y:hidden; padding:0; }
+      .project { width:260px; min-width:260px; height:54px; grid-template-columns:minmax(0,1fr) 38px 76px; grid-template-rows:21px 18px; border-left:0; border-bottom:0; border-right:1px solid rgba(255,255,255,.055); padding:7px 10px; }
+      .project.active { border-left-color:transparent; box-shadow:inset 0 -3px 0 var(--accent); }
+      #workspace { min-height:0; }
       #topbar { grid-template-columns:minmax(0,1fr) auto; }
-      #status { max-width:100%; }
-      #controls { grid-template-columns:auto auto minmax(90px,1fr) auto; }
-      #time { font-size:11px; }
+      #status { grid-column:1 / -1; }
+    }
+    @media (max-width:640px) {
+      #sidebar { grid-template-columns:1fr; grid-template-rows:auto auto auto; max-height:210px; }
+      #brand { border-right:0; border-bottom:1px solid var(--line); }
+      #searchWrap { border-right:0; border-bottom:1px solid var(--line); }
+      #projectList { min-height:54px; }
+      #topbar { padding:9px 10px; gap:8px; }
+      #subtitle { font-size:10px; }
+      #status { padding:7px 9px; }
+      #stage { padding:0; }
+      #controls { grid-template-columns:auto auto minmax(0,1fr); grid-template-rows:auto auto; gap:8px; padding:8px 10px; }
+      #scrub { grid-column:1 / -1; grid-row:2; }
+      #time { font-size:11px; justify-self:end; }
       #exportAction { display:none; }
+      button { width:36px; height:36px; }
+    }
+    @media (max-width:420px) {
+      .project { width:220px; min-width:220px; grid-template-columns:minmax(0,1fr) 38px; }
+      .projectSize { display:none; }
+      #topbar { grid-template-columns:minmax(0,1fr) auto; }
+      #title { font-size:14px; }
+      #controls { grid-template-columns:auto auto minmax(78px,1fr); }
     }
   </style>
 </head>
@@ -1614,6 +1782,7 @@ function createPreviewHTML(): string {
     let currentProjectId = '';
     let workspaceRoot = '';
     let currentResolution = null;
+    let previewAudio = null;
 
     function setStatus(text, error = false) {
       statusEl.textContent = text;
@@ -1630,6 +1799,74 @@ function createPreviewHTML(): string {
       timeEl.textContent = currentSecond.toFixed(2) + ' / ' + duration.toFixed(2) + 's';
     }
 
+    function resolvePreviewMediaUrl(src, assetBaseUrl) {
+      if (!src || typeof src !== 'string') return src;
+      if (/^(?:https?:|data:|blob:|file:)/i.test(src)) return src;
+      if (!assetBaseUrl) return src;
+      const base = assetBaseUrl.endsWith('/') ? assetBaseUrl : assetBaseUrl + '/';
+      const normalized = src.replace(/\\\\/g, '/').replace(/^\\.?\\//, '');
+      if (base.startsWith('/')) {
+        return base + normalized;
+      }
+      return new URL(normalized, base).toString();
+    }
+
+    function collectPreviewAudioTracks(project) {
+      const tracks = [];
+      const pushTrack = (track, startTime, endTime) => {
+        if (!track || typeof track.src !== 'string' || !track.src.trim()) return;
+        tracks.push({
+          src: track.src,
+          startTime: Number.isFinite(Number(track.startTime)) ? Number(track.startTime) : (Number(startTime) || 0),
+          duration: Number.isFinite(Number(track.duration)) ? Number(track.duration) : Math.max(0, Number(endTime) - Number(startTime) || duration || 0),
+          volume: Number.isFinite(Number(track.volume)) ? Number(track.volume) : 1,
+          loop: Boolean(track.loop),
+        });
+      };
+      if (Array.isArray(project?.audio?.tracks)) {
+        project.audio.tracks.forEach(track => pushTrack(track, track.startTime, project.duration));
+      }
+      const layers = project?.template?.layers || project?.layers || [];
+      if (Array.isArray(layers)) {
+        layers.forEach(layer => {
+          if (layer?.type === 'audio-layer') pushTrack(layer.properties, layer.startTime, layer.endTime);
+        });
+      }
+      return tracks;
+    }
+
+    function stopPreviewAudio() {
+      if (!previewAudio) return;
+      previewAudio.pause();
+      previewAudio.src = '';
+      previewAudio.load();
+      previewAudio = null;
+    }
+
+    function setupPreviewAudio(project) {
+      stopPreviewAudio();
+      const track = collectPreviewAudioTracks(project)[0];
+      if (!track) return;
+      previewAudio = new Audio(resolvePreviewMediaUrl(track.src, project.__assetBaseUrl || project.assetBaseUrl));
+      previewAudio.preload = 'auto';
+      previewAudio.loop = Boolean(track.loop);
+      previewAudio.volume = Math.max(0, Math.min(1, Number(track.volume) || 1));
+      previewAudio.dataset.startTime = String(track.startTime || 0);
+    }
+
+    function syncPreviewAudio(second, shouldPlay) {
+      if (!previewAudio) return;
+      const local = Math.max(0, second - (Number(previewAudio.dataset.startTime) || 0));
+      if (Math.abs(previewAudio.currentTime - local) > 0.25) {
+        try { previewAudio.currentTime = local; } catch {}
+      }
+      if (shouldPlay && previewAudio.paused) {
+        previewAudio.play().catch(error => setStatus('Preview ready. Click play again to allow audio: ' + (error?.message || error), true));
+      } else if (!shouldPlay && !previewAudio.paused) {
+        previewAudio.pause();
+      }
+    }
+
     function updateCanvasDisplaySize() {
       if (!currentResolution) return;
       const bounds = stageInner.getBoundingClientRect();
@@ -1643,10 +1880,19 @@ function createPreviewHTML(): string {
       canvas.style.height = displayHeight + 'px';
     }
 
+    function scheduleCanvasDisplaySize() {
+      updateCanvasDisplaySize();
+      requestAnimationFrame(updateCanvasDisplaySize);
+    }
+
+    const stageResizeObserver = new ResizeObserver(scheduleCanvasDisplaySize);
+    stageResizeObserver.observe(stageInner);
+
     async function renderAt(second) {
       if (!runtime || !adapter) return;
       currentSecond = Math.max(0, Math.min(duration, second));
       await runtime.renderFrame(currentSecond, adapter);
+      syncPreviewAudio(currentSecond, playing);
       updateTime();
     }
 
@@ -1669,12 +1915,14 @@ function createPreviewHTML(): string {
     function startPlayback(fromSecond = currentSecond) {
       startTime = performance.now() - fromSecond * 1000;
       updatePlayState(true);
+      syncPreviewAudio(fromSecond, true);
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(tick);
     }
 
     function pausePlayback() {
       updatePlayState(false);
+      syncPreviewAudio(currentSecond, false);
       cancelAnimationFrame(raf);
     }
 
@@ -1713,17 +1961,25 @@ function createPreviewHTML(): string {
       return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
     }
 
+    function getProjectTitle(project) {
+      return project?.title || project?.name || project?.id || project?.label || 'ui2v preview';
+    }
+
+    function getProjectDescription(project) {
+      return project?.description || '';
+    }
+
     function renderProjectList() {
       const query = searchEl.value.trim().toLowerCase();
-      const visible = projects.filter(item => !query || (item.label + ' ' + (item.name || '') + ' ' + (item.id || '')).toLowerCase().includes(query));
+      const visible = projects.filter(item => !query || (item.label + ' ' + (item.title || '') + ' ' + (item.description || '') + ' ' + (item.name || '') + ' ' + (item.id || '')).toLowerCase().includes(query));
       projectList.innerHTML = '';
       listStatus.textContent = visible.length + ' / ' + projects.length + ' projects';
       for (const item of visible) {
         const button = document.createElement('button');
         button.className = 'project' + (item.path === currentPath ? ' active' : '');
         button.innerHTML =
-          '<strong>' + escapeHtml(item.name || item.id || item.label) + '</strong>' +
-          '<span>' + escapeHtml(item.label) + '</span>' +
+          '<strong>' + escapeHtml(getProjectTitle(item)) + '</strong>' +
+          '<span>' + escapeHtml(getProjectDescription(item) || item.label) + '</span>' +
           '<em class="projectRatio">' + escapeHtml(formatAspectRatio(item.resolution)) + '</em>' +
           '<em class="projectSize">' + escapeHtml(formatResolution(item.resolution)) + '</em>';
         button.onclick = () => loadProjectByPath(item.path);
@@ -1783,6 +2039,7 @@ function createPreviewHTML(): string {
 
     window.__ui2vPreview = async (project, options, sourcePath, loadOptions = {}) => {
       cancelAnimationFrame(raf);
+      stopPreviewAudio();
       if (adapter?.dispose) adapter.dispose();
       adapter = undefined;
       runtime = undefined;
@@ -1801,12 +2058,16 @@ function createPreviewHTML(): string {
         resolution: { width: options.width, height: options.height },
       };
       currentPath = sourcePath || currentPath;
-      currentProjectId = normalized.id || normalized.name || 'ui2v-preview';
+      currentProjectId = normalized.id || normalized.title || normalized.name || 'ui2v-preview';
       duration = Number(options.duration) || Number(normalized.duration) || 0;
       currentSecond = loadOptions.auto ? Math.min(currentSecond, duration) : 0;
+      setupPreviewAudio(normalized);
 
-      titleEl.textContent = normalized.name || normalized.id || 'ui2v preview';
-      subtitleEl.textContent = formatResolution(normalized.resolution) + ' / ' + options.fps + 'fps / ' + duration + 's';
+      titleEl.textContent = getProjectTitle(normalized);
+      const description = getProjectDescription(normalized);
+      subtitleEl.textContent = description
+        ? description + ' / ' + formatResolution(normalized.resolution) + ' / ' + options.fps + 'fps / ' + duration + 's'
+        : formatResolution(normalized.resolution) + ' / ' + options.fps + 'fps / ' + duration + 's';
       setStatus(loadOptions.auto ? 'Reloading animation...' : 'Loading animation...');
 
       adapter = new TemplateCanvasAdapter({
@@ -1817,12 +2078,14 @@ function createPreviewHTML(): string {
       });
       runtime = new UivRuntime(normalized);
       await runtime.initializeAdapter(adapter);
+      scheduleCanvasDisplaySize();
       await renderAt(currentSecond);
 
       canvas.dataset.ui2vReady = 'true';
       renderProjectList();
       setStatus((loadOptions.auto ? 'Live reloaded: ' : 'Preview ready: ') + (normalized.id || 'project'));
-      startPlayback(currentSecond);
+      updatePlayState(false);
+      syncPreviewAudio(currentSecond, false);
     };
 
     async function loadProjectByPath(projectPath, { auto = false } = {}) {
@@ -1883,8 +2146,9 @@ function createPreviewHTML(): string {
       else await stage.requestFullscreen();
     };
 
-    window.addEventListener('resize', updateCanvasDisplaySize);
-    document.addEventListener('fullscreenchange', updateCanvasDisplaySize);
+    window.addEventListener('resize', scheduleCanvasDisplaySize);
+    window.visualViewport?.addEventListener('resize', scheduleCanvasDisplaySize);
+    document.addEventListener('fullscreenchange', scheduleCanvasDisplaySize);
 
     function showExportResult(text, error = false) {
       exportResult.textContent = text;

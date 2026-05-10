@@ -48,7 +48,7 @@ export function prepareCustomCode(input: string): PreparedCustomCode {
     const diagnostics: CustomCodeDiagnostic[] = [];
     let source = extractCodeSource(input, diagnostics);
 
-    if (source.includes('\\\\n') || source.includes('\\\\t')) {
+    if (looksLikeEscapedWholeSource(source)) {
         source = source.replace(/\\\\n/g, '\n').replace(/\\\\t/g, '\t');
         diagnostics.push({
             stage: 'extract',
@@ -73,6 +73,20 @@ export function prepareCustomCode(input: string): PreparedCustomCode {
         preview: createCodePreview(sanitized),
         diagnostics
     };
+}
+
+function looksLikeEscapedWholeSource(source: string): boolean {
+    if (!source.includes('\\\\n') && !source.includes('\\\\t')) {
+        return false;
+    }
+
+    const realLines = source.split(/\r?\n/).length;
+    const escapedLineBreaks = (source.match(/\\\\n/g) || []).length;
+
+    // JSON.parse already returns normal multiline code for JSON wrappers. Only
+    // decode escaped line breaks when the entire source is still one escaped
+    // blob; otherwise LaTeX strings such as "\\nabla" get corrupted.
+    return realLines <= 2 && escapedLineBreaks >= 2;
 }
 
 export function createEntrypointProbe(): string {

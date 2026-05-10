@@ -127,8 +127,9 @@ For the README, prefer 4-6 second GIFs under 3 MB. Keep full MP4 exports in
 ## Generate A New Idea
 
 ui2v projects are JSON files, so they are easy to draft with an AI coding tool
-and then render locally. A strong prompt includes format, duration, resolution,
-visual style, scenes, dependencies, local resources, and the exact output path.
+and then render locally. A strong prompt includes root metadata (`id`, `title`,
+and `description`), format, duration, resolution, visual style, scenes,
+dependencies, local resources, and the exact output path.
 
 ```text
 Create a ui2v animation JSON with four visible library beats on the timeline:
@@ -147,7 +148,8 @@ my-video/
   animation.json
   access/
     photo.png
-    clip.mp4
+    clip.webm
+    clip-poster.jpg
     music.wav
 ```
 
@@ -155,6 +157,11 @@ Use `image-layer` for photos, `video-layer` for inserted video clips, and
 `audio-layer` or root `audio.tracks` for music. Root audio tracks are muxed into
 the exported MP4 as AAC. Supported audio controls include `volume`, `loop`,
 `duration`, `trimStart`, `trimEnd`, `fadeIn`, and `fadeOut`.
+
+For `video-layer`, use browser-decodable media such as H.264 MP4 or VP9 WebM.
+Add `posterSrc` when possible; export will draw that still frame instead of a
+missing-media placeholder if the browser has not decoded the requested video
+frame yet.
 
 ## CLI Commands
 

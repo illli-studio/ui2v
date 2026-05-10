@@ -1,0 +1,38 @@
+{
+  "id": "cannon-cargo-drop",
+  "title": "CANNON Cargo Drop",
+  "description": "A warehouse loading scene where cannon-es simulates falling cargo bodies and the canvas renders their tracked positions.",
+  "name": "CANNON Cargo Drop",
+  "mode": "template",
+  "duration": 8,
+  "fps": 30,
+  "resolution": {
+    "width": 1920,
+    "height": 1080
+  },
+  "backgroundColor": "#081018",
+  "dependencies": [
+    "CANNON"
+  ],
+  "template": {
+    "layers": [
+      {
+        "id": "cannon-cargo-scene",
+        "name": "CANNON physics cargo",
+        "type": "custom-code",
+        "zIndex": 0,
+        "startTime": 0,
+        "endTime": 8,
+        "dependencies": [
+          "CANNON"
+        ],
+        "properties": {
+          "dependencies": [
+            "CANNON"
+          ],
+          "code": "function createRenderer(){\n  let C, world, bodies=[], last=0;\n  function rr(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath()}\n  return{init(context){C=(context.libs&&context.libs.CANNON&&(context.libs.CANNON.instance||context.libs.CANNON))||CANNON||globalThis.CANNON;if(!C)return;world=new C.World({gravity:new C.Vec3(0,-18,0)});world.broadphase=new C.NaiveBroadphase();const groundBody=new C.Body({mass:0,shape:new C.Plane()});groundBody.quaternion.setFromEuler(-Math.PI/2,0,0);world.addBody(groundBody);for(let i=0;i<12;i++){const shape=new C.Box(new C.Vec3(.55+.08*(i%3),.42+.04*(i%2),.55));const body=new C.Body({mass:1.2+i*.08,shape,position:new C.Vec3(-4.8+i*.85,6.8+i*.32,0),angularVelocity:new C.Vec3(.6+i*.07,.35,0)});body.__color=['#7dd3fc','#7bd88f','#facc15','#f9a8d4'][i%4];world.addBody(body);bodies.push(body)}},render(t,context){const ctx=context.mainContext,w=context.width,h=context.height;ctx.fillStyle='#081018';ctx.fillRect(0,0,w,h);let bg=ctx.createLinearGradient(0,0,0,h);bg.addColorStop(0,'#0b1822');bg.addColorStop(.6,'#10151e');bg.addColorStop(1,'#070a0f');ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);ctx.strokeStyle='rgba(255,255,255,.06)';for(let x=140;x<w;x+=120){ctx.beginPath();ctx.moveTo(x,210);ctx.lineTo(x,h-132);ctx.stroke()}ctx.fillStyle='rgba(125,211,252,.12)';rr(ctx,90,730,w-180,110,18);ctx.fill();ctx.strokeStyle='rgba(125,211,252,.28)';ctx.lineWidth=3;ctx.stroke();ctx.fillStyle='rgba(250,204,21,.16)';rr(ctx,1180,210,470,86,18);ctx.fill();if(world){const dt=Math.max(1/60,Math.min(1/20,t-last||1/30));for(let step=0;step<2;step++)world.step(1/60,dt,3);last=t;for(let i=0;i<bodies.length;i++){const b=bodies[i];const x=w/2+b.position.x*116;const y=760-b.position.y*72;ctx.save();ctx.translate(x,y);ctx.rotate(-b.quaternion.toEuler?0:b.angle||0);ctx.fillStyle=b.__color;ctx.shadowColor=b.__color;ctx.shadowBlur=24;rr(ctx,-54,-42,108,84,10);ctx.fill();ctx.shadowBlur=0;ctx.strokeStyle='rgba(255,255,255,.58)';ctx.lineWidth=3;ctx.stroke();ctx.fillStyle='rgba(0,0,0,.25)';ctx.fillRect(-34,-4,68,8);ctx.restore()}}else{for(let i=0;i<12;i++){ctx.fillStyle=['#7dd3fc','#7bd88f','#facc15','#f9a8d4'][i%4];rr(ctx,260+i*112,600+Math.sin(t+i)*90,92,72,10);ctx.fill()}}ctx.fillStyle='#fff';ctx.font='900 56px system-ui,sans-serif';ctx.fillText('CANNON Cargo Drop',96,118);ctx.fillStyle='rgba(255,255,255,.7)';ctx.font='700 24px system-ui,sans-serif';ctx.fillText('cannon-es updates the cargo body positions before every rendered frame.',100,158);ctx.fillStyle='#facc15';ctx.font='800 21px ui-monospace,Consolas,monospace';ctx.fillText('World.step + Body + Box + Plane = visible simulated loading floor',100,908)}}\n}"
+        }
+      }
+    ]
+  }
+}

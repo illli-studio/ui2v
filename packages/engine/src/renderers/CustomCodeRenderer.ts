@@ -67,8 +67,9 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
         // Add D3.js v4/v5 compatibility layer for v7+
         this.addD3Polyfills();
 
-        if (!this.libraries['anime']) {
-            console.warn('[CustomCodeRenderer] anime.js is not preloaded; custom code can still run if it does not require anime.js.');
+        if (this.libraries['canvas2d']) {
+            (this.libraries as any).canvas = this.libraries['canvas2d'];
+            (this.libraries as any).context2d = this.libraries['canvas2d'];
         }
     }
 
@@ -430,6 +431,9 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
             properties.code = preparedCode.source;
             code = preparedCode.source;
         }
+        if (!this.libraries['anime'] && /\banime\b|\banimate\s*\(|\bcreateTimeline\s*\(|\bstagger\s*\(/.test(String(code))) {
+            console.warn('[CustomCodeRenderer] anime.js is referenced by custom code but was not preloaded. Add "anime" to dependencies for deterministic rendering.');
+        }
         this.recordRuntimeReport(layer, preparedCode, {
             dependencies: Array.isArray((properties as any).dependencies) ? (properties as any).dependencies : ((layer as any).dependencies ?? []),
         });
@@ -621,17 +625,17 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
                     // before the first render call
                     if (initResult && typeof initResult.then === 'function') {
                         instance.initReady = false;
-                        try {
-                            await initResult;
-                        } catch (e: any) {
-                            console.error(`[CustomCodeRenderer] \u274C Async init error in layer ${layer.id}:`, e);
-                            this.appendRuntimeDiagnostic(layer.id, errorToDiagnostic('init', e, {
-                                time: context.time,
-                                frame: compatibleContext.frame,
-                            }));
-                        } finally {
-                            instance.initReady = true;
-                        }
+                        instance.initPromise = initResult
+                            .catch((e: any) => {
+                                console.error(`[CustomCodeRenderer] \u274C Async init error in layer ${layer.id}:`, e);
+                                this.appendRuntimeDiagnostic(layer.id, errorToDiagnostic('init', e, {
+                                    time: context.time,
+                                    frame: compatibleContext.frame,
+                                }));
+                            })
+                            .finally(() => {
+                                instance.initReady = true;
+                            });
                     } else {
                         instance.initReady = true;
                     }
@@ -645,10 +649,8 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
                 }
             }
 
-            // Skip render until async init has completed
-            if (instance.initReady === false) {
-                return;
-            }
+            (activeContext as any).initPending = instance.initReady === false;
+            (activeContext as any).initReady = instance.initReady !== false;
 
             if (instance.exports.render) {
                 let contextSaved = false;
@@ -789,6 +791,7 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
                 simplex: unwrap(this.libraries['simplex']),
                 html2canvas: unwrap(this.libraries['html2canvas']),
                 mediabunny: unwrap(this.libraries['mediabunny']),
+                canvas2d: unwrap(this.libraries['canvas2d']),
                 SimplexNoise: (() => {
                     const simplexLib = unwrap(this.libraries['simplex']);
                     if (!simplexLib) return undefined;
@@ -892,6 +895,7 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
                         if (lowId === 'split-type') return this.libraries['SplitType'];
                         if (lowId === 'html2canvas') return this.libraries['html2canvas'];
                         if (lowId === 'mediabunny') return this.libraries['mediabunny'];
+                        if (lowId === 'canvas2d' || lowId === 'canvas' || lowId === 'context2d') return this.libraries['canvas2d'];
                         if (lowId === 'layer-sdk') return sdk;
                         return null;
                     })();
@@ -935,6 +939,7 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
             globalScope.simplex = unwrap(this.libraries['simplex']);
             globalScope.html2canvas = unwrap(this.libraries['html2canvas']);
             globalScope.mediabunny = unwrap(this.libraries['mediabunny']);
+            globalScope.canvas2d = unwrap(this.libraries['canvas2d']);
             globalScope.SimplexNoise = sandbox.SimplexNoise;
             globalScope.SplitType = unwrap(this.libraries['SplitType']);
             globalScope.fabric = unwrap(this.libraries['fabric']);
@@ -1082,7 +1087,7 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
 
                 exports = {
                     init: factoryExports.init ? (ctx: RenderContext) => {
-                        factoryExports.init(ctx);
+                        return factoryExports.init(ctx);
                     } : undefined,
                     render: (time: number, ctx: RenderContext) => {
                         if (factoryExports.update) {

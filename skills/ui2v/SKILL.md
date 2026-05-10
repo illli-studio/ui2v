@@ -138,7 +138,7 @@ Read `references/library-recipes.md` before choosing advanced dependencies and `
 
 ## Authoring rules
 
-- Write clear `duration`, `fps`, `resolution`, `backgroundColor`, `theme`, `assets`, `datasets`, and `dependencies` when relevant.
+- Write clear root metadata: `id`, human-facing `title`, one-sentence `description`, `duration`, `fps`, `resolution`, `backgroundColor`, `theme`, `assets`, `datasets`, and `dependencies` when relevant.
 - Use `timeline.segments[]` for multi-shot clips. Give every segment a label, timing, dependency list, visual purpose, and deterministic code.
 - For multi-library projects, make a library beat sheet first. Do not merge all libraries into one giant custom-code layer; split by segment or layer so each library has a visible responsibility.
 - Use camera/depth intentionally: `z < 0` increases effective zoom; `fov` controls perspective; `camera.motion[]` creates keyframed moves; segment `camera` creates shot-local moves.
@@ -147,7 +147,8 @@ Read `references/library-recipes.md` before choosing advanced dependencies and `
 - Use dependencies at top level and segment/layer level. The JSON should explain what each shot needs to load.
 - If custom code contains `THREE`, `d3`, `gsap`, `PIXI`, `Matter`, `math`, `simplex`, `SplitType`, or another supported library global, ensure the dependency list includes that library even though the runtime can infer many of them.
 - Put user-provided photos, videos, and music in an `access/` folder beside `animation.json`. Reference them as `access/name.ext` from JSON.
-- Use `image-layer`, `video-layer`, `audio-layer`, and root `audio.tracks` for local media instead of manually fetching local files in custom code. Root `audio.tracks` should be used when the sound must be muxed into the exported MP4.
+- Use `image-layer`, `video-layer`, `audio-layer`, and root `audio.tracks` for local media instead of manually fetching local files in custom code. Root `audio.tracks` should be used when the sound must be muxed into the exported MP4; `audio-layer` is the on-canvas waveform/visual layer.
+- For `video-layer`, prefer browser-decodable sources such as H.264 MP4 or VP9 WebM. Add `posterSrc` whenever possible so preview/export can draw a still fallback instead of a missing-media placeholder if a frame is slow to decode.
 - Keep custom code deterministic from `time`/`t`; seed randomness; avoid network-only assumptions.
 - Prefer a composed, inspectable project over a giant unstructured script.
 
