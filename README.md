@@ -8,106 +8,156 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/@ui2v/cli"><img alt="npm version" src="https://img.shields.io/npm/v/@ui2v/cli?color=00d4ff"></a>
-  <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-GPL3.0-f2aa4c"></a>
+  <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-MIT-f2aa4c"></a>
   <img alt="node" src="https://img.shields.io/badge/node-%3E%3D18-7bd88f">
+  <img alt="browser" src="https://img.shields.io/badge/render-Chrome%20%7C%20Edge%20%7C%20Chromium-48c7ff">
 </p>
 
-ui2v turns structured animation JSON into polished, browser-rendered MP4 video.
-Write motion graphics as code, preview them locally, and export production-ready
-clips with system Chrome/Edge automation, Canvas, WebCodecs, and Node.js.
+ui2v turns structured animation JSON into browser-rendered MP4 video. It is built for motion graphics that need to be reproducible: product launch clips, AI-authored explainers, data stories, UI demos, local-media edits, and library-heavy visual experiments that belong in Git.
 
-Custom code can load browser/npm animation libraries such as `d3`, `gsap`,
-`animejs`, `three`, `pixi.js`, `matter-js`, `mathjs`, `simplex-noise`,
-`roughjs`, `katex`, `lottie-web`, `iconify`, and more through the
-`@ui2v/engine` dependency manager.
+The core idea is simple: describe the composition in JSON, preview it in a local browser studio, then export the same timeline to MP4 through Chrome/Edge automation, Canvas, WebCodecs, and Node.js.
 
-Use it when you want launch clips, AI-generated product videos, data stories,
-UI demos, brand openers, local-media compositions, or repeatable motion systems
-that can live in Git.
+## See The Output
 
-## Highlights
+The repository includes lightweight showcase GIFs so the project is visible before you run anything.
 
-- **JSON to MP4**: validate, preview, inspect, and render animation projects from the CLI.
-- **Browser-native rendering**: drive local Chrome, Edge, or Chromium through `puppeteer-core`.
-- **Real library usage**: declare dependencies per project, segment, layer, or custom-code layer.
-- **Timeline-first demos**: split multi-library videos into visible beats instead of one giant code blob.
-- **Runtime storyboards**: use `schema: "uiv-runtime"`, `timeline.segments[]`, transitions, camera metadata, and `inspect-runtime`.
-- **Local media**: put photos, videos, and music in `access/` and reference them from JSON.
+| Product opener | Studio workflow |
+| --- | --- |
+| ![AI launch showcase](assets/showcase/hero-ai-launch.gif) | ![One minute studio showcase](assets/showcase/one-minute-studio.gif) |
+| `hero-ai-launch` style launch motion, title beats, product framing. | Preview, scrub, inspect, and export from the local browser studio. |
 
-## Codex Skill
+| Product/media composition | Render lab |
+| --- | --- |
+| ![Product showcase](assets/showcase/product-showcase.gif) | ![Render lab showcase](assets/showcase/render-lab.gif) |
+| Image, video, audio, waveform, and branded layout compositions. | Repeatable render checks, runtime frames, and export-focused workflows. |
 
-Install the repo-local ui2v skill:
+## What It Can Render
 
-```bash
-npx skills add illli-studio/ui2v --skill ui2v
-```
+ui2v is intentionally JSON-first, but it is not limited to static JSON primitives. Projects can combine:
 
-Refresh it when the repo skill changes:
+- Canvas drawing and custom-code layers
+- `image-layer`, `video-layer`, `audio-layer`, local `access/` assets, and muxed AAC audio
+- Runtime Core segmented timelines with `timeline.segments[]`, transitions, camera metadata, markers, and inspectable frame plans
+- Browser/npm libraries including `gsap`, `animejs`, `d3`, `mathjs`, `three`, `postprocessing`, `matter-js`, `cannon-es`, `pixi.js`, `p5`, `tsParticles`, `lottie-web`, `fabric`, `konva`, `paper`, `roughjs`, `katex`, `iconify`, and `opentype.js`
 
-```bash
-npx skills add illli-studio/ui2v --skill ui2v --force
-```
-
-The skill lives in [`skills/ui2v`](skills/ui2v/SKILL.md). It guides agents to
-plan segmented storyboards, choose runtime/template JSON, use XYZ/depth/camera
-features, combine real browser/npm libraries, insert local media, validate, and
-render MP4. The current skill explicitly requires visible timeline-based library
-usage, not dependency lists that render like plain Canvas.
-
-## Maintained Showcase Examples
-
-The old experimental examples have been removed. `examples/` now contains four
-maintained demos that are meant to be polished, inspectable, and useful as AI
-generation references.
-
-| Example | What It Demonstrates | Render |
-| --- | --- | --- |
-| [`examples/basic-smoke`](examples/basic-smoke/README.md) | Premium Canvas opener that still works as the smallest end-to-end smoke test. | `ui2v render examples/basic-smoke/animation.json -o .tmp/examples/basic-smoke.mp4 --quality high` |
-| [`examples/library-timeline`](examples/library-timeline/README.md) | Timeline-first multi-library showcase: GSAP/SplitType, D3/math, THREE/postprocessing, Matter/simplex/Iconify. | `ui2v render examples/library-timeline/animation.json -o .tmp/examples/library-timeline.mp4 --quality high` |
-| [`examples/access-media`](examples/access-media/README.md) | Local `access/` media: image layer, video layer, waveform layer, and muxed AAC audio. | `ui2v render examples/access-media/animation.json -o .tmp/examples/access-media.mp4 --quality high` |
-| [`examples/runtime-storyboard`](examples/runtime-storyboard/README.md) | Runtime-core segmented storytelling with transitions, segment-local dependencies, camera metadata, and inspection. | `ui2v render examples/runtime-storyboard/animation.json -o .tmp/examples/runtime-storyboard.mp4 --quality high` |
+Each maintained example is designed so the named library visibly changes pixels in the output. A dependency that never renders does not count.
 
 ## Quick Start
 
-Install the CLI:
+Install and check the CLI:
 
 ```bash
 npm install -g @ui2v/cli
 ui2v doctor
 ```
 
-Render the multi-library showcase:
+Preview and render a real project:
 
 ```bash
-ui2v validate examples/library-timeline/animation.json --verbose
-ui2v preview examples/library-timeline/animation.json --pixel-ratio 2
-ui2v render examples/library-timeline/animation.json -o .tmp/examples/library-timeline.mp4 --quality high
+ui2v validate examples/access-media/animation.json --verbose
+ui2v preview examples/access-media/animation.json --pixel-ratio 2
+ui2v render examples/access-media/animation.json -o .tmp/examples/access-media.mp4 --quality high
 ```
 
 Run without a global install:
 
 ```bash
-npx @ui2v/cli render examples/library-timeline/animation.json -o library-timeline.mp4 --quality high
+npx @ui2v/cli@latest render examples/library-timeline/animation.json -o library-timeline.mp4 --quality high
 ```
 
-Use a local workspace build:
+Use the local workspace build:
 
 ```bash
 bun install
 bun run build
-node packages/cli/dist/cli.js render examples/library-timeline/animation.json -o .tmp/examples/library-timeline.mp4 --quality high
+node packages/cli/dist/cli.js preview examples/access-media/animation.json --pixel-ratio 1
 ```
+
+## Maintained Examples
+
+The `examples/` folder is the fastest way to understand what ui2v is good at. These are maintained as generation references and release smoke targets.
+
+| Example | Main Effect | Real APIs Exercised |
+| --- | --- | --- |
+| [`basic-smoke`](examples/basic-smoke/README.md) | Premium Canvas opener and smallest end-to-end smoke test. | Canvas 2D, gradients, text, timing |
+| [`access-media`](examples/access-media/README.md) | Local media studio with image, video, waveform, and muxed audio. | `image-layer`, `video-layer`, `audio-layer`, root `audio.tracks` |
+| [`library-timeline`](examples/library-timeline/README.md) | Multi-library timeline with visible beats. | GSAP/SplitType, D3/math, THREE/postprocessing, Matter/simplex/Iconify |
+| [`runtime-storyboard`](examples/runtime-storyboard/README.md) | Segmented runtime-core storyboard. | Runtime graph, transitions, camera metadata, inspect-runtime |
+| [`pixi-signal`](examples/pixi-signal/README.md) | Rescue radar with particles, beams, scan rings, and signal nodes. | PixiJS Graphics and containers |
+| [`paper-route`](examples/paper-route/README.md) | Route planning with smoothed vector travel. | Paper.js paths, symbols, smoothing |
+| [`konva-launch-board`](examples/konva-launch-board/README.md) | Product launch board assembled from scene objects. | Konva Stage, Layer, Group, Rect, Text, Circle |
+| [`anime-motion-rig`](examples/anime-motion-rig/README.md) | Kinetic motion rig driven by timeline state. | anime.js timeline/animate APIs |
+| [`tween-control-room`](examples/tween-control-room/README.md) | Dashboard gauges with repeat/yoyo easing. | `@tweenjs/tween.js` Group and Tween |
+| [`particles-aurora`](examples/particles-aurora/README.md) | Aurora made from a live particle engine canvas. | tsParticles |
+| [`lottie-status-pack`](examples/lottie-status-pack/README.md) | Status cards that seek generated animationData each frame. | lottie-web |
+| [`p5-flow-garden`](examples/p5-flow-garden/README.md) | Generative garden and noise-based light field. | p5.js |
+| [`fabric-poster-lab`](examples/fabric-poster-lab/README.md) | Kinetic poster from editable object primitives. | Fabric.js StaticCanvas, groups, gradients |
+| [`cannon-cargo-drop`](examples/cannon-cargo-drop/README.md) | Warehouse cargo drop with real rigid-body simulation. | cannon-es |
+| [`type-systems-map`](examples/type-systems-map/README.md) | Technical type-system infographic. | KaTeX, Iconify, opentype.js |
+
+Open the full index at [examples/README.md](examples/README.md).
 
 ## Preview Studio
 
-`ui2v preview` opens a local Studio page with a searchable JSON project list,
-playback controls, frame scrubbing, playback speed, fit/theater/fullscreen
-modes, runtime debug overlay, current-frame PNG snapshots, copyable CLI render
-commands, and an **Export MP4** button that writes to `.tmp/examples`.
+`ui2v preview` starts a local browser workspace instead of a static file viewer. It includes:
+
+- searchable project list for the current workspace
+- responsive full-stage preview with correct aspect-ratio fitting
+- play/pause, timeline scrubber, current time, fullscreen, and export actions
+- live reload when the selected JSON changes
+- runtime-core rendering path, so template and runtime projects use the same preview surface
+- browser save/download flow for MP4 export
+
+```bash
+ui2v preview examples/access-media/animation.json --pixel-ratio 1
+```
+
+## Runtime Core
+
+For timeline-heavy videos, use runtime projects with segmented storyboards:
+
+```json
+{
+  "schema": "uiv-runtime",
+  "timeline": {
+    "segments": [
+      {
+        "id": "hook",
+        "startTime": 0,
+        "endTime": 2,
+        "label": "Hook",
+        "dependencies": ["gsap"]
+      }
+    ]
+  }
+}
+```
+
+Inspect the normalized scene graph and sampled frames:
+
+```bash
+ui2v inspect-runtime examples/runtime-storyboard/animation.json --time 1 --time 4 --json
+```
+
+## Local Media Workflow
+
+Put user-provided files next to `animation.json`:
+
+```text
+my-video/
+  animation.json
+  access/
+    product.png
+    clip.webm
+    clip-poster.jpg
+    music.wav
+```
+
+Use `image-layer` for stills, `video-layer` for inserted clips, and root `audio.tracks` when the sound must be muxed into the exported MP4. For video, prefer browser-decodable H.264 MP4 or VP9 WebM and include `posterSrc` when possible.
 
 ## README Asset Workflow
 
-Render MP4 for quality, then export short preview assets for GitHub:
+Render MP4 first, then create compact README assets:
 
 ```bash
 ui2v render examples/library-timeline/animation.json -o .tmp/examples/library-timeline.mp4 --quality high
@@ -121,49 +171,30 @@ ffmpeg -y -ss 1 -i .tmp/examples/library-timeline.mp4 \
   assets/showcase/library-timeline.jpg
 ```
 
-For the README, prefer 4-6 second GIFs under 3 MB. Keep full MP4 exports in
-`.tmp/examples`, release assets, issue attachments, or a CDN.
+For GitHub, prefer 4-6 second GIFs under 3 MB. Keep full MP4 files in `.tmp/examples`, release assets, issue attachments, or a CDN.
 
-## Generate A New Idea
+## AI Generation Prompt Shape
 
-ui2v projects are JSON files, so they are easy to draft with an AI coding tool
-and then render locally. A strong prompt includes root metadata (`id`, `title`,
-and `description`), format, duration, resolution, visual style, scenes,
-dependencies, local resources, and the exact output path.
+Good ui2v prompts are specific about story, timing, libraries, assets, and output:
 
 ```text
-Create a ui2v animation JSON with four visible library beats on the timeline:
-GSAP/SplitType typography, D3/math data, THREE/postprocessing depth, and
-Matter/simplex/Iconify interaction. Each beat must have its own layer or segment,
-dependencies, visible proof, and render command.
+Create a ui2v animation JSON with four visible timeline beats:
+1. GSAP/SplitType typography hook
+2. D3/math data reveal
+3. THREE/postprocessing depth shot
+4. Matter/simplex/Iconify interaction
+
+Each beat must have its own layer or segment, dependency list, visible proof,
+and a render command.
 ```
 
-## Local Media
+The repo-local Codex skill lives at [skills/ui2v/SKILL.md](skills/ui2v/SKILL.md):
 
-Put user-provided media in an `access/` folder next to `animation.json`, then
-reference it with relative paths from JSON:
-
-```text
-my-video/
-  animation.json
-  access/
-    photo.png
-    clip.webm
-    clip-poster.jpg
-    music.wav
+```bash
+npx skills add illli-studio/ui2v --skill ui2v
 ```
 
-Use `image-layer` for photos, `video-layer` for inserted video clips, and
-`audio-layer` or root `audio.tracks` for music. Root audio tracks are muxed into
-the exported MP4 as AAC. Supported audio controls include `volume`, `loop`,
-`duration`, `trimStart`, `trimEnd`, `fadeIn`, and `fadeOut`.
-
-For `video-layer`, use browser-decodable media such as H.264 MP4 or VP9 WebM.
-Add `posterSrc` when possible; export will draw that still frame instead of a
-missing-media placeholder if the browser has not decoded the requested video
-frame yet.
-
-## CLI Commands
+## CLI Reference
 
 ```bash
 ui2v doctor
@@ -186,22 +217,20 @@ ui2v render animation.json -o output.mp4 --timeout 300 --no-headless
 
 ```text
 ui2v                 Short install package for the ui2v command
-@ui2v/cli            Command-line interface implementation
-@ui2v/core           Types, parser, validator, and shared helpers
+@ui2v/cli            Command-line interface
+@ui2v/core           Project parser, validator, types, and shared helpers
 @ui2v/runtime-core   Scene graph, timeline, frame plans, adapters, commands
-@ui2v/engine         Browser Canvas renderer and WebCodecs exporter
-@ui2v/producer       System-browser preview and MP4 render pipeline
+@ui2v/engine         Canvas renderer, custom-code runtime, media, WebCodecs export
+@ui2v/producer       System-browser preview server and MP4 render pipeline
 ```
 
 ## Requirements
 
 - Node.js 18 or newer
 - Bun 1.0 or newer for workspace development
-- Locally installed Chrome, Edge, or Chromium
+- Local Chrome, Edge, or Chromium
 
-The main render path does not require Electron, FFmpeg, or `node-canvas`.
-ui2v uses `puppeteer-core`, so it does not download a bundled Chromium. If
-auto-detection fails, point ui2v at your browser:
+ui2v uses `puppeteer-core`, so it does not download a bundled browser. If auto-detection fails, point it at your browser:
 
 ```powershell
 $env:PUPPETEER_EXECUTABLE_PATH='C:\Program Files\Google\Chrome\Application\chrome.exe'; ui2v doctor
