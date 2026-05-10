@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/@ui2v/cli"><img alt="npm version" src="https://img.shields.io/npm/v/@ui2v/cli?color=00d4ff"></a>
-  <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-MIT-f2aa4c"></a>
+  <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-GPL3.0-f2aa4c"></a>
   <img alt="node" src="https://img.shields.io/badge/node-%3E%3D18-7bd88f">
 </p>
 
