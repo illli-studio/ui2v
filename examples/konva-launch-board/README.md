@@ -1,6 +1,6 @@
 # Konva Launch Board
 
-[??](README.zh.md)
+[中文](README.zh.md)
 
 A maintained real-library example where Konva nodes assemble an animated product-launch storyboard.
 

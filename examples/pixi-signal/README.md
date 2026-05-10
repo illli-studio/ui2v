@@ -1,6 +1,6 @@
 # PIXI Signal Rescue
 
-[??](README.zh.md)
+[中文](README.zh.md)
 
 A maintained real-library example where PixiJS drives the moving radar particles and expanding rescue rings.
 

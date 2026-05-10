@@ -1666,7 +1666,7 @@ function createPreviewHTML(): string {
     #stageInner { width:100%; height:100%; min-width:0; min-height:0; display:grid; place-items:center; border:0; border-radius:0; background:#0b0d12; overflow:hidden; }
     #stage:fullscreen { padding:0; background:#000; }
     #stage:fullscreen #stageInner { border:0; border-radius:0; }
-    #previewCanvas { display:block; width:0; height:0; max-width:100%; max-height:100%; background:#000; outline:1px solid rgba(255,255,255,.22); box-shadow:none; }
+    #previewCanvas { display:block; width:100%; height:auto; max-width:100%; max-height:100%; aspect-ratio:var(--ui2v-aspect, 16 / 9); background:#000; outline:1px solid rgba(255,255,255,.22); box-shadow:none; }
     #controls { width:100%; min-width:0; min-height:56px; display:grid; grid-template-columns:auto auto minmax(160px,1fr) auto; gap:10px; align-items:center; padding:9px 14px; border-top:1px solid var(--line); background:var(--panel); }
     button { width:38px; height:38px; display:grid; place-items:center; border:1px solid var(--line); border-radius:7px; color:var(--text); background:rgba(255,255,255,.08); cursor:pointer; }
     button:hover { border-color:rgba(72,199,255,.44); background:rgba(72,199,255,.12); }
@@ -1876,6 +1876,7 @@ function createPreviewHTML(): string {
       const scale = Math.min(bounds.width / width, bounds.height / height);
       const displayWidth = Math.max(1, Math.floor(width * scale));
       const displayHeight = Math.max(1, Math.floor(height * scale));
+      canvas.style.setProperty('--ui2v-aspect', width + ' / ' + height);
       canvas.style.width = displayWidth + 'px';
       canvas.style.height = displayHeight + 'px';
     }

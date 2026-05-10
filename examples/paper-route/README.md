@@ -1,6 +1,6 @@
 # Paper Route Planner
 
-[??](README.zh.md)
+[中文](README.zh.md)
 
 A maintained real-library example where Paper.js owns the vector route, smoothing, checkpoints, and moving point.
 
