@@ -3,7 +3,15 @@
 [English](README.md)
 
 ui2v 的浏览器渲染引擎。它将项目渲染到 Canvas，并通过 WebCodecs 支持浏览器
-原生 MP4 导出。
+原生 MP4 导出。它也负责 `custom-code` 图层的浏览器/npm 依赖按需加载。
+
+**核心库（有维护示例）：** `d3`、`gsap`、`animejs`、`three`、`pixi.js`、`matter-js`、`lottie-web`。
+
+**扩展库：** `fabric`、`konva`、`paper`、`p5`、`tsparticles`、`cannon-es`、`roughjs`、`@tweenjs/tween.js`、`katex`、`iconify`、`opentype.js`、`split-type`。
+
+**实验库（loader 在，暂无维护示例）：** `postprocessing`、`simplex-noise`、`mathjs`。
+
+浏览器/npm 库通过固定的 CDN import map（`BROWSER_LIBRARY_IMPORT_MAP`）按需加载，不再是 CLI 安装时的 npm 硬依赖。
 
 ## 安装
 

@@ -38,7 +38,9 @@ ui2v is intentionally JSON-first, but it is not limited to static JSON primitive
 - Canvas drawing and custom-code layers
 - `image-layer`, `video-layer`, `audio-layer`, local `access/` assets, and muxed AAC audio
 - Runtime Core segmented timelines with `timeline.segments[]`, transitions, camera metadata, markers, and inspectable frame plans
-- Browser/npm libraries including `gsap`, `animejs`, `d3`, `mathjs`, `three`, `postprocessing`, `matter-js`, `cannon-es`, `pixi.js`, `p5`, `tsParticles`, `lottie-web`, `fabric`, `konva`, `paper`, `roughjs`, `katex`, `iconify`, and `opentype.js`
+- **Core libraries (maintained examples)**: `canvas2d`, `gsap`, `animejs`, `d3`, `three`, `pixi.js`, `lottie-web`, `matter-js`
+- **Extended libraries (dedicated examples)**: `fabric`, `konva`, `paper`, `p5`, `tsParticles`, `cannon-es`, `roughjs`, `@tweenjs/tween.js`, `katex`, `iconify`, `opentype.js`, `split-type`
+- **Experimental libraries (loader support, no maintained example yet)**: `postprocessing`, `simplex-noise`, `mathjs`
 
 Each maintained example is designed so the named library visibly changes pixels in the output. A dependency that never renders does not count.
 
@@ -81,7 +83,7 @@ The `examples/` folder is the fastest way to understand what ui2v is good at. Th
 | --- | --- | --- |
 | [`basic-smoke`](examples/basic-smoke/README.md) | Premium Canvas opener and smallest end-to-end smoke test. | Canvas 2D, gradients, text, timing |
 | [`access-media`](examples/access-media/README.md) | Local media studio with image, video, waveform, and muxed audio. | `image-layer`, `video-layer`, `audio-layer`, root `audio.tracks` |
-| [`library-timeline`](examples/library-timeline/README.md) | Multi-library timeline with visible beats. | GSAP/SplitType, D3/math, THREE/postprocessing, Matter/simplex/Iconify |
+| [`library-timeline`](examples/library-timeline/README.md) | Multi-library timeline with visible beats. | `gsap`, `d3`, `THREE`, `Matter`, `rough`, `SplitType` |
 | [`runtime-storyboard`](examples/runtime-storyboard/README.md) | Segmented runtime-core storyboard. | Runtime graph, transitions, camera metadata, inspect-runtime |
 | [`pixi-signal`](examples/pixi-signal/README.md) | Rescue radar with particles, beams, scan rings, and signal nodes. | PixiJS Graphics and containers |
 | [`paper-route`](examples/paper-route/README.md) | Route planning with smoothed vector travel. | Paper.js paths, symbols, smoothing |
@@ -179,10 +181,10 @@ Good ui2v prompts are specific about story, timing, libraries, assets, and outpu
 
 ```text
 Create a ui2v animation JSON with four visible timeline beats:
-1. GSAP/SplitType typography hook
-2. D3/math data reveal
-3. THREE/postprocessing depth shot
-4. Matter/simplex/Iconify interaction
+1. GSAP typography hook
+2. D3 data reveal
+3. THREE depth shot
+4. Matter physics interaction
 
 Each beat must have its own layer or segment, dependency list, visible proof,
 and a render command.

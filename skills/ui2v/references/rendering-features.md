@@ -13,12 +13,13 @@
 ui2v can combine browser rendering APIs with built-in/npm libraries, including:
 
 - Timeline/easing: `gsap`, `anime`, `TWEEN`.
-- Data/math: `d3`, `mathjs`.
-- 3D/post effects: `three`, `postprocessing`, `globe.gl`.
-- Physics: `matter-js`, `cannon`.
-- Creative 2D/generative: `pixi.js`, `p5`, `tsparticles`, `simplex-noise`.
+- Data: `d3`.
+- 3D: `three`.
+- Physics: `matter-js`, `cannon-es`.
+- Creative 2D/generative: `pixi.js`, `p5`, `tsparticles`.
 - Object/vector systems: `fabric`, `konva`, `paper`, `roughjs`.
 - Text/assets: `split-type`, `opentype.js`, `katex`, `lottie`, `iconify`.
+- Experimental loaders (no maintained example yet): `postprocessing`, `simplex-noise`, `mathjs`.
 - Direct browser drawing/compositing: Canvas APIs and related custom-code layers.
 
 ## Project formats

@@ -52,18 +52,19 @@ Use canonical keys recognized by the library manager when possible:
 
 | Intent | Dependencies |
 | --- | --- |
-| Data chart reveal | `["canvas2d", "d3", "math"]` |
+| Data chart reveal | `["canvas2d", "d3"]` |
 | Product/UI launch | `["canvas2d", "gsap", "SplitType"]` |
-| 3D scene | `["THREE", "POSTPROCESSING"]` |
-| Globe/network | `["THREE", "Globe"]` |
+| 3D scene | `["THREE"]` |
 | 2D physics | `["canvas2d", "Matter"]` |
 | 3D physics | `["THREE", "CANNON"]` |
-| Particles | `["PIXI", "tsParticles"]` or `["canvas2d", "simplex"]` |
-| Typography/glyphs | `["canvas2d", "SplitType", "opentype"]` |
+| Particles | `["PIXI", "tsParticles"]` |
+| Typography/glyphs | `["canvas2d", "opentype"]` |
 | Equations | `["canvas2d", "katex"]` |
 | Lottie/icons | `["canvas2d", "lottie", "iconify"]` |
 
-Aliases may normalize, but use canonical names in new JSON: `anime`, `THREE`, `Matter`, `emotion`, `katex`, `math`, `d3`, `gsap`, `p5`, `fabric`, `rough`, `PIXI`, `TWEEN`, `paper`, `Konva`, `lottie`, `iconify`, `Globe`, `tsParticles`, `CANNON`, `POSTPROCESSING`, `opentype`, `simplex`, `SplitType`.
+**Core canonical names:** `anime`, `THREE`, `Matter`, `katex`, `d3`, `gsap`, `p5`, `fabric`, `rough`, `PIXI`, `TWEEN`, `paper`, `Konva`, `lottie`, `iconify`, `tsParticles`, `CANNON`, `opentype`, `SplitType`, `canvas2d`.
+
+**Experimental (loader only, no maintained example yet):** `POSTPROCESSING`, `simplex`, `math`.
 
 ## Multi-library timeline pattern
 
@@ -266,8 +267,8 @@ For libraries with heavy setup (`THREE`, `PIXI`, `Matter`, `CANNON`), avoid nond
 Runtime-core can inspect/sanitize common code forms. It detects entrypoints such as `createRenderer`, `createAnimation`, `render`, `setup/draw`, `module.exports`, and `export default`, and can infer some dependency hints from code. Still, explicit `dependencies` in JSON are preferred.
 
 If code mentions supported globals such as `THREE`, `d3`, `gsap`, `PIXI`,
-`Matter`, `fabric`, `rough`, `p5`, `paper`, `Konva`, `TWEEN`, `math`, `katex`,
-`Globe`, `tsParticles`, `CANNON`, `POSTPROCESSING`, `opentype`, `simplex`, or
-`SplitType`, ui2v will add those dependencies to the runtime plan before
+`Matter`, `fabric`, `rough`, `p5`, `paper`, `Konva`, `TWEEN`, `katex`,
+`tsParticles`, `CANNON`, `opentype`, `lottie`, `iconify`, `math`, `simplex`,
+or `SplitType`, ui2v will add those dependencies to the runtime plan before
 preview/render. Do not rely on that as your only documentation; keep the JSON
 dependency list in sync with the visual plan.

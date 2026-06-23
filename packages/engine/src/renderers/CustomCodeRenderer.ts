@@ -759,7 +759,6 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
                 paper: unwrap(this.libraries['paper']),
                 math: unwrap(this.libraries['math']),
                 katex: unwrap(this.libraries['katex']),
-                emotion: unwrap(this.libraries['emotion']),
                 iconify: unwrap(this.libraries['iconify']),
                 // [FIX] Standard naming for locals
                 THREE: unwrap(this.libraries['THREE']),
@@ -783,14 +782,11 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
                 fabric: unwrap(this.libraries['fabric']),
                 rough: unwrap(this.libraries['rough']),
                 TWEEN: unwrap(this.libraries['TWEEN']),
-                Globe: unwrap(this.libraries['Globe']),
                 tsParticles: unwrap(this.libraries['tsParticles']),
                 CANNON: unwrap(this.libraries['CANNON']),
                 POSTPROCESSING: unwrap(this.libraries['POSTPROCESSING']),
                 opentype: unwrap(this.libraries['opentype']),
                 simplex: unwrap(this.libraries['simplex']),
-                html2canvas: unwrap(this.libraries['html2canvas']),
-                mediabunny: unwrap(this.libraries['mediabunny']),
                 canvas2d: unwrap(this.libraries['canvas2d']),
                 SimplexNoise: (() => {
                     const simplexLib = unwrap(this.libraries['simplex']);
@@ -884,17 +880,13 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
                         if (lowId === 'paper' || lowId === 'paperjs') return this.libraries['paper'];
                         if (lowId === 'mathjs' || lowId === 'math') return this.libraries['math'];
                         if (lowId === 'katex') return this.libraries['katex'];
-                        if (lowId === 'emotion' || lowId === '@emotion/css') return this.libraries['emotion'];
                         if (lowId === 'iconify' || lowId === 'iconify-icon' || lowId === '@iconify/iconify') return this.libraries['iconify'];
-                        if (lowId === 'globe.gl' || lowId === 'globe') return this.libraries['Globe'];
                         if (lowId === 'tsparticles' || lowId === 'tsparticles-engine') return this.libraries['tsParticles'];
                         if (lowId === 'cannon-es' || lowId === 'cannon') return this.libraries['CANNON'];
                         if (lowId === 'postprocessing') return this.libraries['POSTPROCESSING'];
                         if (lowId === 'opentype.js' || lowId === 'opentype') return this.libraries['opentype'];
                         if (lowId === 'simplex-noise') return this.libraries['simplex'];
                         if (lowId === 'split-type') return this.libraries['SplitType'];
-                        if (lowId === 'html2canvas') return this.libraries['html2canvas'];
-                        if (lowId === 'mediabunny') return this.libraries['mediabunny'];
                         if (lowId === 'canvas2d' || lowId === 'canvas' || lowId === 'context2d') return this.libraries['canvas2d'];
                         if (lowId === 'layer-sdk') return sdk;
                         return null;
@@ -931,15 +923,11 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
             globalScope.p5 = unwrap(this.libraries['p5']);
             globalScope.d3 = unwrap(this.libraries['d3']);
             globalScope.gsap = unwrap(this.libraries['gsap']);
-            globalScope.Globe = unwrap(this.libraries['Globe']);
             globalScope.tsParticles = unwrap(this.libraries['tsParticles']);
             globalScope.CANNON = unwrap(this.libraries['CANNON']);
             globalScope.POSTPROCESSING = unwrap(this.libraries['POSTPROCESSING']);
             globalScope.opentype = unwrap(this.libraries['opentype']);
             globalScope.simplex = unwrap(this.libraries['simplex']);
-            globalScope.html2canvas = unwrap(this.libraries['html2canvas']);
-            globalScope.mediabunny = unwrap(this.libraries['mediabunny']);
-            globalScope.canvas2d = unwrap(this.libraries['canvas2d']);
             globalScope.SimplexNoise = sandbox.SimplexNoise;
             globalScope.SplitType = unwrap(this.libraries['SplitType']);
             globalScope.fabric = unwrap(this.libraries['fabric']);
@@ -949,8 +937,8 @@ export class CustomCodeRenderer extends BaseRenderer implements IRenderer {
             globalScope.paper = unwrap(this.libraries['paper']);
             globalScope.math = unwrap(this.libraries['math']);
             globalScope.katex = unwrap(this.libraries['katex']);
-            globalScope.emotion = unwrap(this.libraries['emotion']);
             globalScope.iconify = unwrap(this.libraries['iconify']);
+            globalScope.canvas2d = unwrap(this.libraries['canvas2d']);
 
             // [FIX] Provide a stub for NodeList since it might be referenced by GSAP or other libraries looking for DOM elements
             if (typeof NodeList === 'undefined') {

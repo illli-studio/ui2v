@@ -21,7 +21,7 @@ node packages/cli/dist/cli.js preview examples/access-media/animation.json --pix
 | --- | --- | --- | --- |
 | [`basic-smoke`](basic-smoke/README.zh.md) | 带光效、文字、渐变和运动的精致发布卡。 | Canvas 2D custom-code | `node packages/cli/dist/cli.js preview examples/basic-smoke/animation.json --pixel-ratio 1` |
 | [`access-media`](access-media/README.zh.md) | 图片面板、插入视频、动态波形和导出音轨。 | `image-layer`、`video-layer`、`audio-layer`、`audio.tracks` | `node packages/cli/dist/cli.js preview examples/access-media/animation.json --pixel-ratio 1` |
-| [`library-timeline`](library-timeline/README.zh.md) | 多镜头库能力展示，每个时间段都有明确视觉任务。 | GSAP/SplitType、D3/math、THREE/postprocessing、Matter/simplex/Iconify | `node packages/cli/dist/cli.js preview examples/library-timeline/animation.json --pixel-ratio 1` |
+| [`library-timeline`](library-timeline/README.zh.md) | 多镜头库能力展示，每个时间段都有明确视觉任务。 | `gsap`、`d3`、`THREE`、`Matter`、`rough`、`SplitType` | `node packages/cli/dist/cli.js preview examples/library-timeline/animation.json --pixel-ratio 1` |
 | [`runtime-storyboard`](runtime-storyboard/README.zh.md) | 带转场、相机 metadata 和可检查帧的分段故事。 | Runtime Core adapter 和 timeline segments | `node packages/cli/dist/cli.js preview examples/runtime-storyboard/animation.json --pixel-ratio 1` |
 | [`pixi-signal`](pixi-signal/README.zh.md) | 救援雷达：粒子、扫描光束、扩散环和信号节点。 | PixiJS Graphics、containers、canvas 合成 | `node packages/cli/dist/cli.js preview examples/pixi-signal/animation.json --pixel-ratio 1` |
 | [`paper-route`](paper-route/README.zh.md) | 平滑矢量路线、检查点和移动点。 | Paper.js paths、groups、symbols、smoothing | `node packages/cli/dist/cli.js preview examples/paper-route/animation.json --pixel-ratio 1` |

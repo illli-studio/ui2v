@@ -19,11 +19,10 @@ Before coding against a browser/npm library, confirm that the available `ui2v` C
 
 ## Runtime loading contract
 
-`@ui2v/engine` installs the supported browser/npm libraries and loads them on
-demand. `@ui2v/runtime-core` builds a dependency plan from project, segment, and
-node metadata, then also infers common libraries from custom-code references
-such as `THREE`, `d3`, `gsap`, `PIXI`, `Matter`, `math`, `simplex`, and
-`SplitType`.
+`@ui2v/engine` loads supported browser/npm libraries on demand. `@ui2v/runtime-core`
+builds a dependency plan from project, segment, and node metadata, then also infers
+common libraries from custom-code references such as `THREE`, `d3`, `gsap`, `PIXI`,
+and `Matter`.
 
 AI-authored examples should still list dependencies explicitly. Treat inference
 as a safety net for snippets that forgot metadata, not as the main authoring
@@ -35,10 +34,10 @@ For multi-library requests, create a library beat sheet before writing JSON. The
 
 | Time | Segment/layer | Libraries | Real API use | Visible proof |
 | --- | --- | --- | --- | --- |
-| 0-1.5s | kinetic title | `gsap`, `SplitType` | split words/letters, eased reveal | letters enter independently with staggered timing |
-| 1.5-3s | data proof | `d3`, `math` | scales, curves, interpolation/stat values | chart axes/bars/curve animate from data |
-| 3-4.5s | spatial beat | `THREE`, `POSTPROCESSING` | camera, mesh, lights, bloom/pass | 3D object or globe moves with depth |
-| 4.5-6s | particle/flow beat | `PIXI`, `simplex` | sprite/container or noise field | particles/flow paths move organically |
+| 0-1.5s | kinetic title | `gsap`, `SplitType` | split chars, eased stagger | letters enter independently with staggered timing |
+| 1.5-3s | data proof | `d3` | scales, curves, path geometry | chart axes/bars/curve animate from data |
+| 3-4.5s | spatial beat | `THREE` | camera, mesh, lights | 3D object moves with depth |
+| 4.5-6s | particle beat | `PIXI`, `tsParticles` | sprite/container or particle engine | particles move organically |
 | 6-7.5s | physics/object beat | `Matter` or `Konva` | engine bodies or stage/groups | objects collide, settle, or transform as objects |
 | 7.5-9s | icon/media beat | `iconify`, `lottie`, media layers | icon JSON/SVG path or animation asset | recognizable icon/motion/media appears correctly |
 
@@ -56,24 +55,22 @@ Use for polished staged motion: launch beats, panel choreography, scroll-like re
 
 - Prefer timeline objects or explicit easing curves over ad-hoc nested conditions.
 - Keep all animation driven by render time so preview and MP4 output match.
-- Pair with `SplitType` for word/letter choreography.
+- Pair with `SplitType` for word/letter choreography. See `examples/library-timeline` beat 6.
 
-## Data and math: d3 / mathjs
+## Data: d3
 
 Use when generated layouts or data stories matter:
 
 - `d3`: scales, axes, curves, arcs, stacked bars, force layouts, map projections.
-- `mathjs`: formulas, interpolation, statistics, matrices, generated values.
 
-A common pattern is to calculate geometry with d3/mathjs and draw the final video layer with the active renderer.
+A common pattern is to calculate geometry with d3 and draw the final video layer with the active renderer.
 
-## 3D and spatial visuals: THREE / POSTPROCESSING / Globe
+## 3D visuals: THREE
 
-Use for real depth: cameras, lights, meshes, product objects, 3D grids, space scenes, volumetric-feeling motion, postprocessing, and globe/network arcs.
+Use for real depth: cameras, lights, meshes, product objects, 3D grids, and space scenes.
 
 - Use `THREE` when projection math is not enough.
-- Use `POSTPROCESSING` for bloom, depth-of-field, glitch, or color passes.
-- Use `Globe` for geospatial dashboards, global networks, and arc maps.
+- `POSTPROCESSING` is experimental until a maintained example exists.
 
 ## Physics: Matter / CANNON
 
@@ -82,14 +79,12 @@ Use for real depth: cameras, lights, meshes, product objects, 3D grids, space sc
 
 Keep simulations deterministic. For README clips, short controlled physics beats are better than long chaotic simulations.
 
-## High-density creative scenes: PIXI / p5 / tsParticles / simplex
+## High-density creative scenes: PIXI / p5 / tsParticles
 
 - `PIXI`: sprite-heavy scenes, many moving objects, GPU-style 2D effects.
 - `p5`: procedural sketches, generative art, creative coding scenes.
 - `tsParticles`: reusable particle systems and background fields.
-- `simplex`: organic flow fields, waves, terrain, liquid-like motion.
-
-Use these when they make the visual richer or easier than hand-writing every primitive.
+- `simplex` is experimental until a maintained example exists.
 
 ## Object/vector systems: fabric / Konva / paper / rough
 
@@ -100,11 +95,9 @@ Use these when they make the visual richer or easier than hand-writing every pri
 
 ## Text, glyphs, equations: SplitType / opentype / katex
 
-- `SplitType`: word/letter choreography and headline reveals.
+- `SplitType`: word/letter choreography and headline reveals. Pair with `gsap` timelines.
 - `opentype`: glyph outlines, text-as-shape effects, path-based logos.
 - `katex`: math/equation explainer videos.
-
-Use these when typography is part of the motion concept, not just labels.
 
 ## Assets and icons: lottie / iconify
 

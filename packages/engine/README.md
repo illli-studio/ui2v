@@ -4,10 +4,17 @@
 
 Browser rendering engine for ui2v. It renders projects to Canvas and supports
 browser-native MP4 export through WebCodecs.
-It also owns the browser/npm dependency manager used by `custom-code` layers, so
-libraries like `d3`, `gsap`, `animejs`, `three`, `pixi.js`, `matter-js`,
-`mathjs`, `simplex-noise`, `roughjs`, `katex`, and `lottie-web` are loaded on
-demand when a project declares or implies them.
+It also owns the browser/npm dependency manager used by `custom-code` layers.
+
+**Core libraries (maintained examples):** `d3`, `gsap`, `animejs`, `three`, `pixi.js`, `matter-js`, `lottie-web`.
+
+**Extended libraries:** `fabric`, `konva`, `paper`, `p5`, `tsparticles`, `cannon-es`, `roughjs`, `@tweenjs/tween.js`, `katex`, `iconify`, `opentype.js`, `split-type`.
+
+**Experimental loaders:** `postprocessing`, `simplex-noise`, `mathjs`.
+
+Browser/npm libraries are loaded on demand through a pinned CDN import map
+(`BROWSER_LIBRARY_IMPORT_MAP`). They are not required npm dependencies for CLI
+installs.
 
 ## Install
 
@@ -46,7 +53,7 @@ Projects can declare dependencies on a custom-code layer:
 ```json
 {
   "type": "custom-code",
-  "dependencies": ["d3", "gsap", "three", "mathjs"],
+  "dependencies": ["d3", "gsap", "three"],
   "properties": {
     "code": "function render(t, context) { const v = new THREE.Vector3(1, 2, 3); }"
   }
@@ -54,9 +61,8 @@ Projects can declare dependencies on a custom-code layer:
 ```
 
 The runtime also infers common dependencies from code references such as
-`THREE`, `d3`, `gsap`, `PIXI`, `Matter`, `simplex`, and `SplitType`. Explicit
-metadata is still recommended because it makes AI-authored projects easier to
-audit.
+`THREE`, `d3`, `gsap`, `PIXI`, and `Matter`. Explicit metadata is still
+recommended because it makes AI-authored projects easier to audit.
 
 ## Notes
 

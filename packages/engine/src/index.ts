@@ -54,6 +54,7 @@ export {
   type PreparedCustomCode
 } from './sandbox/CustomCodeRuntime';
 export { LibraryManager, getLibraryManager, type LibraryInfo } from './sandbox/LibraryManager';
+export { BROWSER_LIBRARY_IMPORT_MAP } from './sandbox/browserImportMap';
 
 export { WebCodecsExporter, type WebCodecsExportOptions, type WebCodecsExportProgress } from './export/WebCodecsExporter';
 export {

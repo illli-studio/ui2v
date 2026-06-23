@@ -9,11 +9,12 @@ status text.
 
 | Time | Library | Real use |
 | --- | --- | --- |
-| 0-2s | `gsap` | A paused `gsap.timeline` controls position, rotation, and glow before the canvas draw. |
+| 0-2s | `gsap` | A paused `gsap.timeline` eases the title, progress rail, and staggered chips before canvas draw. |
 | 2-4s | `d3` | `d3.scaleLinear`, `d3.line`, and `d3.area` generate the chart geometry drawn into the frame. |
 | 4-6s | `THREE` | `THREE.WebGLRenderer` renders a real WebGL cube to an offscreen canvas, then composites it back. |
 | 6-8s | `Matter` | `Matter.Engine.update` advances rigid bodies; the layer draws their simulated positions. |
 | 8-10s | `rough` | `rough.canvas(mainCanvas)` draws hand-sketched rectangles, circles, and curves directly on the canvas. |
+| 10-12s | `SplitType` + `gsap` | `SplitType({types:'chars'})` splits the headline; a paused `gsap.timeline` staggers each char before canvas draw. |
 
 ```bash
 node packages/cli/dist/cli.js validate examples/library-timeline/animation.json --verbose

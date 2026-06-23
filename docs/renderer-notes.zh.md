@@ -58,5 +58,5 @@ ui2v preview animation.json --pixel-ratio 2
 
 ## 约束
 
-- 浏览器端依赖目前来自 producer import map，可能使用固定的 CDN URL。
+- 浏览器端动画库通过 `@ui2v/engine` 的 CDN import map 按需加载，不再作为 CLI 安装的 npm 硬依赖。
 - 超大导出仍然取决于当前 Chromium 构建的 WebCodecs codec 支持和可用内存。

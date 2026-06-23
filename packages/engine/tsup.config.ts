@@ -14,7 +14,6 @@ export default defineConfig({
     'fs',
     'path',
     'os',
-    'html2canvas',
     'mediabunny',
     // Mark all animation libraries as external - they'll be loaded via CDN
     'gsap',
@@ -36,11 +35,9 @@ export default defineConfig({
     'mathjs',
     '@tsparticles/engine',
     'tsparticles',
-    'globe.gl',
     'konva',
     'postprocessing',
-    '@tweenjs/tween.js',
-    '@emotion/css'
+    '@tweenjs/tween.js'
   ],
   // Don't bundle node_modules - they'll be loaded via CDN
   noExternal: [],

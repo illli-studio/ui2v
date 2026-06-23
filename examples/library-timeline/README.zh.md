@@ -6,11 +6,12 @@
 
 | 时间 | 库 | 真实用途 |
 | --- | --- | --- |
-| 0-2s | `gsap` | 暂停的 `gsap.timeline` 控制位置、旋转和发光，再由 canvas 绘制出来。 |
+| 0-2s | `gsap` | 暂停的 `gsap.timeline` 用 back/power/stagger 驱动标题、进度条和三枚 chip 入场。 |
 | 2-4s | `d3` | `d3.scaleLinear`、`d3.line` 和 `d3.area` 生成图表几何路径。 |
 | 4-6s | `THREE` | `THREE.WebGLRenderer` 真正渲染 WebGL 立方体到离屏 canvas，再合成回主画布。 |
 | 6-8s | `Matter` | `Matter.Engine.update` 推进刚体世界，画面绘制真实模拟位置。 |
 | 8-10s | `rough` | `rough.canvas(mainCanvas)` 直接在主画布上画手绘矩形、圆和曲线。 |
+| 10-12s | `SplitType` + `gsap` | `SplitType({types:'chars'})` 拆字，暂停的 `gsap.timeline` 逐字 stagger 入场，再绘制到 canvas。 |
 
 ```bash
 node packages/cli/dist/cli.js validate examples/library-timeline/animation.json --verbose

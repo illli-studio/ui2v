@@ -85,9 +85,6 @@ export class CodeSandbox {
         case 'matterjs':
           await libraryManager.loadMatter();
           break;
-        case 'emotion':
-          await libraryManager.loadEmotion();
-          break;
         case 'katex':
           await libraryManager.loadKatex();
           break;
@@ -190,7 +187,7 @@ export class CodeSandbox {
       Date
     };
 
-    const libraries = ['anime', 'THREE', 'Matter', 'emotion', 'katex', 'math', 'd3', 'gsap', 'p5', 'fabric', 'rough', 'PIXI', 'TWEEN', 'paper', 'Chart'];
+    const libraries = ['anime', 'THREE', 'Matter', 'katex', 'math', 'd3', 'gsap', 'p5', 'fabric', 'rough', 'PIXI', 'TWEEN', 'paper'];
     libraries.forEach(libName => {
       const lib = libraryManager.getLibrary(libName);
       sandbox[libName] = lib;

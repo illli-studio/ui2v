@@ -226,15 +226,12 @@ export function extractDependenciesFromCode(code: string): string[] {
     [/\bTWEEN\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]@tweenjs\/tween\.js['"]/, '@tweenjs/tween.js'],
     [/\bmath\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]mathjs['"]/, 'mathjs'],
     [/\bkatex\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]katex['"]/, 'katex'],
-    [/\bGlobe\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]globe\.gl['"]/, 'globe.gl'],
     [/\btsParticles\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]tsparticles['"]/, 'tsparticles'],
     [/\bCANNON\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]cannon-es['"]/, 'cannon-es'],
     [/\bPOSTPROCESSING\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]postprocessing['"]/, 'postprocessing'],
     [/\bopentype\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]opentype\.js['"]/, 'opentype.js'],
     [/\bSimplexNoise\b|\bsimplex\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]simplex-noise['"]/, 'simplex-noise'],
     [/\bSplitType\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]split-type['"]/, 'split-type'],
-    [/\bhtml2canvas\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]html2canvas['"]/, 'html2canvas'],
-    [/\bmediabunny\b|(?:import|from|require)\s*(?:\(|[^'"]*)['"]mediabunny['"]/, 'mediabunny'],
   ];
 
   for (const [pattern, dependency] of patterns) {

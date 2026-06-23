@@ -32,46 +32,6 @@ export class LibraryManager {
       });
   }
 
-  /**
-   */
-  async preloadAll(): Promise<void> {
-    // [FIX] Use safe execution to prevent one library failure from blocking everything
-    const promises = [
-      this.loadAnime(),
-      this.loadThree(),
-      this.loadMatter(),
-      this.loadEmotion(),
-      this.loadKatex(),
-      this.loadMathjs(),
-      this.loadD3(),
-      this.loadGSAP(),
-      this.loadP5(),
-      this.loadFabric(),
-      this.loadRough(),
-      this.loadPixi(),
-      this.loadTween(),
-      this.loadPaper(),
-      this.loadKonva(),
-      this.loadLottie(),
-      this.loadIconify(),
-      this.loadGlobeGL(),
-      this.loadTsParticles(),
-      this.loadCannon(),
-      this.loadPostProcessing(),
-      this.loadOpentype(),
-      this.loadSimplexNoise(),
-      this.loadSplitType(),
-      this.loadHtml2Canvas(),
-      this.loadMediabunny()
-    ];
-    
-    // We wait for all to finish, regardless of success or failure
-    await Promise.all(promises.map(p => p.catch(e => {
-        console.warn('[LibraryManager] Preload partial failure:', e);
-        return null;
-    })));
-  }
-
   async preloadDependencies(dependencies: string[]): Promise<void> {
     const normalized = Array.from(new Set(dependencies.map(name => this.normalizeLibraryName(name)).filter(Boolean)));
     await Promise.all(normalized.map(name => this.loadByName(name).catch(error => {
@@ -92,7 +52,6 @@ export class LibraryManager {
       matter: 'Matter',
       matterjs: 'Matter',
       'matter-js': 'Matter',
-      emotion: 'emotion',
       katex: 'katex',
       math: 'math',
       mathjs: 'math',
@@ -117,8 +76,6 @@ export class LibraryManager {
       lottie: 'lottie',
       'lottie-web': 'lottie',
       iconify: 'iconify',
-      globe: 'Globe',
-      'globe.gl': 'Globe',
       tsparticles: 'tsParticles',
       particles: 'tsParticles',
       cannon: 'CANNON',
@@ -130,8 +87,6 @@ export class LibraryManager {
       'simplex-noise': 'simplex',
       splittype: 'SplitType',
       'split-type': 'SplitType',
-      html2canvas: 'html2canvas',
-      mediabunny: 'mediabunny',
       canvas: 'canvas2d',
       canvas2d: 'canvas2d',
       'canvas-2d': 'canvas2d',
@@ -147,7 +102,6 @@ export class LibraryManager {
       case 'anime': return this.loadAnime();
       case 'THREE': return this.loadThree();
       case 'Matter': return this.loadMatter();
-      case 'emotion': return this.loadEmotion();
       case 'katex': return this.loadKatex();
       case 'math': return this.loadMathjs();
       case 'd3': return this.loadD3();
@@ -161,15 +115,12 @@ export class LibraryManager {
       case 'Konva': return this.loadKonva();
       case 'lottie': return this.loadLottie();
       case 'iconify': return this.loadIconify();
-      case 'Globe': return this.loadGlobeGL();
       case 'tsParticles': return this.loadTsParticles();
       case 'CANNON': return this.loadCannon();
       case 'POSTPROCESSING': return this.loadPostProcessing();
       case 'opentype': return this.loadOpentype();
       case 'simplex': return this.loadSimplexNoise();
       case 'SplitType': return this.loadSplitType();
-      case 'html2canvas': return this.loadHtml2Canvas();
-      case 'mediabunny': return this.loadMediabunny();
       case 'canvas2d': return this.loadCanvas2D();
       default:
         console.warn(`[LibraryManager] Unknown dependency "${name}"`);
@@ -333,45 +284,6 @@ export class LibraryManager {
     })();
 
     this.loadPromises.set('Matter', loadPromise);
-    return loadPromise;
-  }
-
-  /**
-   */
-  async loadEmotion(): Promise<any> {
-    if (this.libraries.has('emotion')) {
-      return this.libraries.get('emotion')!.instance;
-    }
-
-    if (this.loadPromises.has('emotion')) {
-      return this.loadPromises.get('emotion');
-    }
-
-    const loadPromise = (async () => {
-      try {
-        const emotion = await import('@emotion/css');
-
-        this.libraries.set('emotion', {
-          name: 'Emotion',
-          version: '11.x',
-          loaded: true,
-          instance: emotion
-        });
-
-        return emotion;
-      } catch (error) {
-        // console.error('❌ Emotion load failed:', error);
-        this.libraries.set('emotion', {
-          name: 'Emotion',
-          version: '11.x',
-          loaded: false,
-          instance: null
-        });
-        return null;
-      }
-    })();
-
-    this.loadPromises.set('emotion', loadPromise);
     return loadPromise;
   }
 
@@ -968,40 +880,6 @@ export class LibraryManager {
 
   /**
    */
-  async loadGlobeGL(): Promise<any> {
-    if (this.libraries.has('Globe')) {
-      return this.libraries.get('Globe')!.instance;
-    }
-
-    if (this.loadPromises.has('Globe')) {
-      return this.loadPromises.get('Globe');
-    }
-
-    const loadPromise = (async () => {
-      try {
-        const globeModule = await this.withTimeout(import('globe.gl'), 15000, 'globe.gl');
-        const instance = globeModule.default || globeModule;
-
-        this.libraries.set('Globe', {
-          name: 'Globe.gl',
-          version: '2.x',
-          loaded: true,
-          instance
-        });
-
-        return instance;
-      } catch (error) {
-        console.warn('❌ Globe.gl load failed:', error);
-        return null;
-      }
-    })();
-
-    this.loadPromises.set('Globe', loadPromise);
-    return loadPromise;
-  }
-
-  /**
-   */
   async loadTsParticles(): Promise<any> {
     if (this.libraries.has('tsParticles')) {
       return this.libraries.get('tsParticles')!.instance;
@@ -1240,68 +1118,6 @@ export class LibraryManager {
     })();
 
     this.loadPromises.set('SplitType', loadPromise);
-    return loadPromise;
-  }
-
-  async loadHtml2Canvas(): Promise<any> {
-    if (this.libraries.has('html2canvas')) {
-      return this.libraries.get('html2canvas')!.instance;
-    }
-
-    if (this.loadPromises.has('html2canvas')) {
-      return this.loadPromises.get('html2canvas');
-    }
-
-    const loadPromise = (async () => {
-      try {
-        const html2canvasModule = await this.withTimeout(import('html2canvas'), 15000, 'html2canvas');
-        const instance = html2canvasModule.default || html2canvasModule;
-
-        this.libraries.set('html2canvas', {
-          name: 'html2canvas',
-          version: '1.x',
-          loaded: true,
-          instance
-        });
-        return instance;
-      } catch (error) {
-        console.warn('鉂?html2canvas load failed:', error);
-        return null;
-      }
-    })();
-
-    this.loadPromises.set('html2canvas', loadPromise);
-    return loadPromise;
-  }
-
-  async loadMediabunny(): Promise<any> {
-    if (this.libraries.has('mediabunny')) {
-      return this.libraries.get('mediabunny')!.instance;
-    }
-
-    if (this.loadPromises.has('mediabunny')) {
-      return this.loadPromises.get('mediabunny');
-    }
-
-    const loadPromise = (async () => {
-      try {
-        const mediabunnyModule: any = await this.withTimeout(import('mediabunny'), 15000, 'mediabunny');
-        const instance = mediabunnyModule.default || mediabunnyModule;
-
-        this.libraries.set('mediabunny', {
-          name: 'mediabunny',
-          version: '1.x',
-          loaded: true,
-          instance
-        });
-        return instance;
-      } catch (error) {
-        console.warn('鉂?mediabunny load failed:', error);
-        return null;
-      }
-    })();
-
-    this.loadPromises.set('mediabunny', loadPromise);
     return loadPromise;
   }
 

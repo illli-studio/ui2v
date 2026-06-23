@@ -65,7 +65,7 @@ renders.
 
 ## Constraints
 
-- Browser-side dependencies currently come from the producer import map and may
-  use pinned CDN URLs.
+- Browser-side animation libraries load on demand through `@ui2v/engine`'s CDN
+  import map. They are not hard npm dependencies for CLI installs.
 - Very large renders still depend on the launched Chromium build's WebCodecs
   codec support and available memory.

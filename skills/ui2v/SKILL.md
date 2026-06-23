@@ -23,7 +23,7 @@ Core project features to use when they fit:
 - **Segmented storyboard**: plan shots before code; each segment should have a visual job, motion beat, library stack, and CTA/outcome.
 - **Runtime-core**: `schema: "uiv-runtime"`, frame inspection, scene graph, camera/depth metadata, audio/narration markers, datasets/assets/theme, adapter routing.
 - **XYZ/depth/camera**: use `camera.x/y/z`, `zoom`, `fov`, `rotation`, `motion[]`, node transforms, z ordering, pseudo-depth, or real `THREE` scenes.
-- **Library ecosystem**: combine `gsap`, `anime`, `d3`, `math`, `THREE`, `POSTPROCESSING`, `Matter`, `CANNON`, `PIXI`, `p5`, `tsParticles`, `simplex`, `fabric`, `Konva`, `paper`, `rough`, `SplitType`, `opentype`, `katex`, `lottie`, `iconify`, `Globe`, and Canvas APIs as needed.
+- **Library ecosystem**: combine core libraries (`gsap`, `anime`, `d3`, `THREE`, `PIXI`, `lottie`, `Matter`) with extended libraries (`fabric`, `Konva`, `paper`, `p5`, `tsParticles`, `CANNON`, `rough`, `TWEEN`, `opentype`, `katex`, `iconify`, `SplitType`) when a maintained example or explicit beat needs them. Experimental loaders (`POSTPROCESSING`, `simplex`, `math`) exist but should not be marketed without a maintained example.
 - **Dependency loading contract**: custom-code libraries must be declared in JSON when intentionally used. Current ui2v also infers common libraries from code references before preview/render, but explicit `dependencies` are the authoring standard.
 - **Reproducible media workflow**: validate JSON, inspect runtime frames, render MP4, export README GIF/JPG, keep large MP4s out of the repo unless requested.
 
@@ -125,14 +125,15 @@ When generating examples through `ui2v init` or by hand, make at least one real 
 
 | Goal | Prefer |
 | --- | --- |
-| Product/UI launch | `gsap`, `anime`, `SplitType`, Canvas APIs |
-| Data story | `d3`, `math`, Canvas APIs |
-| 3D/depth/product/globe | `THREE`, `POSTPROCESSING`, `Globe` |
+| Product/UI launch | `gsap`, `SplitType`, Canvas APIs |
+| Data story | `d3`, Canvas APIs |
+| 3D/depth/product | `THREE` |
 | Physics | `Matter`, `CANNON` |
-| Generative art/particles | `PIXI`, `p5`, `tsParticles`, `simplex` |
+| Generative art/particles | `PIXI`, `p5`, `tsParticles` |
 | Vector/object systems | `fabric`, `Konva`, `paper`, `rough` |
 | Typography/equations/glyphs | `SplitType`, `opentype`, `katex` |
 | Imported motion/icons | `lottie`, `iconify` |
+| Experimental (no maintained example yet) | `POSTPROCESSING`, `simplex`, `math` |
 
 Read `references/library-recipes.md` before choosing advanced dependencies and `references/rendering-features.md` for the full platform feature map.
 
