@@ -34,7 +34,7 @@ npx @ui2v/cli --version
 npx @ui2v/cli render animation.json -o output.mp4 --quality high
 ```
 
-`preview` 会打开本地 Studio UI，左侧可浏览 JSON 项目，支持播放、拖动、播放速度、适配/剧场/全屏模式、runtime debug overlay、当前帧 PNG 快照、复制 CLI 渲染命令和 Export MP4。
+`preview` 会打开本地 **ui2v Studio**：项目列表、时间轴编辑、Ripple segment 首尾对齐、runtime inspect、JSON 编辑器（CodeMirror）、beat 模板条、播放头切分、MP4 导出。时间轴与模板插入会直接写回 `animation.json`。
 
 ## 命令
 
@@ -44,9 +44,23 @@ ui2v init my-video
 ui2v validate animation.json --verbose
 ui2v preview animation.json --pixel-ratio 2
 ui2v inspect-runtime animation.json --time 0 --time 1
+ui2v list-beats
+ui2v insert-beat animation.json beat-gsap --time 2
+ui2v lint-timeline animation.json
 ui2v render animation.json -o output.mp4
 ui2v info
 ```
+
+## Beat 模板
+
+```bash
+ui2v list-beats --schema template --json
+ui2v insert-beat animation.json beat-three --time 8
+ui2v insert-beat animation.json runtime-canvas-hook --time 0 --json
+ui2v insert-beat animation.json --list
+```
+
+`list-beats` / `insert-beat` 与 Studio 模板条共用同一套目录：template 项目用 `beat-*` layer，runtime 项目用 `runtime-*` segment。
 
 ## 渲染参数
 

@@ -8,6 +8,9 @@ import { initCommand } from './commands/init';
 import { doctorCommand } from './commands/doctor';
 import { infoCommand } from './commands/info';
 import { inspectRuntimeCommand } from './commands/inspect-runtime';
+import { listBeatsCommand } from './commands/list-beats';
+import { insertBeatCommand } from './commands/insert-beat';
+import { lintTimelineCommand } from './commands/lint-timeline';
 import { getCliVersion } from './version';
 
 const program = new Command();
@@ -71,6 +74,33 @@ program
   .option('--time <seconds>', 'Sample time in seconds (can be repeated)', collectValues, [])
   .option('--look-ahead <seconds>', 'Extend dependency windows for preload planning', '0')
   .action(inspectRuntimeCommand);
+
+program
+  .command('list-beats')
+  .description('List maintained beat templates available to Studio and insert-beat')
+  .option('--schema <schema>', 'Filter by project schema (template or uiv-runtime)')
+  .option('--workspace <path>', 'Workspace root used to resolve library-timeline templates')
+  .option('--json', 'Output as JSON')
+  .action(listBeatsCommand);
+
+program
+  .command('insert-beat')
+  .description('Insert a maintained beat template into a project JSON file')
+  .argument('<input>', 'Input project file (JSON)')
+  .argument('[templateId]', 'Beat template id from list-beats')
+  .option('--time <seconds>', 'Insert start time in seconds')
+  .option('--duration <seconds>', 'Override default beat duration')
+  .option('--list', 'List templates compatible with the input project')
+  .option('--json', 'Output as JSON')
+  .action(insertBeatCommand);
+
+program
+  .command('lint-timeline')
+  .description('Lint timeline structure, clip timing, dependencies, and segment coverage')
+  .argument('<input>', 'Input project file (JSON)')
+  .option('--json', 'Output as JSON')
+  .option('--verbose', 'Include full track model in JSON output')
+  .action(lintTimelineCommand);
 
 program
   .command('doctor')

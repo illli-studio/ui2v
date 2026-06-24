@@ -190,6 +190,33 @@ ui2v validate examples/<name>/animation.json --verbose
 ui2v render examples/<name>/animation.json -o .tmp/examples/<name>.mp4 --quality high
 ```
 
+## Studio and beat templates
+
+`ui2v preview` opens **ui2v Studio**: timeline editing, runtime inspect, JSON editor, beat template strip, split-at-playhead, and MP4 export. Timeline edits write back to `animation.json`.
+
+For agent/script workflows, use the beat catalog instead of hand-copying example layers:
+
+```bash
+ui2v list-beats
+ui2v list-beats --schema uiv-runtime --json
+ui2v insert-beat animation.json beat-gsap --time 2 --json
+ui2v insert-beat animation.json runtime-canvas-hook --time 0 --json
+ui2v insert-beat animation.json --list
+```
+
+Rules:
+
+- **template projects** accept `beat-*` layers from `examples/library-timeline`.
+- **runtime projects (`schema: "uiv-runtime"`)** accept `runtime-*` segment stubs.
+- Always run `ui2v validate` and `ui2v lint-timeline` after `insert-beat` or Studio timeline edits.
+- Prefer `insert-beat` + targeted JSON edits over rewriting whole projects.
+
+Recommended agent loop:
+
+```text
+list-beats -> insert-beat -> validate -> lint-timeline -> inspect-runtime (runtime) -> preview -> render
+```
+
 Runtime projects:
 
 ```bash

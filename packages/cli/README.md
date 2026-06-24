@@ -36,18 +36,32 @@ npx @ui2v/cli render examples/library-timeline/animation.json -o library-timelin
 ```
 
 ## Commands
-The preview command opens a local Studio UI with a searchable JSON project list, timeline scrubbing, fit/theater/fullscreen controls, runtime debug overlay, and an Export MP4 action.
 
-
+The preview command opens **ui2v Studio**: project list, timeline editing, ripple segment packing, runtime inspect, CodeMirror JSON editor, beat template strip, split-at-playhead, and Export MP4.
 ```bash
 ui2v doctor
 ui2v init my-video
 ui2v validate animation.json --verbose
 ui2v preview animation.json --pixel-ratio 2
 ui2v inspect-runtime animation.json --time 0 --time 1
+ui2v list-beats
+ui2v insert-beat animation.json beat-gsap --time 2
+ui2v lint-timeline animation.json
 ui2v render animation.json -o output.mp4
 ui2v info
 ```
+
+## Beat templates
+
+```bash
+ui2v list-beats
+ui2v list-beats --schema template --json
+ui2v insert-beat animation.json beat-d3 --time 4
+ui2v insert-beat animation.json runtime-gsap-beat --time 9.5 --json
+ui2v insert-beat animation.json --list
+```
+
+`list-beats` and `insert-beat` share the same maintained catalog as Studio beat chips. Template projects use `beat-*` layers; runtime projects use `runtime-*` segments.
 
 ## Render Options
 

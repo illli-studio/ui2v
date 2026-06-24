@@ -15,7 +15,8 @@ ui2v 是一个用于结构化动画 JSON 的独立 CLI 渲染器。它通过 `pu
 - `@ui2v/runtime-core` 场景图、时间线、帧计划、依赖元数据、适配器路由和绘制命令。
 - `@ui2v/engine` 浏览器 Canvas 渲染器、template adapter、custom-code runtime、canvas command executor 和 WebCodecs exporter。
 - `@ui2v/producer` 基于本机浏览器的预览和 MP4 渲染管线，并带浏览器发现逻辑。
-- `@ui2v/cli` 命令：`doctor`、`init`、`validate`、`preview`、`render`、`inspect-runtime` 和 `info`。
+- `@ui2v/cli` 命令：`doctor`、`init`、`validate`、`preview`、`render`、`inspect-runtime`、`list-beats`、`insert-beat`、`lint-timeline` 和 `info`。
+- **ui2v Studio** 预览工作区：多轨时间轴、Clip Inspector、播放头切分、CodeMirror JSON 编辑器、beat 模板条、时间轴 lint 可视化，以及 Ripple segment 编辑（首尾自动对齐）。
 - 更有吸引力的 README showcase 示例和 GIF 预览资源。
 - 仓库本地 Codex skills：示例创建、runtime-core 编写、渲染验证和渲染能力说明。
 - 示例校验、CLI smoke tests、包元数据检查和 package pack 检查。
@@ -27,12 +28,10 @@ ui2v 是一个用于结构化动画 JSON 的独立 CLI 渲染器。它通过 `pu
 
 ```bash
 bun run build
-bun run test:metadata
-bun run test:pack
-bun run test:examples
-bun run test:validate
-bun run test:init
+bun run test:ci
 ```
+
+CI 套件覆盖单元测试、包元数据、CLI surface、示例、文档资源、Preview Studio API（含 ripple patch）、insert-beat、lint-timeline 和渲染失败信息透出。
 
 完整 smoke 检查可以运行：
 

@@ -11,6 +11,20 @@ import type { AnimationProject } from '@ui2v/engine';
 import { BROWSER_LIBRARY_IMPORT_MAP } from '@ui2v/engine';
 export type { AnimationProject } from '@ui2v/engine';
 import { getFrameCount, validateRuntimeProject } from '@ui2v/runtime-core';
+import {
+  applyPreviewTimelineUpdates,
+  applyPreviewClipMetadataUpdates,
+  assertPreviewProjectSaveable,
+  buildPreviewTimeline,
+  createPreviewInspectSummary,
+  formatPreviewProjectJson,
+  lintPreviewProject,
+  splitPreviewClip,
+  summarizeTimelineLint,
+  type PreviewClipMetadataUpdate,
+  type PreviewTimelineUpdate,
+} from './previewStudio';
+import { insertPreviewTemplate, listPreviewTemplates } from './previewTemplates';
 import * as fs from 'fs';
 import * as fsp from 'fs/promises';
 import * as http from 'http';
@@ -850,6 +864,145 @@ async function createStaticServer(
         return;
       }
 
+      if (url.pathname === '/preview/timeline') {
+        const projectFile = resolvePreviewProjectPath(url.searchParams.get('path'), options);
+        const project = await readPreviewProject(projectFile);
+        sendJson(res, buildPreviewTimeline(project));
+        return;
+      }
+
+      if (url.pathname === '/preview/lint') {
+        const projectFile = resolvePreviewProjectPath(url.searchParams.get('path'), options);
+        const project = await readPreviewProject(projectFile);
+        const timeline = lintPreviewProject(project);
+        sendJson(res, {
+          ...timeline,
+          ...summarizeTimelineLint(timeline.lint),
+        });
+        return;
+      }
+
+      if (url.pathname === '/preview/inspect') {
+        const projectFile = resolvePreviewProjectPath(url.searchParams.get('path'), options);
+        const project = await readPreviewProject(projectFile);
+        const time = Number(url.searchParams.get('time') || '0');
+        sendJson(res, createPreviewInspectSummary(project, time));
+        return;
+      }
+
+      if (url.pathname === '/preview/patch' && req.method === 'POST') {
+        const body = await readRequestJson(req);
+        sendJson(res, await applyPreviewProjectMutation(body, options, project => {
+          const updates = normalizePreviewTimelineUpdates(body?.updates);
+          const mode = body?.mode === 'ripple' ? 'ripple' : 'overwrite';
+          return applyPreviewTimelineUpdates(project, updates, { mode });
+        }));
+        return;
+      }
+
+      if (url.pathname === '/preview/split' && req.method === 'POST') {
+        const body = await readRequestJson(req);
+        sendJson(res, await applyPreviewProjectMutation(body, options, project => {
+          if (typeof body?.id !== 'string' || !body.id.trim()) {
+            throw new Error('Split request requires clip id');
+          }
+          if (body?.kind !== 'segment' && body?.kind !== 'layer') {
+            throw new Error('Split request requires clip kind');
+          }
+          const time = Number(body?.time);
+          if (!Number.isFinite(time)) {
+            throw new Error('Split request requires a numeric time');
+          }
+          return splitPreviewClip(project, {
+            id: body.id.trim(),
+            kind: body.kind,
+            time,
+          });
+        }));
+        return;
+      }
+
+      if (url.pathname === '/preview/metadata' && req.method === 'POST') {
+        const body = await readRequestJson(req);
+        sendJson(res, await applyPreviewProjectMutation(body, options, project => {
+          const updates = normalizePreviewMetadataUpdates(body?.updates);
+          return applyPreviewClipMetadataUpdates(project, updates);
+        }));
+        return;
+      }
+
+      if (url.pathname === '/preview/source') {
+        const projectFile = resolvePreviewProjectPath(url.searchParams.get('path'), options);
+        const json = formatPreviewProjectJson(JSON.parse(stripUtf8Bom(await fsp.readFile(projectFile, 'utf8'))));
+        sendJson(res, { path: projectFile, json });
+        return;
+      }
+
+      if (url.pathname === '/preview/templates') {
+        const root = resolvePreviewWorkspaceRoot(options);
+        const schema = url.searchParams.get('schema');
+        let templates = listPreviewTemplates(root);
+        if (schema === 'template' || schema === 'uiv-runtime') {
+          templates = templates.filter(item => item.compatibleSchemas.includes(schema));
+        }
+        sendJson(res, { templates });
+        return;
+      }
+
+      if (url.pathname === '/preview/insert-template' && req.method === 'POST') {
+        const body = await readRequestJson(req);
+        const projectFile = resolvePreviewProjectPath(body?.path, options);
+        const project = stripPreviewTransportFields(await readPreviewProject(projectFile));
+        const root = resolvePreviewWorkspaceRoot(options);
+        if (typeof body?.templateId !== 'string' || !body.templateId.trim()) {
+          throw new Error('Insert request requires templateId');
+        }
+        const inserted = insertPreviewTemplate(project, {
+          templateId: body.templateId.trim(),
+          startTime: body.startTime != null ? Number(body.startTime) : undefined,
+          duration: body.duration != null ? Number(body.duration) : undefined,
+        }, root);
+        assertPreviewProjectSaveable(inserted.project);
+        await fsp.writeFile(projectFile, formatPreviewProjectJson(inserted.project), 'utf8');
+        const assetBaseDir = path.dirname(projectFile);
+        sendJson(res, {
+          success: true,
+          path: projectFile,
+          insertedId: inserted.insertedId,
+          startTime: inserted.startTime,
+          endTime: inserted.endTime,
+          json: formatPreviewProjectJson(inserted.project),
+          timeline: buildPreviewTimeline(inserted.project),
+          project: attachProjectAssetBase(inserted.project, createPreviewAssetBaseUrl(projectFile), assetBaseDir),
+        });
+        return;
+      }
+
+      if (url.pathname === '/preview/save-project' && req.method === 'POST') {
+        const body = await readRequestJson(req);
+        const projectFile = resolvePreviewProjectPath(body?.path, options);
+        const project = typeof body?.project === 'object' && body.project
+          ? body.project
+          : typeof body?.json === 'string'
+            ? JSON.parse(body.json)
+            : null;
+        if (!project) {
+          throw new Error('Save request requires project object or json string');
+        }
+        const cleaned = stripPreviewTransportFields(project);
+        assertPreviewProjectSaveable(cleaned);
+        await fsp.writeFile(projectFile, formatPreviewProjectJson(cleaned), 'utf8');
+        const assetBaseDir = path.dirname(projectFile);
+        sendJson(res, {
+          success: true,
+          path: projectFile,
+          json: formatPreviewProjectJson(cleaned),
+          timeline: buildPreviewTimeline(cleaned),
+          project: attachProjectAssetBase(cleaned, createPreviewAssetBaseUrl(projectFile), assetBaseDir),
+        });
+        return;
+      }
+
       if (url.pathname === '/preview/export-download' && req.method === 'POST') {
         const body = await readRequestJson(req);
         const projectFile = resolvePreviewProjectPath(body?.path, options);
@@ -1219,6 +1372,102 @@ async function readPreviewProject(file: string): Promise<AnimationProject> {
 
 function stripUtf8Bom(value: string): string {
   return value.charCodeAt(0) === 0xfeff ? value.slice(1) : value;
+}
+
+function normalizePreviewTimelineUpdates(value: unknown): PreviewTimelineUpdate[] {
+  if (!Array.isArray(value)) {
+    throw new Error('Timeline patch requires an updates array');
+  }
+  return value.map((entry, index) => {
+    if (!entry || typeof entry !== 'object') {
+      throw new Error(`Timeline update ${index} must be an object`);
+    }
+    const update = entry as Record<string, unknown>;
+    if (update.kind !== 'segment' && update.kind !== 'layer') {
+      throw new Error(`Timeline update ${index} has an invalid kind`);
+    }
+    if (typeof update.id !== 'string' || !update.id.trim()) {
+      throw new Error(`Timeline update ${index} requires an id`);
+    }
+    const normalized: PreviewTimelineUpdate = {
+      id: update.id.trim(),
+      kind: update.kind,
+    };
+    if (update.startTime != null) {
+      normalized.startTime = Number(update.startTime);
+    }
+    if (update.endTime != null) {
+      normalized.endTime = Number(update.endTime);
+    }
+    if (normalized.startTime == null && normalized.endTime == null) {
+      throw new Error(`Timeline update ${index} must change startTime and/or endTime`);
+    }
+    return normalized;
+  });
+}
+
+function normalizePreviewMetadataUpdates(value: unknown): PreviewClipMetadataUpdate[] {
+  if (!Array.isArray(value)) {
+    throw new Error('Metadata patch requires an updates array');
+  }
+  return value.map((entry, index) => {
+    if (!entry || typeof entry !== 'object') {
+      throw new Error(`Metadata update ${index} must be an object`);
+    }
+    const update = entry as Record<string, unknown>;
+    if (update.kind !== 'segment' && update.kind !== 'layer') {
+      throw new Error(`Metadata update ${index} has an invalid kind`);
+    }
+    if (typeof update.id !== 'string' || !update.id.trim()) {
+      throw new Error(`Metadata update ${index} requires an id`);
+    }
+    const normalized: PreviewClipMetadataUpdate = {
+      id: update.id.trim(),
+      kind: update.kind,
+    };
+    if (update.label != null) {
+      normalized.label = String(update.label);
+    }
+    if (update.dependencies != null) {
+      normalized.dependencies = Array.isArray(update.dependencies)
+        ? update.dependencies.map(item => String(item))
+        : String(update.dependencies)
+          .split(',')
+          .map(item => item.trim())
+          .filter(Boolean);
+    }
+    if (normalized.label == null && normalized.dependencies == null) {
+      throw new Error(`Metadata update ${index} must change label and/or dependencies`);
+    }
+    return normalized;
+  });
+}
+
+async function applyPreviewProjectMutation(
+  body: Record<string, unknown>,
+  options: StaticServerOptions,
+  mutate: (project: AnimationProject) => AnimationProject | any
+) {
+  const projectFile = resolvePreviewProjectPath(body?.path, options);
+  const project = stripPreviewTransportFields(await readPreviewProject(projectFile));
+  const next = stripPreviewTransportFields(mutate(project));
+  assertPreviewProjectSaveable(next);
+  await fsp.writeFile(projectFile, formatPreviewProjectJson(next), 'utf8');
+  const assetBaseDir = path.dirname(projectFile);
+  return {
+    success: true,
+    path: projectFile,
+    json: formatPreviewProjectJson(next),
+    timeline: buildPreviewTimeline(next),
+    project: attachProjectAssetBase(next, createPreviewAssetBaseUrl(projectFile), assetBaseDir),
+  };
+}
+
+function stripPreviewTransportFields(project: any): any {
+  const next = structuredClone(project);
+  delete next.__assetBaseUrl;
+  delete next.assetBaseUrl;
+  return next;
 }
 
 function resolvePreviewWorkspaceRoot(options: StaticServerOptions): string {
@@ -1606,7 +1855,7 @@ function createPreviewHTML(): string {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ui2v Preview</title>
+  <title>ui2v Studio</title>
   <link rel="icon" href="data:,">
   <script type="importmap">${JSON.stringify({ imports: IMPORT_MAP })}</script>
   <style>
@@ -1630,7 +1879,7 @@ function createPreviewHTML(): string {
     .project span { grid-column:1; grid-row:2; color:var(--muted); font-size:11px; line-height:16px; }
     .projectRatio { grid-column:2; grid-row:1 / span 2; justify-self:start; color:#c7d2df; font:10px/1 ui-monospace, SFMono-Regular, Consolas, monospace; white-space:nowrap; }
     .projectSize { grid-column:3; grid-row:1 / span 2; justify-self:start; color:#c7d2df; font:10px/1 ui-monospace, SFMono-Regular, Consolas, monospace; white-space:nowrap; }
-    #workspace { width:100%; height:100%; min-width:0; min-height:0; display:grid; grid-template-rows:minmax(72px, auto) minmax(0,1fr) minmax(56px, auto); background:var(--surface); }
+    #workspace { width:100%; height:100%; min-width:0; min-height:0; display:grid; grid-template-rows:minmax(72px, auto) minmax(0,1fr) minmax(180px, auto) minmax(56px, auto); background:var(--surface); }
     #topbar { width:100%; min-width:0; display:grid; grid-template-columns:minmax(0,1fr) auto minmax(180px, 320px); align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid var(--line); background:var(--panel); }
     #identity { min-width:0; }
     #title { margin:0; font-size:15px; line-height:1.2; font-weight:760; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -1643,7 +1892,59 @@ function createPreviewHTML(): string {
     #stage:fullscreen { padding:0; background:#000; }
     #stage:fullscreen #stageInner { border:0; border-radius:0; }
     #previewCanvas { display:block; width:100%; height:auto; max-width:100%; max-height:100%; aspect-ratio:var(--ui2v-aspect, 16 / 9); background:#000; outline:1px solid rgba(255,255,255,.22); box-shadow:none; }
-    #controls { width:100%; min-width:0; min-height:56px; display:grid; grid-template-columns:auto auto minmax(160px,1fr) auto; gap:10px; align-items:center; padding:9px 14px; border-top:1px solid var(--line); background:var(--panel); }
+    #controls { width:100%; min-width:0; min-height:56px; display:grid; grid-template-columns:auto auto auto auto minmax(160px,1fr) auto; gap:10px; align-items:center; padding:9px 14px; border-top:1px solid var(--line); background:var(--panel); }
+    #editorPanel { min-width:0; min-height:180px; max-height:340px; display:grid; grid-template-columns:minmax(0,1fr) minmax(240px, 280px) minmax(260px, 360px); border-top:1px solid var(--line); background:var(--panel-2); overflow:hidden; }
+    #timelinePanel { min-width:0; min-height:0; overflow:auto; padding:10px 14px 12px; border-right:1px solid var(--line); }
+    #timelineHeader { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; flex-wrap:wrap; }
+    #timelineHeader h2 { margin:0; font-size:12px; font-weight:760; letter-spacing:.02em; text-transform:uppercase; color:#d8e2ef; }
+    #timelineActions { display:flex; align-items:center; gap:6px; margin-left:auto; }
+    #timelineRippleToggle[aria-pressed="true"] { background:rgba(72,199,255,.18); border-color:rgba(72,199,255,.42); color:#dff6ff; }
+    #timelineHint { color:var(--muted); font:10px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; }
+    #templateStrip { display:flex; gap:6px; overflow-x:auto; padding-bottom:8px; margin-bottom:4px; }
+    .template-chip { width:auto; min-width:132px; max-width:180px; height:auto; min-height:52px; padding:7px 10px; display:grid; gap:3px; align-content:start; text-align:left; border:1px solid rgba(255,255,255,.1); border-radius:8px; background:rgba(255,255,255,.04); cursor:pointer; }
+    .template-chip:hover { border-color:rgba(72,199,255,.42); background:rgba(72,199,255,.1); }
+    .template-chip strong { font-size:11px; line-height:1.2; font-weight:760; color:#eef4fb; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .template-chip span { font:10px/1.25 ui-monospace, SFMono-Regular, Consolas, monospace; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    #timelineTracks { display:flex; flex-direction:column; gap:8px; }
+    .timeline-track { display:grid; grid-template-columns:92px minmax(0,1fr); gap:8px; align-items:center; }
+    .timeline-track-label { color:var(--muted); font:10px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .timeline-track-lane { position:relative; height:34px; border-radius:7px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.03); overflow:hidden; }
+    .timeline-clip { position:absolute; top:4px; height:26px; border-radius:5px; border:1px solid rgba(255,255,255,.18); padding:0 8px; color:#fff; font:700 10px/24px ui-monospace, SFMono-Regular, Consolas, monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:grab; user-select:none; box-shadow:inset 0 1px 0 rgba(255,255,255,.12); }
+    .timeline-clip.non-editable { opacity:.55; cursor:default; }
+    .timeline-clip.selected { outline:2px solid #fff; outline-offset:1px; z-index:2; }
+    .timeline-clip.lint-error { box-shadow:inset 0 0 0 1px rgba(255,116,116,.75); }
+    .timeline-clip.lint-warning { box-shadow:inset 0 0 0 1px rgba(250,204,21,.55); }
+    .timeline-clip.dragging { cursor:grabbing; opacity:.92; }
+    #timelineLint { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; }
+    #timelineLint:empty { display:none; }
+    .timeline-lint-chip { width:auto; min-height:24px; padding:4px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.04); color:#dbe4ee; font:10px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; cursor:pointer; }
+    .timeline-lint-chip.warning { color:#fde68a; border-color:rgba(250,204,21,.22); }
+    .timeline-lint-chip.error { color:#fecaca; border-color:rgba(255,116,116,.24); }
+    #timelineSummary { color:var(--muted); font:10px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; white-space:nowrap; }
+    .timeline-handle { position:absolute; top:0; width:8px; height:100%; cursor:ew-resize; }
+    .timeline-handle.left { left:0; border-radius:5px 0 0 5px; }
+    .timeline-handle.right { right:0; border-radius:0 5px 5px 0; }
+    .timeline-playhead { position:absolute; top:0; width:2px; height:100%; background:#fff; box-shadow:0 0 0 1px rgba(0,0,0,.35); pointer-events:none; z-index:3; }
+    #inspectPanel { min-width:0; min-height:0; overflow:auto; padding:10px 12px; border-right:1px solid var(--line); }
+    #inspectPanel h2, #jsonPanel h2 { margin:0 0 8px; font-size:12px; font-weight:760; letter-spacing:.02em; text-transform:uppercase; color:#d8e2ef; }
+    #clipForm { display:grid; gap:8px; margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,.08); }
+    #clipForm label { display:grid; gap:4px; font:10px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; color:var(--muted); }
+    #clipForm input { width:100%; height:30px; border:1px solid var(--line); border-radius:6px; padding:0 8px; color:var(--text); background:rgba(255,255,255,.05); font:11px/1 ui-monospace, SFMono-Regular, Consolas, monospace; }
+    #clipForm .clip-times { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .panelActions { display:flex; flex-wrap:wrap; gap:6px; }
+    .panelActions .textButton { min-width:64px; height:30px; padding:0 10px; font-size:11px; }
+    #jsonPanel { min-width:0; min-height:0; display:grid; grid-template-rows:auto minmax(0,1fr); padding:10px 12px; overflow:hidden; }
+    #jsonHeader { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
+    #jsonEditorHost { width:100%; min-height:0; height:100%; border:1px solid var(--line); border-radius:7px; overflow:hidden; background:#0a0d12; }
+    #jsonEditorHost .cm-editor { height:100%; outline:none; }
+    #jsonEditorHost .cm-editor.cm-focused { border-color:rgba(72,199,255,.44); box-shadow:0 0 0 1px rgba(72,199,255,.18) inset; }
+    #inspectBody { display:grid; gap:6px; font:11px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; color:#dbe4ee; }
+    .inspect-row { display:grid; grid-template-columns:92px minmax(0,1fr); gap:8px; align-items:start; }
+    .inspect-row span:first-child { color:var(--muted); }
+    #inspectLint { margin-top:8px; display:grid; gap:4px; }
+    .inspect-lint { padding:6px 8px; border-radius:6px; border:1px solid rgba(255,255,255,.08); font:10px/1.35 ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .inspect-lint.warning { color:#fde68a; background:rgba(250,204,21,.08); border-color:rgba(250,204,21,.22); }
+    .inspect-lint.error { color:#fecaca; background:rgba(255,116,116,.08); border-color:rgba(255,116,116,.24); }
     button { width:38px; height:38px; display:grid; place-items:center; border:1px solid var(--line); border-radius:7px; color:var(--text); background:rgba(255,255,255,.08); cursor:pointer; }
     button:hover { border-color:rgba(72,199,255,.44); background:rgba(72,199,255,.12); }
     button:disabled { opacity:.45; cursor:default; }
@@ -1667,6 +1968,8 @@ function createPreviewHTML(): string {
       .project { width:260px; min-width:260px; height:54px; grid-template-columns:minmax(0,1fr) 38px 76px; grid-template-rows:21px 18px; border-left:0; border-bottom:0; border-right:1px solid rgba(255,255,255,.055); padding:7px 10px; }
       .project.active { border-left-color:transparent; box-shadow:inset 0 -3px 0 var(--accent); }
       #workspace { min-height:0; }
+      #editorPanel { grid-template-columns:1fr; max-height:280px; }
+      #inspectPanel, #jsonPanel { display:none; }
       #topbar { grid-template-columns:minmax(0,1fr) auto; }
       #status { grid-column:1 / -1; }
     }
@@ -1696,7 +1999,7 @@ function createPreviewHTML(): string {
 </head>
 <body>
   <aside id="sidebar">
-    <div id="brand"><h1>ui2v Preview</h1><p id="folder">Loading workspace...</p></div>
+    <div id="brand"><h1>ui2v Studio</h1><p id="folder">Loading workspace...</p></div>
     <div id="searchWrap"><input id="search" placeholder="Search projects"><div id="listStatus">Scanning projects...</div></div>
     <div id="projectList"></div>
   </aside>
@@ -1710,12 +2013,52 @@ function createPreviewHTML(): string {
       <div id="status">Booting...</div>
     </div>
     <section id="stage"><div id="stageInner"><canvas id="previewCanvas" data-ui2v-ready="false"></canvas></div></section>
+    <div id="editorPanel">
+      <section id="timelinePanel">
+        <div id="timelineHeader"><h2>Timeline</h2><div id="timelineSummary"></div><div id="timelineActions"><button id="timelineRippleToggle" class="textButton" type="button" aria-pressed="false" title="Ripple: pack runtime segments edge-to-edge; shift later layers on the same track">Ripple</button></div></div>
+        <div id="timelineHint">Insert beats · drag to retime · Ripple packs runtime segments edge-to-edge</div>
+        <div id="timelineLint" aria-label="Timeline lint"></div>
+        <div id="templateStrip" aria-label="Beat templates"></div>
+        <div id="timelineTracks"></div>
+      </section>
+      <aside id="inspectPanel">
+        <h2>Clip</h2>
+        <form id="clipForm" onsubmit="return false">
+          <label>Label<input id="clipLabel" type="text" placeholder="Segment or layer label"></label>
+          <div class="clip-times">
+            <label>Start<input id="clipStart" type="text" readonly></label>
+            <label>End<input id="clipEnd" type="text" readonly></label>
+          </div>
+          <label>Dependencies<input id="clipDeps" type="text" placeholder="gsap, d3, THREE"></label>
+          <div class="panelActions">
+            <button id="saveClipMeta" class="textButton" type="button">Save clip</button>
+            <button id="splitClipAction" class="textButton" type="button">Split here</button>
+          </div>
+        </form>
+        <h2>Inspect</h2>
+        <div id="inspectBody"></div>
+        <div id="inspectLint"></div>
+      </aside>
+      <aside id="jsonPanel">
+        <div id="jsonHeader">
+          <h2>Project JSON</h2>
+          <div class="panelActions">
+            <button id="focusClipJson" class="textButton" type="button">Focus clip</button>
+            <button id="formatJson" class="textButton" type="button">Format</button>
+            <button id="saveJson" class="textButton" type="button">Save</button>
+          </div>
+        </div>
+        <div id="jsonEditorHost" aria-label="Project JSON editor"></div>
+      </aside>
+    </div>
     <div id="controls">
       <button id="toggle" title="Play / pause" aria-label="Play / pause">
         <svg class="play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
         <svg class="pause" viewBox="0 0 24 24"><path d="M9 5v14"></path><path d="M15 5v14"></path></svg>
       </button>
       <button id="restart" title="Restart" aria-label="Restart"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v7h7"></path></svg></button>
+      <button id="prevFrame" title="Previous frame" aria-label="Previous frame"><svg viewBox="0 0 24 24"><path d="M6 5v14"></path><path d="M18 5v14"></path></svg></button>
+      <button id="nextFrame" title="Next frame" aria-label="Next frame"><svg viewBox="0 0 24 24"><path d="M6 5v14"></path><path d="M18 5v14"></path></svg></button>
       <input id="scrub" type="range" min="0" max="1000" value="0" aria-label="Timeline">
       <div id="time">0.00 / 0.00s</div>
     </div>
@@ -1742,12 +2085,114 @@ function createPreviewHTML(): string {
     const fullscreen = document.getElementById('fullscreen');
     const exportAction = document.getElementById('exportAction');
     const exportResult = document.getElementById('exportResult');
+    const timelineTracks = document.getElementById('timelineTracks');
+    const timelineLint = document.getElementById('timelineLint');
+    const timelineSummary = document.getElementById('timelineSummary');
+    const timelineRippleToggle = document.getElementById('timelineRippleToggle');
+    const templateStrip = document.getElementById('templateStrip');
+    const inspectBody = document.getElementById('inspectBody');
+    const inspectLint = document.getElementById('inspectLint');
+    const prevFrame = document.getElementById('prevFrame');
+    const nextFrame = document.getElementById('nextFrame');
+    const clipLabel = document.getElementById('clipLabel');
+    const clipStart = document.getElementById('clipStart');
+    const clipEnd = document.getElementById('clipEnd');
+    const clipDeps = document.getElementById('clipDeps');
+    const saveClipMeta = document.getElementById('saveClipMeta');
+    const splitClipAction = document.getElementById('splitClipAction');
+    const jsonEditorHost = document.getElementById('jsonEditorHost');
+    const formatJson = document.getElementById('formatJson');
+    const saveJson = document.getElementById('saveJson');
+    const focusClipJson = document.getElementById('focusClipJson');
+
+    let jsonEditorView = null;
+    let jsonEditorFallback = null;
+    let cmViewModule = null;
+
+    function getJsonText() {
+      if (jsonEditorView) return jsonEditorView.state.doc.toString();
+      if (jsonEditorFallback) return jsonEditorFallback.value;
+      return '';
+    }
+
+    function setJsonText(value, options = {}) {
+      const next = value || '';
+      if (jsonEditorView) {
+        const current = jsonEditorView.state.doc.toString();
+        if (current !== next) {
+          jsonEditorView.dispatch({
+            changes: { from: 0, to: jsonEditorView.state.doc.length, insert: next },
+          });
+        }
+      } else if (jsonEditorFallback && jsonEditorFallback.value !== next) {
+        jsonEditorFallback.value = next;
+      }
+      if (options.markDirty) markJsonDirty();
+      else jsonDirty = false;
+    }
+
+    function ensureJsonFallback() {
+      if (jsonEditorFallback || jsonEditorView) return;
+      jsonEditorFallback = document.createElement('textarea');
+      jsonEditorFallback.spellcheck = false;
+      jsonEditorFallback.setAttribute('aria-label', 'Project JSON editor');
+      jsonEditorFallback.style.cssText = 'width:100%;height:100%;resize:none;border:0;padding:10px;color:#e7edf5;background:#0a0d12;font:11px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace;outline:none;';
+      jsonEditorFallback.addEventListener('input', markJsonDirty);
+      jsonEditorHost.appendChild(jsonEditorFallback);
+    }
+
+    async function initJsonEditor() {
+      ensureJsonFallback();
+      try {
+        const [{ EditorState }, viewModule, { json }, { defaultKeymap, indentWithTab }, { oneDark }] = await Promise.all([
+          import('https://esm.sh/@codemirror/state@6.4.1'),
+          import('https://esm.sh/@codemirror/view@6.34.1'),
+          import('https://esm.sh/@codemirror/lang-json@6.0.1'),
+          import('https://esm.sh/@codemirror/commands@6.6.2'),
+          import('https://esm.sh/@codemirror/theme-one-dark@6.1.2'),
+        ]);
+        const { EditorView, keymap, lineNumbers, highlightActiveLine } = viewModule;
+        cmViewModule = viewModule;
+        const initial = getJsonText();
+        if (jsonEditorFallback) {
+          jsonEditorFallback.remove();
+          jsonEditorFallback = null;
+        }
+        jsonEditorView = new EditorView({
+          state: EditorState.create({
+            doc: initial,
+            extensions: [
+              lineNumbers(),
+              highlightActiveLine(),
+              json(),
+              oneDark,
+              keymap.of([...defaultKeymap, indentWithTab]),
+              EditorView.updateListener.of(update => {
+                if (update.docChanged) markJsonDirty();
+              }),
+              EditorView.theme({
+                '&': { height: '100%', fontSize: '11px', backgroundColor: '#0a0d12' },
+                '.cm-scroller': { fontFamily: 'ui-monospace, SFMono-Regular, Consolas, monospace', lineHeight: '1.45' },
+                '.cm-content': { caretColor: '#48c7ff' },
+                '.cm-gutters': { backgroundColor: '#0a0d12', borderRight: '1px solid rgba(255,255,255,.08)' },
+              }),
+            ],
+          }),
+          parent: jsonEditorHost,
+        });
+      } catch (error) {
+        console.warn('CodeMirror unavailable, using textarea fallback:', error);
+      }
+    }
+
+    initJsonEditor();
 
     let runtime;
     let adapter;
     let raf = 0;
     let currentSecond = 0;
     let duration = 0;
+    let projectFps = 30;
     let startTime = 0;
     let playing = false;
     let currentPath = '';
@@ -1759,6 +2204,27 @@ function createPreviewHTML(): string {
     let workspaceRoot = '';
     let currentResolution = null;
     let previewAudio = null;
+    let timelineModel = null;
+    let selectedClipId = '';
+    let selectedClipKind = '';
+    let inspectTimer = 0;
+    let dragState = null;
+    let jsonDirty = false;
+    let timelineEditMode = localStorage.getItem('ui2v-timeline-mode') === 'ripple' ? 'ripple' : 'overwrite';
+
+    function syncTimelineEditModeUi() {
+      if (!timelineRippleToggle) return;
+      timelineRippleToggle.setAttribute('aria-pressed', timelineEditMode === 'ripple' ? 'true' : 'false');
+      timelineRippleToggle.textContent = timelineEditMode === 'ripple' ? 'Ripple on' : 'Ripple';
+    }
+
+    syncTimelineEditModeUi();
+    timelineRippleToggle?.addEventListener('click', () => {
+      timelineEditMode = timelineEditMode === 'ripple' ? 'overwrite' : 'ripple';
+      localStorage.setItem('ui2v-timeline-mode', timelineEditMode);
+      syncTimelineEditModeUi();
+      setStatus(timelineEditMode === 'ripple' ? 'Ripple edit enabled for this track' : 'Overwrite edit enabled');
+    });
 
     function setStatus(text, error = false) {
       statusEl.textContent = text;
@@ -1772,7 +2238,585 @@ function createPreviewHTML(): string {
 
     function updateTime() {
       scrub.value = duration ? String(Math.round((currentSecond / duration) * 1000)) : '0';
-      timeEl.textContent = currentSecond.toFixed(2) + ' / ' + duration.toFixed(2) + 's';
+      const frame = Math.max(0, Math.floor(currentSecond * projectFps));
+      const totalFrames = Math.max(0, Math.floor(duration * projectFps));
+      timeEl.textContent = currentSecond.toFixed(2) + ' / ' + duration.toFixed(2) + 's · f' + frame + '/' + totalFrames;
+      scheduleInspectRefresh();
+      renderTimelinePlayhead();
+    }
+
+    function snapTime(value) {
+      if (!projectFps) return value;
+      return Math.round(value * projectFps) / projectFps;
+    }
+
+    async function fetchTimelineModel() {
+      if (!currentPath) {
+        timelineModel = null;
+        renderTimelineTracks();
+        renderTemplateStrip([]);
+        return null;
+      }
+      const response = await fetch('/preview/timeline?path=' + encodeURIComponent(currentPath), { cache: 'no-store' });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || 'Unable to load timeline');
+      timelineModel = payload;
+      projectFps = Number(payload.fps) || projectFps;
+      renderTimelineTracks();
+      await loadTemplateStrip().catch(() => {});
+      return payload;
+    }
+
+    async function loadTemplateStrip() {
+      if (!currentPath) {
+        renderTemplateStrip([]);
+        return;
+      }
+      const schema = timelineModel?.schema;
+      const query = schema === 'uiv-runtime' || schema === 'template' ? '?schema=' + encodeURIComponent(schema) : '';
+      const response = await fetch('/preview/templates' + query, { cache: 'no-store' });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || 'Unable to load templates');
+      renderTemplateStrip(payload.templates || []);
+    }
+
+    function renderTemplateStrip(templates) {
+      templateStrip.innerHTML = '';
+      if (!templates.length) {
+        templateStrip.innerHTML = '<div id="timelineHint">No beat templates available for this project schema.</div>';
+        return;
+      }
+      for (const item of templates) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'template-chip';
+        button.title = item.description || item.label;
+        button.innerHTML = '<strong>+ ' + escapeHtml(item.label) + '</strong><span>' + escapeHtml((item.libraries || []).join(', ') || item.kind) + ' · ' + escapeHtml(String(item.defaultDuration || 2)) + 's</span>';
+        button.onclick = () => insertTemplate(item.id);
+        templateStrip.appendChild(button);
+      }
+    }
+
+    async function insertTemplate(templateId) {
+      if (!currentPath) return;
+      pausePlayback();
+      try {
+        setStatus('Inserting beat template...');
+        const response = await fetch('/preview/insert-template', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            path: currentPath,
+            templateId,
+            startTime: currentSecond,
+          }),
+        });
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(payload?.error || 'Template insert failed');
+        timelineModel = payload.timeline;
+        if (!jsonDirty && payload.json) setJsonText(payload.json);
+        selectedClipId = payload.insertedId || '';
+        selectedClipKind = timelineModel?.schema === 'uiv-runtime' ? 'segment' : 'layer';
+        await loadProjectByPath(currentPath, { auto: true });
+        await renderAt(Number(payload.startTime) || currentSecond);
+        updateSelectedClipForm();
+        setStatus('Inserted template at ' + Number(payload.startTime || currentSecond).toFixed(3) + 's');
+      } catch (error) {
+        setStatus(error?.message || String(error), true);
+      }
+    }
+
+    function getClipLint(clipId) {
+      return (timelineModel?.lint || []).filter(item => item.clipId === clipId);
+    }
+
+    function renderTimelineSummary() {
+      const lint = timelineModel?.lint || [];
+      const errors = lint.filter(item => item.severity === 'error').length;
+      const warnings = lint.filter(item => item.severity === 'warning').length;
+      if (!timelineModel) {
+        timelineSummary.textContent = '';
+        return;
+      }
+      timelineSummary.textContent = errors
+        ? errors + ' error' + (errors === 1 ? '' : 's') + ', ' + warnings + ' warning' + (warnings === 1 ? '' : 's')
+        : warnings
+          ? warnings + ' warning' + (warnings === 1 ? '' : 's')
+          : 'clean';
+    }
+
+    function renderTimelineLintBar() {
+      timelineLint.innerHTML = '';
+      const items = (timelineModel?.lint || []).slice(0, 8);
+      for (const item of items) {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'timeline-lint-chip ' + item.severity;
+        chip.textContent = item.message;
+        chip.title = item.message;
+        chip.onclick = () => {
+          if (item.clipId) {
+            selectedClipId = item.clipId;
+            const clip = getSelectedClip();
+            selectedClipKind = clip?.kind || selectedClipKind;
+            renderTimelineTracks();
+            updateSelectedClipForm();
+          }
+          setStatus((item.severity === 'error' ? 'Timeline error: ' : 'Timeline warning: ') + item.message, item.severity === 'error');
+        };
+        timelineLint.appendChild(chip);
+      }
+      renderTimelineSummary();
+    }
+
+    function renderTimelinePlayhead() {
+      for (const lane of timelineTracks.querySelectorAll('.timeline-track-lane')) {
+        let playhead = lane.querySelector('.timeline-playhead');
+        if (!playhead) {
+          playhead = document.createElement('div');
+          playhead.className = 'timeline-playhead';
+          lane.appendChild(playhead);
+        }
+        const laneDuration = Number(lane.dataset.duration) || duration || 1;
+        const percent = laneDuration ? Math.max(0, Math.min(100, (currentSecond / laneDuration) * 100)) : 0;
+        playhead.style.left = 'calc(' + percent + '% - 1px)';
+      }
+    }
+
+    function renderTimelineTracks() {
+      timelineTracks.innerHTML = '';
+      if (!timelineModel || !Array.isArray(timelineModel.tracks) || timelineModel.tracks.length === 0) {
+        timelineTracks.innerHTML = '<div id="timelineHint">No editable timeline clips in this project yet.</div>';
+        inspectLint.innerHTML = '';
+        return;
+      }
+      for (const track of timelineModel.tracks) {
+        const row = document.createElement('div');
+        row.className = 'timeline-track';
+        const label = document.createElement('div');
+        label.className = 'timeline-track-label';
+        label.textContent = track.label;
+        label.title = track.label;
+        const lane = document.createElement('div');
+        lane.className = 'timeline-track-lane';
+        lane.dataset.duration = String(timelineModel.duration || duration || 0);
+        lane.addEventListener('pointerdown', event => {
+          if (event.target !== lane) return;
+          pausePlayback();
+          const rect = lane.getBoundingClientRect();
+          const ratio = rect.width ? (event.clientX - rect.left) / rect.width : 0;
+          renderAt((timelineModel.duration || duration) * Math.max(0, Math.min(1, ratio))).catch(error => setStatus(error?.message || String(error), true));
+        });
+        for (const clip of track.clips || []) {
+          lane.appendChild(createTimelineClipElement(clip, timelineModel.duration || duration || 0));
+        }
+        row.appendChild(label);
+        row.appendChild(lane);
+        timelineTracks.appendChild(row);
+      }
+      renderTimelinePlayhead();
+      renderTimelineLintBar();
+      renderInspectLint(timelineModel.lint || []);
+      scheduleCanvasDisplaySize();
+    }
+
+    function createTimelineClipElement(clip, totalDuration) {
+      const clipLint = getClipLint(clip.id);
+      const hasError = clipLint.some(item => item.severity === 'error');
+      const hasWarning = clipLint.some(item => item.severity === 'warning');
+      const element = document.createElement('div');
+      element.className = 'timeline-clip'
+        + (clip.editable ? '' : ' non-editable')
+        + (clip.id === selectedClipId ? ' selected' : '')
+        + (hasError ? ' lint-error' : hasWarning ? ' lint-warning' : '');
+      element.style.left = ((clip.startTime / totalDuration) * 100) + '%';
+      element.style.width = Math.max(0.8, ((clip.endTime - clip.startTime) / totalDuration) * 100) + '%';
+      element.style.background = clip.color || 'rgba(72,199,255,.42)';
+      element.title = clip.label + ' · ' + clip.startTime.toFixed(2) + 's → ' + clip.endTime.toFixed(2) + 's';
+      element.textContent = clip.label;
+      element.dataset.clipId = clip.id;
+      element.dataset.clipKind = clip.kind;
+      element.dataset.startTime = String(clip.startTime);
+      element.dataset.endTime = String(clip.endTime);
+      if (clip.editable) {
+        const leftHandle = document.createElement('div');
+        leftHandle.className = 'timeline-handle left';
+        leftHandle.addEventListener('pointerdown', event => beginClipDrag(event, clip, 'trim-start'));
+        const rightHandle = document.createElement('div');
+        rightHandle.className = 'timeline-handle right';
+        rightHandle.addEventListener('pointerdown', event => beginClipDrag(event, clip, 'trim-end'));
+        element.appendChild(leftHandle);
+        element.appendChild(rightHandle);
+        element.addEventListener('pointerdown', event => {
+          if (event.target.classList.contains('timeline-handle')) return;
+          beginClipDrag(event, clip, 'move');
+        });
+      }
+      element.addEventListener('click', event => {
+        event.stopPropagation();
+        selectedClipId = clip.id;
+        selectedClipKind = clip.kind;
+        renderTimelineTracks();
+        updateSelectedClipForm();
+        refreshInspectPanel().catch(() => {});
+      });
+      return element;
+    }
+
+    function beginClipDrag(event, clip, mode) {
+      if (!clip.editable || !timelineModel) return;
+      event.preventDefault();
+      event.stopPropagation();
+      pausePlayback();
+      selectedClipId = clip.id;
+      const ripple = timelineEditMode === 'ripple';
+      const subsequent = [];
+      let previousClip = null;
+      if (ripple) {
+        const track = (timelineModel.tracks || []).find(item => (item.clips || []).some(entry => entry.id === clip.id));
+        if (track) {
+          const sorted = [...track.clips].sort((left, right) => left.startTime - right.startTime || left.endTime - right.endTime);
+          const index = sorted.findIndex(entry => entry.id === clip.id);
+          if (clip.kind === 'segment' && index > 0) {
+            const previous = sorted[index - 1];
+            previousClip = {
+              id: previous.id,
+              initialStart: previous.startTime,
+              initialEnd: previous.endTime,
+            };
+          }
+          for (let j = index + 1; j < sorted.length; j++) {
+            subsequent.push({
+              id: sorted[j].id,
+              initialStart: sorted[j].startTime,
+              initialEnd: sorted[j].endTime,
+            });
+          }
+        }
+      }
+      dragState = {
+        clip,
+        mode,
+        ripple,
+        subsequent,
+        previousClip,
+        startX: event.clientX,
+        initialStart: clip.startTime,
+        initialEnd: clip.endTime,
+        lane: event.currentTarget.closest('.timeline-track-lane') || event.currentTarget.parentElement,
+      };
+      event.currentTarget.classList.add('dragging');
+      window.addEventListener('pointermove', onClipDrag);
+      window.addEventListener('pointerup', finishClipDrag, { once: true });
+    }
+
+    function previewRippleClips(state, delta, totalDuration) {
+      if (!state?.ripple || !state.subsequent?.length || Math.abs(delta) <= 0.0005) return;
+      for (const item of state.subsequent) {
+        const clipElement = state.lane.querySelector('[data-clip-id="' + item.id + '"]');
+        if (!clipElement) continue;
+        const nextStart = Math.max(0, item.initialStart + delta);
+        const nextEnd = item.initialEnd + delta;
+        clipElement.style.left = ((nextStart / totalDuration) * 100) + '%';
+        clipElement.style.width = Math.max(0.8, ((nextEnd - nextStart) / totalDuration) * 100) + '%';
+      }
+    }
+
+    function previewRippleTimelineEdits(state, nextStart, nextEnd, totalDuration) {
+      if (!state?.ripple) return;
+      const minDuration = 1 / (projectFps || 30);
+
+      if (state.clip.kind === 'segment') {
+        if (state.previousClip) {
+          const previousElement = state.lane.querySelector('[data-clip-id="' + state.previousClip.id + '"]');
+          if (previousElement) {
+            const previousEnd = Math.max(state.previousClip.initialStart + minDuration, nextStart);
+            previousElement.style.left = ((state.previousClip.initialStart / totalDuration) * 100) + '%';
+            previousElement.style.width = Math.max(0.8, ((previousEnd - state.previousClip.initialStart) / totalDuration) * 100) + '%';
+          }
+        }
+
+        let cursorEnd = nextEnd;
+        for (const item of state.subsequent || []) {
+          const clipElement = state.lane.querySelector('[data-clip-id="' + item.id + '"]');
+          if (!clipElement) continue;
+          const clipDuration = Math.max(minDuration, item.initialEnd - item.initialStart);
+          const start = cursorEnd;
+          const end = start + clipDuration;
+          clipElement.style.left = ((start / totalDuration) * 100) + '%';
+          clipElement.style.width = Math.max(0.8, ((end - start) / totalDuration) * 100) + '%';
+          cursorEnd = end;
+        }
+        return;
+      }
+
+      let rippleDelta = 0;
+      if (state.mode === 'trim-end') {
+        rippleDelta = nextEnd - state.initialEnd;
+      } else {
+        rippleDelta = nextStart - state.initialStart;
+      }
+      previewRippleClips(state, rippleDelta, totalDuration);
+    }
+
+    function onClipDrag(event) {
+      if (!dragState || !timelineModel) return;
+      const laneRect = dragState.lane.getBoundingClientRect();
+      const totalDuration = timelineModel.duration || duration || 1;
+      const deltaSeconds = laneRect.width ? ((event.clientX - dragState.startX) / laneRect.width) * totalDuration : 0;
+      let nextStart = dragState.initialStart;
+      let nextEnd = dragState.initialEnd;
+      if (dragState.mode === 'move') {
+        const clipDuration = dragState.initialEnd - dragState.initialStart;
+        nextStart = snapTime(Math.max(0, Math.min(totalDuration - clipDuration, dragState.initialStart + deltaSeconds)));
+        nextEnd = nextStart + clipDuration;
+      } else if (dragState.mode === 'trim-start') {
+        nextStart = snapTime(Math.max(0, Math.min(dragState.initialEnd - (1 / (projectFps || 30)), dragState.initialStart + deltaSeconds)));
+      } else {
+        nextEnd = snapTime(Math.max(dragState.initialStart + (1 / (projectFps || 30)), Math.min(totalDuration, dragState.initialEnd + deltaSeconds)));
+      }
+      dragState.previewStart = nextStart;
+      dragState.previewEnd = nextEnd;
+      const clipElement = dragState.lane.querySelector('[data-clip-id="' + dragState.clip.id + '"]');
+      if (clipElement) {
+        clipElement.style.left = ((nextStart / totalDuration) * 100) + '%';
+        clipElement.style.width = Math.max(0.8, ((nextEnd - nextStart) / totalDuration) * 100) + '%';
+        clipElement.textContent = dragState.clip.label;
+      }
+      previewRippleTimelineEdits(dragState, nextStart, nextEnd, totalDuration);
+    }
+
+    async function finishClipDrag() {
+      window.removeEventListener('pointermove', onClipDrag);
+      const state = dragState;
+      dragState = null;
+      if (!state || state.previewStart == null || state.previewEnd == null) {
+        renderTimelineTracks();
+        return;
+      }
+      const changed = Math.abs(state.previewStart - state.initialStart) > 0.0005 || Math.abs(state.previewEnd - state.initialEnd) > 0.0005;
+      if (!changed) {
+        renderTimelineTracks();
+        return;
+      }
+      try {
+        setStatus('Saving timeline edit...');
+        const response = await fetch('/preview/patch', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            path: currentPath,
+            mode: timelineEditMode,
+            updates: [{ id: state.clip.id, kind: state.clip.kind, startTime: state.previewStart, endTime: state.previewEnd }],
+          }),
+        });
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(payload?.error || 'Timeline patch failed');
+        timelineModel = payload.timeline;
+        if (!jsonDirty && payload.json) setJsonText(payload.json);
+        await loadProjectByPath(currentPath, { auto: true });
+        setStatus('Timeline saved: ' + state.clip.label);
+      } catch (error) {
+        setStatus(error?.message || String(error), true);
+        await fetchTimelineModel();
+      }
+    }
+
+    function scheduleInspectRefresh() {
+      clearTimeout(inspectTimer);
+      inspectTimer = setTimeout(() => {
+        refreshInspectPanel().catch(() => {});
+      }, 120);
+    }
+
+    async function refreshInspectPanel() {
+      if (!currentPath) {
+        inspectBody.innerHTML = '';
+        inspectLint.innerHTML = '';
+        return;
+      }
+      const response = await fetch('/preview/inspect?path=' + encodeURIComponent(currentPath) + '&time=' + encodeURIComponent(String(currentSecond)), { cache: 'no-store' });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || 'Unable to inspect project');
+      const rows = [
+        ['Time', payload.time?.toFixed?.(3) + 's'],
+        ['Frame', String(payload.frame ?? 0)],
+        ['Schema', payload.schema || 'unknown'],
+        ['Active segment', payload.activeSegmentLabel || payload.activeSegmentId || '—'],
+        ['Active clips', (payload.activeClipIds || []).join(', ') || '—'],
+        ['Visible nodes', payload.visibleNodeCount == null ? '—' : String(payload.visibleNodeCount)],
+        ['Render items', payload.renderPlanItemCount == null ? '—' : String(payload.renderPlanItemCount)],
+        ['Dependencies', (payload.dependencies || []).join(', ') || '—'],
+        ['Markers', (payload.markerIds || []).join(', ') || '—'],
+      ];
+      inspectBody.innerHTML = rows.map(([label, value]) => '<div class="inspect-row"><span>' + escapeHtml(label) + '</span><span>' + escapeHtml(value) + '</span></div>').join('');
+      renderInspectLint(payload.lint || timelineModel?.lint || []);
+    }
+
+    function renderInspectLint(items) {
+      inspectLint.innerHTML = (items || []).slice(0, 6).map(item =>
+        '<div class="inspect-lint ' + escapeHtml(item.severity) + '">' + escapeHtml(item.message) + '</div>'
+      ).join('');
+    }
+
+    function getSelectedClip() {
+      if (!timelineModel || !selectedClipId) return null;
+      for (const track of timelineModel.tracks || []) {
+        const clip = (track.clips || []).find(item => item.id === selectedClipId);
+        if (clip) return clip;
+      }
+      return null;
+    }
+
+    function updateSelectedClipForm() {
+      const clip = getSelectedClip();
+      const editable = Boolean(clip?.editable);
+      clipLabel.value = clip?.label || '';
+      clipStart.value = clip ? clip.startTime.toFixed(3) + 's' : '';
+      clipEnd.value = clip ? clip.endTime.toFixed(3) + 's' : '';
+      clipDeps.value = (clip?.dependencies || []).join(', ');
+      clipLabel.disabled = !editable;
+      clipDeps.disabled = !editable;
+      saveClipMeta.disabled = !editable || !currentPath;
+      splitClipAction.disabled = !editable || !currentPath;
+    }
+
+    async function loadJsonSource(force = false) {
+      if (!currentPath || (jsonDirty && !force)) return;
+      const response = await fetch('/preview/source?path=' + encodeURIComponent(currentPath), { cache: 'no-store' });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || 'Unable to load project JSON');
+      setJsonText(payload.json || '');
+      jsonDirty = false;
+    }
+
+    function markJsonDirty() {
+      jsonDirty = true;
+    }
+
+    async function saveJsonProject() {
+      if (!currentPath) return;
+      try {
+        setStatus('Saving project JSON...');
+        const response = await fetch('/preview/save-project', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ path: currentPath, json: getJsonText() }),
+        });
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(payload?.error || 'JSON save failed');
+        setJsonText(payload.json || getJsonText());
+        jsonDirty = false;
+        timelineModel = payload.timeline;
+        await loadProjectByPath(currentPath, { auto: true });
+        setStatus('Project JSON saved');
+      } catch (error) {
+        setStatus(error?.message || String(error), true);
+      }
+    }
+
+    function formatJsonEditor() {
+      try {
+        setJsonText(JSON.stringify(JSON.parse(getJsonText()), null, 2) + '\\n', { markDirty: true });
+      } catch (error) {
+        setStatus('JSON format failed: ' + (error?.message || error), true);
+      }
+    }
+
+    function focusClipInJson() {
+      if (!selectedClipId) {
+        setStatus('Select a clip to focus in JSON', true);
+        return;
+      }
+      const needle = '"id": "' + selectedClipId + '"';
+      const altNeedle = '"id":"' + selectedClipId + '"';
+      const source = getJsonText();
+      let index = source.indexOf(needle);
+      let matchLength = needle.length;
+      if (index < 0) {
+        index = source.indexOf(altNeedle);
+        matchLength = altNeedle.length;
+      }
+      if (index < 0) {
+        setStatus('Clip id not found in JSON: ' + selectedClipId, true);
+        return;
+      }
+      if (jsonEditorView && cmViewModule) {
+        jsonEditorView.dispatch({
+          selection: { anchor: index, head: index + matchLength },
+          effects: cmViewModule.EditorView.scrollIntoView(index, { y: 'center' }),
+        });
+        jsonEditorView.focus();
+        return;
+      }
+      if (jsonEditorFallback) {
+        jsonEditorFallback.focus();
+        jsonEditorFallback.setSelectionRange(index, index + matchLength);
+      }
+    }
+
+    async function saveClipMetadata() {
+      const clip = getSelectedClip();
+      if (!clip || !currentPath) return;
+      try {
+        setStatus('Saving clip metadata...');
+        const response = await fetch('/preview/metadata', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            path: currentPath,
+            updates: [{
+              id: clip.id,
+              kind: clip.kind,
+              label: clipLabel.value,
+              dependencies: clipDeps.value,
+            }],
+          }),
+        });
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(payload?.error || 'Clip metadata save failed');
+        timelineModel = payload.timeline;
+        if (!jsonDirty && payload.json) setJsonText(payload.json);
+        await loadProjectByPath(currentPath, { auto: true });
+        setStatus('Clip saved: ' + clipLabel.value);
+      } catch (error) {
+        setStatus(error?.message || String(error), true);
+      }
+    }
+
+    async function splitClipAtPlayhead() {
+      const clip = getSelectedClip();
+      if (!clip || !currentPath) {
+        setStatus('Select an editable clip to split', true);
+        return;
+      }
+      if (currentSecond <= clip.startTime + 0.0001 || currentSecond >= clip.endTime - 0.0001) {
+        setStatus('Move playhead inside the selected clip before splitting', true);
+        return;
+      }
+      try {
+        setStatus('Splitting clip at playhead...');
+        const response = await fetch('/preview/split', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            path: currentPath,
+            id: clip.id,
+            kind: clip.kind,
+            time: currentSecond,
+          }),
+        });
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(payload?.error || 'Split failed');
+        timelineModel = payload.timeline;
+        if (!jsonDirty && payload.json) setJsonText(payload.json);
+        selectedClipId = '';
+        selectedClipKind = '';
+        await loadProjectByPath(currentPath, { auto: true });
+        setStatus('Split clip at ' + currentSecond.toFixed(3) + 's');
+      } catch (error) {
+        setStatus(error?.message || String(error), true);
+      }
     }
 
     function resolvePreviewMediaUrl(src, assetBaseUrl) {
@@ -2037,6 +3081,7 @@ function createPreviewHTML(): string {
       currentPath = sourcePath || currentPath;
       currentProjectId = normalized.id || normalized.title || normalized.name || 'ui2v-preview';
       duration = Number(options.duration) || Number(normalized.duration) || 0;
+      projectFps = Number(options.fps) || Number(normalized.fps) || 30;
       currentSecond = loadOptions.auto ? Math.min(currentSecond, duration) : 0;
       setupPreviewAudio(normalized);
 
@@ -2063,6 +3108,10 @@ function createPreviewHTML(): string {
       setStatus((loadOptions.auto ? 'Live reloaded: ' : 'Preview ready: ') + (normalized.id || 'project'));
       updatePlayState(false);
       syncPreviewAudio(currentSecond, false);
+      await fetchTimelineModel().catch(error => setStatus(error?.message || String(error), true));
+      await loadJsonSource().catch(error => setStatus(error?.message || String(error), true));
+      updateSelectedClipForm();
+      await refreshInspectPanel().catch(() => {});
     };
 
     async function loadProjectByPath(projectPath, { auto = false } = {}) {
@@ -2116,7 +3165,25 @@ function createPreviewHTML(): string {
       await renderAt((Number(scrub.value) / 1000) * duration);
     };
 
+    prevFrame.onclick = async () => {
+      if (!runtime) return;
+      pausePlayback();
+      await renderAt(snapTime(Math.max(0, currentSecond - (1 / (projectFps || 30)))));
+    };
+
+    nextFrame.onclick = async () => {
+      if (!runtime) return;
+      pausePlayback();
+      await renderAt(snapTime(Math.min(duration, currentSecond + (1 / (projectFps || 30)))));
+    };
+
     searchEl.oninput = renderProjectList;
+
+    formatJson.onclick = formatJsonEditor;
+    saveJson.onclick = saveJsonProject;
+    focusClipJson.onclick = focusClipInJson;
+    saveClipMeta.onclick = saveClipMetadata;
+    splitClipAction.onclick = splitClipAtPlayhead;
 
     fullscreen.onclick = async () => {
       if (document.fullscreenElement) await document.exitFullscreen();

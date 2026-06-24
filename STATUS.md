@@ -15,7 +15,8 @@ The primary path does not download a bundled Chromium and does not require Elect
 - `@ui2v/runtime-core` scene graph, timelines, frame plans, dependency metadata, adapter routing, and draw commands.
 - `@ui2v/engine` browser Canvas renderer, template adapter, custom-code runtime, canvas command executor, and WebCodecs exporter.
 - `@ui2v/producer` system-browser preview and MP4 render pipeline with local browser discovery.
-- `@ui2v/cli` commands: `doctor`, `init`, `validate`, `preview`, `render`, `inspect-runtime`, and `info`.
+- `@ui2v/cli` commands: `doctor`, `init`, `validate`, `preview`, `render`, `inspect-runtime`, `list-beats`, `insert-beat`, `lint-timeline`, and `info`.
+- **ui2v Studio** preview workspace: multi-track timeline, clip inspector, split-at-playhead, CodeMirror JSON editor, beat template strip, timeline lint overlays, and ripple segment editing.
 - Polished README showcase examples and GIF preview assets.
 - Repo-local Codex skills for example creation, runtime-core authoring, render validation, and render capability guidance.
 - Example validation, CLI smoke tests, package metadata checks, and package pack checks.
@@ -27,12 +28,10 @@ The workspace has been verified with:
 
 ```bash
 bun run build
-bun run test:metadata
-bun run test:pack
-bun run test:examples
-bun run test:validate
-bun run test:init
+bun run test:ci
 ```
+
+The CI suite covers unit tests, package metadata, CLI surface, examples, docs assets, preview studio APIs (including ripple patch), insert-beat, lint-timeline, and render failure surfacing.
 
 Additional full smoke checks are available through:
 
