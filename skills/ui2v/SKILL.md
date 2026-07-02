@@ -94,6 +94,24 @@ Then encode that plan into `timeline.segments[]` or template layers. Do not jump
 
 Read `references/storyboard-runtime.md` for detailed segmented storyboard, XYZ/depth/camera, transitions, markers, scene graph, and runtime-core patterns.
 
+## Reference map
+
+Read the smallest reference that matches the task:
+
+| Task | Read |
+| --- | --- |
+| Finished video by genre (launch, data, social, media) | `references/video-playbooks.md` |
+| Storyboard, camera, runtime segments | `references/storyboard-runtime.md` |
+| JSON shape, dependencies, media layers | `references/json-authoring.md` |
+| Library choice and beat sheet | `references/library-recipes.md` |
+| Studio, Ripple, lint, beats, split | `references/studio-workflow.md` |
+| Beat template IDs | `references/beat-catalog.md` |
+| Render flags, failures, doctor | `references/render-quality.md` |
+| Which example to clone | `references/example-roles.md` |
+| README GIF/JPG export | `references/showcase-assets.md` |
+| Canvas helpers / GIF readability | `references/canvas-patterns.md` |
+| Platform feature map | `references/rendering-features.md` |
+
 ## Timeline-first library usage
 
 When a user asks for many browser/npm libraries, organize the video by time instead of putting every library into one custom-code block. Each selected library must own a visible beat, layer, or segment where its real API changes the rendered pixels or media behavior.
@@ -190,9 +208,12 @@ ui2v validate examples/<name>/animation.json --verbose
 ui2v render examples/<name>/animation.json -o .tmp/examples/<name>.mp4 --quality high
 ```
 
-## Studio and beat templates
+## Studio, beats, and timeline lint
 
-`ui2v preview` opens **ui2v Studio**: timeline editing, runtime inspect, JSON editor, beat template strip, split-at-playhead, and MP4 export. Timeline edits write back to `animation.json`.
+`ui2v preview` opens **ui2v Studio**: timeline editing, Ripple segment packing, runtime inspect, JSON editor, beat template strip, split-at-playhead, timeline lint overlays, and MP4 export. Timeline edits write back to `animation.json`.
+
+Read `references/studio-workflow.md` for Ripple, split, lint, and inspect details.
+Read `references/beat-catalog.md` for `beat-*` and `runtime-*` template IDs.
 
 For agent/script workflows, use the beat catalog instead of hand-copying example layers:
 
@@ -214,8 +235,11 @@ Rules:
 Recommended agent loop:
 
 ```text
-list-beats -> insert-beat -> validate -> lint-timeline -> inspect-runtime (runtime) -> preview -> render
+storyboard -> choose example/playbook -> list-beats (optional) -> insert-beat / author JSON
+-> validate -> lint-timeline -> inspect-runtime (runtime) -> preview -> render
 ```
+
+Read `references/video-playbooks.md` for genre-specific shot plans and the finished-video quality bar.
 
 Runtime projects:
 
@@ -248,8 +272,20 @@ ui2v --version
 npm view @ui2v/cli version
 ui2v doctor
 ui2v validate <project-json> --verbose
+ui2v lint-timeline <project-json>
+ui2v inspect-runtime <project-json> --time 1 --time 4 --json   # runtime only
 ui2v render <project-json> -o <output>.mp4 --quality high
 ```
+
+Finished-video bar (see `references/video-playbooks.md`):
+
+- hook readable in first 2 seconds
+- every declared library has a visible beat
+- timeline lint has zero errors
+- preview scrubbed once before long render
+- MP4 matches intended resolution/quality
+
+Read `references/render-quality.md` for render flags and failure triage.
 
 If rendering fails before launching the browser, run:
 

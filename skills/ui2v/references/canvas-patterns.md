@@ -1,5 +1,7 @@
 # Canvas Patterns
 
+For social/README readability rules and vertical layout guidance, read `references/video-playbooks.md`.
+
 ## Standard helpers
 
 Use these helpers in large custom-code examples:

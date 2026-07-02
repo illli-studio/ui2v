@@ -2,8 +2,8 @@
 
 ## System pipeline
 
-- `@ui2v/cli` provides `doctor`, `init`, `validate`, `preview`, `render`, `inspect-runtime`, and `info`.
-- `@ui2v/producer` drives local Chrome, Edge, or Chromium through `puppeteer-core`.
+- `@ui2v/cli` provides `doctor`, `init`, `validate`, `preview`, `render`, `inspect-runtime`, `list-beats`, `insert-beat`, `lint-timeline`, and `info`.
+- `@ui2v/producer` drives local Chrome, Edge, or Chromium through `puppeteer-core`, including **ui2v Studio** preview APIs.
 - `@ui2v/core` parses and validates project JSON.
 - `@ui2v/runtime-core` evaluates timelines, segments, dependencies, frame plans, scene metadata, camera/depth concepts, and adapter routing.
 - `@ui2v/engine` runs browser-side rendering and MP4 export through WebCodecs/Mediabunny.

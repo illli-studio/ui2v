@@ -1,0 +1,95 @@
+{
+  "schema": "uiv-runtime",
+  "id": "vertical-launch",
+  "title": "Vertical Launch Ad",
+  "description": "A 9:16 social launch clip with hook, product proof, and CTA segments for vertical playbook reference.",
+  "name": "Vertical Launch Ad",
+  "version": "1.0.0",
+  "duration": 8,
+  "fps": 30,
+  "resolution": {
+    "width": 1080,
+    "height": 1920
+  },
+  "backgroundColor": "#050812",
+  "dependencies": [
+    "canvas2d",
+    "gsap",
+    "d3"
+  ],
+  "theme": {
+    "font": "Inter, system-ui, sans-serif",
+    "colors": {
+      "cyan": "#7dd3fc",
+      "green": "#7bd88f",
+      "amber": "#facc15",
+      "rose": "#fb7185"
+    }
+  },
+  "camera": {
+    "x": 0,
+    "y": 0,
+    "z": 0,
+    "zoom": 1,
+    "fov": 1200
+  },
+  "timeline": {
+    "segments": [
+      {
+        "id": "hook",
+        "label": "Vertical Hook",
+        "startTime": 0,
+        "endTime": 2.5,
+        "dependencies": [
+          "canvas2d",
+          "gsap"
+        ],
+        "transition": {
+          "type": "fade",
+          "duration": 0.25,
+          "easing": "easeOutCubic"
+        },
+        "code": "function render(t, context) { const ctx = context.ctx, w = context.width, h = context.height; const gsap = context.libs?.gsap || globalThis.gsap; const ease = gsap?.parseEase ? gsap.parseEase('expo.out') : function(v){ v = Math.max(0, Math.min(1, v)); return 1 - Math.pow(1 - v, 4); }; const p = ease(context.progress); let g = ctx.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#050812'); g.addColorStop(.55, '#10243a'); g.addColorStop(1, '#24162f'); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h); ctx.save(); ctx.globalCompositeOperation = 'screen'; const blobs = [['rgba(125,211,252,.44)', w * .5, h * .18, 520], ['rgba(123,216,143,.28)', w * .22, h * .62, 420], ['rgba(250,204,21,.18)', w * .78, h * .48, 380]]; blobs.forEach((s, i) => { const rg = ctx.createRadialGradient(s[1] + Math.sin(t * .7 + i) * 36, s[2] + Math.cos(t * .55 + i) * 28, 0, s[1], s[2], s[3]); rg.addColorStop(0, s[0]); rg.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = rg; ctx.fillRect(0, 0, w, h); }); ctx.restore(); ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff'; ctx.font = '900 96px system-ui, sans-serif'; ctx.fillText('Ship vertical', w / 2, h * .34 - (1 - p) * 80); ctx.fillStyle = '#bdefff'; ctx.font = '800 38px system-ui, sans-serif'; ctx.fillText('JSON storyboard -> MP4', w / 2, h * .34 + 56); ctx.fillStyle = 'rgba(255,255,255,.62)'; ctx.font = '700 28px system-ui, sans-serif'; ctx.fillText('9:16 hook in under 2 seconds', w / 2, h * .34 + 118); ctx.textAlign = 'left'; }"
+      },
+      {
+        "id": "proof",
+        "label": "Feature Proof",
+        "startTime": 2.5,
+        "endTime": 5.5,
+        "dependencies": [
+          "canvas2d",
+          "d3"
+        ],
+        "transition": {
+          "type": "fade",
+          "duration": 0.25,
+          "easing": "easeOutCubic"
+        },
+        "code": "function render(t, context) { const ctx = context.ctx, w = context.width, h = context.height; const d3 = context.libs?.d3 || globalThis.d3; const p = Math.max(0, Math.min(1, context.progress)); const ease = 1 - Math.pow(1 - p, 3); const values = [0.35, 0.72, 0.58, 0.9]; const scale = d3?.scaleLinear ? d3.scaleLinear().domain([0, 1]).range([0, 220]) : function(v) { return v * 220; }; let g = ctx.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#06111f'); g.addColorStop(1, '#141c34'); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h); const cardX = 72, cardY = h * .22, cardW = w - 144, cardH = h * .42; ctx.fillStyle = 'rgba(255,255,255,.08)'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(cardX, cardY, cardW, cardH, 36) : ctx.rect(cardX, cardY, cardW, cardH); ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,.16)'; ctx.lineWidth = 2; ctx.stroke(); ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff'; ctx.font = '900 52px system-ui, sans-serif'; ctx.fillText('Studio timeline', w / 2, cardY + 88); ctx.fillStyle = 'rgba(255,255,255,.66)'; ctx.font = '700 26px system-ui, sans-serif'; ctx.fillText('Ripple segments · lint · beats', w / 2, cardY + 138); const baseY = cardY + cardH - 72; values.forEach((v, i) => { const bar = scale(v) * ease; const x = cardX + 56 + i * ((cardW - 112) / 3); const y = baseY - bar; const grad = ctx.createLinearGradient(0, y, 0, baseY); grad.addColorStop(0, i % 2 ? '#7dd3fc' : '#7bd88f'); grad.addColorStop(1, 'rgba(255,255,255,.1)'); ctx.fillStyle = grad; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, 56, bar, 14) : ctx.rect(x, y, 56, bar); ctx.fill(); }); ctx.textAlign = 'left'; ctx.fillStyle = '#facc15'; ctx.font = '900 34px system-ui, sans-serif'; ctx.fillText('d3 scaleLinear proves the feature beat', 96, h * .72); ctx.fillStyle = 'rgba(255,255,255,.58)'; ctx.font = '700 22px ui-monospace, Consolas, monospace'; ctx.fillText('segment=proof · 1080x1920', 96, h * .72 + 44); }"
+      },
+      {
+        "id": "cta",
+        "label": "CTA Lockup",
+        "startTime": 5.5,
+        "endTime": 8,
+        "dependencies": [
+          "canvas2d",
+          "gsap"
+        ],
+        "transition": {
+          "type": "fade",
+          "duration": 0.25,
+          "easing": "easeOutCubic"
+        },
+        "code": "function render(t, context) { const ctx = context.ctx, w = context.width, h = context.height; const gsap = context.libs?.gsap || globalThis.gsap; const ease = gsap?.parseEase ? gsap.parseEase('power2.out') : function(v){ v = Math.max(0, Math.min(1, v)); return 1 - Math.pow(1 - v, 3); }; const p = ease(context.progress); let g = ctx.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#050812'); g.addColorStop(.5, '#12243a'); g.addColorStop(1, '#2a142a'); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h); ctx.save(); ctx.globalAlpha = .22 + p * .35; ctx.strokeStyle = '#7dd3fc'; ctx.lineWidth = 3; for (let i = 0; i < 8; i++) { ctx.beginPath(); ctx.ellipse(w / 2, h * .56, 180 + i * 34, 48 + i * 8, t * .18 + i * .12, 0, Math.PI * 2); ctx.stroke(); } ctx.restore(); ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff'; ctx.font = '900 108px system-ui, sans-serif'; ctx.fillText('ui2v', w / 2, h * .46 - (1 - p) * 40); ctx.fillStyle = '#7bd88f'; ctx.font = '800 30px ui-monospace, Consolas, monospace'; ctx.fillText('npx @ui2v/cli render animation.json', w / 2, h * .46 + 72); ctx.fillStyle = 'rgba(255,255,255,.72)'; ctx.font = '700 28px system-ui, sans-serif'; ctx.fillText('Validate · Preview · Export', w / 2, h * .46 + 128); ctx.fillStyle = 'rgba(255,255,255,.14)'; const pillW = w - 180; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(90, h * .78, pillW, 18, 9) : ctx.rect(90, h * .78, pillW, 18); ctx.fill(); const prog = ctx.createLinearGradient(90, 0, 90 + pillW, 0); prog.addColorStop(0, '#7dd3fc'); prog.addColorStop(.5, '#7bd88f'); prog.addColorStop(1, '#facc15'); ctx.fillStyle = prog; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(90, h * .78, pillW * Math.max(p, .12), 18, 9) : ctx.rect(90, h * .78, pillW * Math.max(p, .12), 18); ctx.fill(); ctx.textAlign = 'left'; }"
+      }
+    ]
+  },
+  "scene": {
+    "root": {
+      "id": "root",
+      "type": "root",
+      "children": []
+    }
+  }
+}

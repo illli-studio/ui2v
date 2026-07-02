@@ -23,6 +23,7 @@ node packages/cli/dist/cli.js preview examples/access-media/animation.json --pix
 | [`access-media`](access-media/README.md) | Image panel, inserted video, animated waveform, and exported audio. | `image-layer`, `video-layer`, `audio-layer`, `audio.tracks` | `node packages/cli/dist/cli.js preview examples/access-media/animation.json --pixel-ratio 1` |
 | [`library-timeline`](library-timeline/README.md) | A multi-shot library showcase where each time segment has a visible job. | `gsap`, `d3`, `THREE`, `Matter`, `rough`, `SplitType` | `node packages/cli/dist/cli.js preview examples/library-timeline/animation.json --pixel-ratio 1` |
 | [`runtime-storyboard`](runtime-storyboard/README.md) | Segmented runtime story with transitions, camera metadata, and inspectable frames. | Runtime Core adapter and timeline segments | `node packages/cli/dist/cli.js preview examples/runtime-storyboard/animation.json --pixel-ratio 1` |
+| [`vertical-launch`](vertical-launch/README.md) | 9:16 social launch with hook, feature proof, and CTA lockup. | runtime segments, `gsap`, `d3` | `node packages/cli/dist/cli.js preview examples/vertical-launch/animation.json --pixel-ratio 1` |
 | [`pixi-signal`](pixi-signal/README.md) | Radar rescue scene with particles, sweep beams, scan rings, and signal nodes. | PixiJS Graphics, containers, canvas compositing | `node packages/cli/dist/cli.js preview examples/pixi-signal/animation.json --pixel-ratio 1` |
 | [`paper-route`](paper-route/README.md) | Delivery route with smoothed vector paths, checkpoints, and a moving point. | Paper.js paths, groups, symbols, smoothing | `node packages/cli/dist/cli.js preview examples/paper-route/animation.json --pixel-ratio 1` |
 | [`konva-launch-board`](konva-launch-board/README.md) | Product board assembled from object nodes and animated panel states. | Konva Stage, Layer, Group, Rect, Text, Circle | `node packages/cli/dist/cli.js preview examples/konva-launch-board/animation.json --pixel-ratio 1` |
@@ -51,6 +52,7 @@ node packages/cli/dist/cli.js validate examples/basic-smoke/animation.json --ver
 node packages/cli/dist/cli.js validate examples/access-media/animation.json --verbose
 node packages/cli/dist/cli.js validate examples/library-timeline/animation.json --verbose
 node packages/cli/dist/cli.js validate examples/runtime-storyboard/animation.json --verbose
+node packages/cli/dist/cli.js validate examples/vertical-launch/animation.json --verbose
 node packages/cli/dist/cli.js validate examples/pixi-signal/animation.json --verbose
 node packages/cli/dist/cli.js validate examples/paper-route/animation.json --verbose
 node packages/cli/dist/cli.js validate examples/konva-launch-board/animation.json --verbose
@@ -77,6 +79,7 @@ node packages/cli/dist/cli.js render examples/basic-smoke/animation.json -o .tmp
 node packages/cli/dist/cli.js render examples/access-media/animation.json -o .tmp/examples/access-media.mp4 --quality high
 node packages/cli/dist/cli.js render examples/library-timeline/animation.json -o .tmp/examples/library-timeline.mp4 --quality high
 node packages/cli/dist/cli.js render examples/runtime-storyboard/animation.json -o .tmp/examples/runtime-storyboard.mp4 --quality high
+node packages/cli/dist/cli.js render examples/vertical-launch/animation.json -o .tmp/examples/vertical-launch.mp4 --quality high
 node packages/cli/dist/cli.js render examples/pixi-signal/animation.json -o .tmp/examples/pixi-signal.mp4 --quality high
 node packages/cli/dist/cli.js render examples/paper-route/animation.json -o .tmp/examples/paper-route.mp4 --quality high
 node packages/cli/dist/cli.js render examples/konva-launch-board/animation.json -o .tmp/examples/konva-launch-board.mp4 --quality high
@@ -97,3 +100,4 @@ node packages/cli/dist/cli.js render examples/type-systems-map/animation.json -o
 - For multi-library clips, split the timeline by visual beat.
 - Keep custom code deterministic from `time`, `progress`, and seeded randomness.
 - Use `runtime-storyboard` as the reference when you need segments, transitions, and camera metadata.
+- Use `vertical-launch` as the reference for 9:16 social clips with hook / proof / CTA pacing.

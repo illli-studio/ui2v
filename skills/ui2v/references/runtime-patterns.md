@@ -1,5 +1,8 @@
 # Runtime Patterns
 
+For genre-specific shot plans and the finished-video quality bar, read `references/video-playbooks.md`.
+For Studio ripple/lint/split workflows, read `references/studio-workflow.md`.
+
 ## Segment timing
 
 Use clean, non-overlapping segments for README demos:

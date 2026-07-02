@@ -23,6 +23,7 @@ node packages/cli/dist/cli.js preview examples/access-media/animation.json --pix
 | [`access-media`](access-media/README.zh.md) | 图片面板、插入视频、动态波形和导出音轨。 | `image-layer`、`video-layer`、`audio-layer`、`audio.tracks` | `node packages/cli/dist/cli.js preview examples/access-media/animation.json --pixel-ratio 1` |
 | [`library-timeline`](library-timeline/README.zh.md) | 多镜头库能力展示，每个时间段都有明确视觉任务。 | `gsap`、`d3`、`THREE`、`Matter`、`rough`、`SplitType` | `node packages/cli/dist/cli.js preview examples/library-timeline/animation.json --pixel-ratio 1` |
 | [`runtime-storyboard`](runtime-storyboard/README.zh.md) | 带转场、相机 metadata 和可检查帧的分段故事。 | Runtime Core adapter 和 timeline segments | `node packages/cli/dist/cli.js preview examples/runtime-storyboard/animation.json --pixel-ratio 1` |
+| [`vertical-launch`](vertical-launch/README.zh.md) | 9:16 竖屏发布：hook、功能证明、CTA 落版。 | runtime segments、`gsap`、`d3` | `node packages/cli/dist/cli.js preview examples/vertical-launch/animation.json --pixel-ratio 1` |
 | [`pixi-signal`](pixi-signal/README.zh.md) | 救援雷达：粒子、扫描光束、扩散环和信号节点。 | PixiJS Graphics、containers、canvas 合成 | `node packages/cli/dist/cli.js preview examples/pixi-signal/animation.json --pixel-ratio 1` |
 | [`paper-route`](paper-route/README.zh.md) | 平滑矢量路线、检查点和移动点。 | Paper.js paths、groups、symbols、smoothing | `node packages/cli/dist/cli.js preview examples/paper-route/animation.json --pixel-ratio 1` |
 | [`konva-launch-board`](konva-launch-board/README.zh.md) | 由对象节点搭建的产品发布板。 | Konva Stage、Layer、Group、Rect、Text、Circle | `node packages/cli/dist/cli.js preview examples/konva-launch-board/animation.json --pixel-ratio 1` |
@@ -51,6 +52,7 @@ node packages/cli/dist/cli.js validate examples/basic-smoke/animation.json --ver
 node packages/cli/dist/cli.js validate examples/access-media/animation.json --verbose
 node packages/cli/dist/cli.js validate examples/library-timeline/animation.json --verbose
 node packages/cli/dist/cli.js validate examples/runtime-storyboard/animation.json --verbose
+node packages/cli/dist/cli.js validate examples/vertical-launch/animation.json --verbose
 node packages/cli/dist/cli.js validate examples/pixi-signal/animation.json --verbose
 node packages/cli/dist/cli.js validate examples/paper-route/animation.json --verbose
 node packages/cli/dist/cli.js validate examples/konva-launch-board/animation.json --verbose
@@ -77,6 +79,7 @@ node packages/cli/dist/cli.js render examples/basic-smoke/animation.json -o .tmp
 node packages/cli/dist/cli.js render examples/access-media/animation.json -o .tmp/examples/access-media.mp4 --quality high
 node packages/cli/dist/cli.js render examples/library-timeline/animation.json -o .tmp/examples/library-timeline.mp4 --quality high
 node packages/cli/dist/cli.js render examples/runtime-storyboard/animation.json -o .tmp/examples/runtime-storyboard.mp4 --quality high
+node packages/cli/dist/cli.js render examples/vertical-launch/animation.json -o .tmp/examples/vertical-launch.mp4 --quality high
 node packages/cli/dist/cli.js render examples/pixi-signal/animation.json -o .tmp/examples/pixi-signal.mp4 --quality high
 node packages/cli/dist/cli.js render examples/paper-route/animation.json -o .tmp/examples/paper-route.mp4 --quality high
 node packages/cli/dist/cli.js render examples/konva-launch-board/animation.json -o .tmp/examples/konva-launch-board.mp4 --quality high
