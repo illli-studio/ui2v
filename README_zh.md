@@ -13,7 +13,7 @@ bun install
 bun run build
 bun run ui2v --help
 # 发布后也可：
-npm install -g ui2v
+npm install -g @ui2v/cli@latest
 ```
 
 ## 常用命令
@@ -43,7 +43,7 @@ my-motion/
 
 ## 目录
 
-- `packages/ui2v` — 现行 CLI（npm `ui2v`）
+- `packages/ui2v` — 现行 CLI（npm `@ui2v/cli`，命令 `ui2v`）
 - `skills/ui2v` — agent skill
 - `examples/` — 旧 JSON 示例（不能直接当 UI2V 发布包）
 

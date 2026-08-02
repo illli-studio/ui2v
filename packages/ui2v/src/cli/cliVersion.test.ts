@@ -29,9 +29,9 @@ describe("cliVersion", () => {
           headers: { "Content-Type": "application/json" },
         }),
     ) as unknown as typeof fetch;
-    await expect(fetchNpmLatestVersion("ui2v", fetchImpl)).resolves.toBe("0.10.1");
+    await expect(fetchNpmLatestVersion("@ui2v/cli", fetchImpl)).resolves.toBe("0.10.1");
     expect(fetchImpl).toHaveBeenCalledWith(
-      "https://registry.npmjs.org/ui2v/latest",
+      "https://registry.npmjs.org/%40ui2v%2Fcli/latest",
       expect.objectContaining({ method: "GET" }),
     );
   });
@@ -40,10 +40,10 @@ describe("cliVersion", () => {
     const fetchImpl = vi.fn(
       async () => new Response("Not Found", { status: 404 }),
     ) as unknown as typeof fetch;
-    await expect(fetchNpmLatestVersion("ui2v", fetchImpl)).resolves.toBeNull();
+    await expect(fetchNpmLatestVersion("@ui2v/cli", fetchImpl)).resolves.toBeNull();
   });
 
   it("exposes a stable upgrade command string", () => {
-    expect(UI2V_UPGRADE_COMMAND).toBe("npm install -g ui2v@latest");
+    expect(UI2V_UPGRADE_COMMAND).toBe("npm install -g @ui2v/cli@latest");
   });
 });

@@ -4,7 +4,7 @@
 
 本仓库已切换为 **UI2V 注册表 CLI**（从旧桌面 JSON 工具链迁出）。
 
-- 现行包：`packages/ui2v`（npm `ui2v`）
+- 现行包：`packages/ui2v`（npm `@ui2v/cli`）
 - 现行 skill：`skills/ui2v`
 - 已删除：`@ui2v/cli` / `core` / `engine` / `producer` / `runtime-core`
 

@@ -10,7 +10,7 @@ on:
 
 jobs:
   publish:
-    name: Publish ui2v to npm
+    name: Publish @ui2v/cli to npm
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment: npm-publish
@@ -54,6 +54,7 @@ jobs:
         with:
           node-version: "22"
           registry-url: "https://registry.npmjs.org"
+          scope: "@ui2v"
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -74,8 +75,8 @@ jobs:
           if (rootPkg.name !== '@ui2v/workspace') {
             failures.push(`root package.json: expected @ui2v/workspace, got ${rootPkg.name}`);
           }
-          if (cliPkg.name !== 'ui2v') {
-            failures.push(`packages/ui2v: expected name ui2v, got ${cliPkg.name}`);
+          if (cliPkg.name !== '@ui2v/cli') {
+            failures.push(`packages/ui2v: expected name @ui2v/cli, got ${cliPkg.name}`);
           }
           if (rootPkg.version !== version) {
             failures.push(`root package.json: expected version ${version}, got ${rootPkg.version}`);
@@ -89,7 +90,7 @@ jobs:
 
           for (const legacy of ['cli', 'core', 'engine', 'producer', 'runtime-core']) {
             if (fs.existsSync(path.join('packages', legacy, 'package.json'))) {
-              failures.push(`packages/${legacy} must not exist (legacy @ui2v/* stack removed)`);
+              failures.push(`packages/${legacy} must not exist (legacy JSON stack source tree removed)`);
             }
           }
 
@@ -97,23 +98,24 @@ jobs:
             console.error(failures.join('\n'));
             process.exit(1);
           }
-          console.log(`Release version validation passed: ui2v@${version}`);
+          console.log(`Release version validation passed: @ui2v/cli@${version}`);
           NODE
 
       - name: Ensure npm version is free
         env:
           VERSION: ${{ steps.version.outputs.version }}
+          PKG: "@ui2v/cli"
         shell: bash
         run: |
           set -euo pipefail
-          if npm view "ui2v@${VERSION}" version >/dev/null 2>&1; then
-            echo "::error::ui2v@${VERSION} already exists on npm — bump version before publishing"
+          if npm view "${PKG}@${VERSION}" version >/dev/null 2>&1; then
+            echo "::error::${PKG}@${VERSION} already exists on npm — bump version before publishing"
             exit 1
           fi
-          LATEST="$(npm view ui2v version 2>/dev/null || true)"
+          LATEST="$(npm view "${PKG}" version 2>/dev/null || true)"
           export LATEST
           if [[ -z "${LATEST}" ]]; then
-            echo "First publish: ui2v@${VERSION}"
+            echo "No prior ${PKG} on npm — publishing ${VERSION}"
             exit 0
           fi
           echo "npm latest=${LATEST}, candidate=${VERSION}"
@@ -128,6 +130,7 @@ jobs:
               console.error("Refusing publish: " + next + " must be > npm latest " + latest);
               process.exit(1);
             }
+            console.log("OK: " + next + " > " + latest);
           '
 
       - name: Run tests
@@ -136,36 +139,40 @@ jobs:
       - name: Build package
         run: bun run build
 
-      - name: Publish ui2v
+      - name: Publish @ui2v/cli
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           VERSION: ${{ steps.version.outputs.version }}
+          PKG: "@ui2v/cli"
         shell: bash
         run: |
           set -euo pipefail
-          if npm view "ui2v@${VERSION}" version >/dev/null 2>&1; then
-            echo "::error::ui2v@${VERSION} appeared on npm before publish step"
+          if npm view "${PKG}@${VERSION}" version >/dev/null 2>&1; then
+            echo "::error::${PKG}@${VERSION} appeared on npm before publish step"
             exit 1
           fi
-          echo "Publishing ui2v@${VERSION}"
+          echo "Publishing ${PKG}@${VERSION}"
           (cd packages/ui2v && npm publish --access public --provenance)
 
       - name: Verify npm registry
         env:
           VERSION: ${{ steps.version.outputs.version }}
+          PKG: "@ui2v/cli"
         shell: bash
         run: |
           set -euo pipefail
           published=""
           for attempt in {1..12}; do
-            if published="$(npm view "ui2v@${VERSION}" version 2>/dev/null)"; then
+            if published="$(npm view "${PKG}@${VERSION}" version 2>/dev/null)"; then
               break
             fi
-            echo "Waiting for ui2v@${VERSION} (${attempt}/12)"
+            echo "Waiting for ${PKG}@${VERSION} (${attempt}/12)"
             sleep 10
           done
-          echo "ui2v@${published}"
+          echo "${PKG}@${published}"
           if [[ "${published}" != "${VERSION}" ]]; then
-            echo "::error::Expected ui2v@${VERSION}, got ${published}"
+            echo "::error::Expected ${PKG}@${VERSION}, got ${published}"
             exit 1
           fi
+          latest="$(npm view "${PKG}" version)"
+          echo "latest=${latest}"

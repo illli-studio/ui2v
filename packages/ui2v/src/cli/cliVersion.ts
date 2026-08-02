@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import semver from "semver";
 import { getCliVersion } from "./buildInfo.js";
 
-export const UI2V_NPM_PACKAGE = "ui2v";
+export const UI2V_NPM_PACKAGE = "@ui2v/cli";
 export const UI2V_UPGRADE_COMMAND = `npm install -g ${UI2V_NPM_PACKAGE}@latest`;
 
 export function compareCliVersions(local: string, remote: string) {

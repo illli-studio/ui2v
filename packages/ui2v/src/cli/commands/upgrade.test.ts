@@ -12,8 +12,8 @@ const isCliBehind = vi.fn();
 const runNpmGlobalUpgrade = vi.fn();
 
 vi.mock("../cliVersion.js", () => ({
-  UI2V_NPM_PACKAGE: "ui2v",
-  UI2V_UPGRADE_COMMAND: "npm install -g ui2v@latest",
+  UI2V_NPM_PACKAGE: "@ui2v/cli",
+  UI2V_UPGRADE_COMMAND: "npm install -g @ui2v/cli@latest",
   fetchNpmLatestVersion: (...args: unknown[]) => fetchNpmLatestVersion(...args),
   getLocalCliVersion: () => getLocalCliVersion(),
   isCliBehind: (...args: unknown[]) => isCliBehind(...(args as [string, string])),
@@ -41,7 +41,7 @@ describe("cmdUpgrade", () => {
     isCliBehind.mockReturnValueOnce(true);
     const log = vi.spyOn(console, "log").mockImplementation(() => {});
     await expect(cmdUpgrade({ inputAllowed: false })).rejects.toThrow(/outdated/i);
-    expect(log).toHaveBeenCalledWith("Run: npm install -g ui2v@latest");
+    expect(log).toHaveBeenCalledWith("Run: npm install -g @ui2v/cli@latest");
     expect(runNpmGlobalUpgrade).not.toHaveBeenCalled();
     log.mockRestore();
   });

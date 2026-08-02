@@ -20,7 +20,7 @@ vi.mock("./cliVersion.js", async () => {
     ...actual,
     getLocalCliVersion: () => getLocalCliVersion(),
     isCliBehind: (local: string, remote: string) => isCliBehind(local, remote),
-    UI2V_UPGRADE_COMMAND: "npm install -g ui2v@latest",
+    UI2V_UPGRADE_COMMAND: "npm install -g @ui2v/cli@latest",
   };
 });
 

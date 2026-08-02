@@ -1,8 +1,8 @@
-# UI2V CLI
+# @ui2v/cli
 
 Registry CLI for HyperFrames motion packages on ui2v.com.
 
-Replaces the removed `@ui2v/cli` JSON validate/preview/render toolchain in this workspace.
+npm package: **`@ui2v/cli`** (bin still `ui2v`). Replaces the old JSON validate/preview/render surface of `@ui2v/cli@1.x`.
 
 ## Build
 
@@ -16,9 +16,11 @@ bun run ui2v --help
 
 ```bash
 ui2v upgrade
+# or
+npm install -g @ui2v/cli@latest
 ```
 
-## Publish
+## Publish a motion
 
 ```bash
 ui2v login

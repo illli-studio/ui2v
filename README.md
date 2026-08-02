@@ -14,7 +14,7 @@ bun run build
 # local:
 bun run ui2v --help
 # or global after publish:
-npm install -g ui2v
+npm install -g @ui2v/cli@latest
 ```
 
 ## Quick start
@@ -46,7 +46,7 @@ See `skills/ui2v/references/package-format.md` and the registry docs at https://
 
 ## Layout
 
-- `packages/ui2v` — active CLI (npm name `ui2v`, bin `ui2v`)
+- `packages/ui2v` — active CLI (npm `@ui2v/cli`, bin `ui2v`)
 - `skills/ui2v` — agent skill for registry publish / install
 - `examples/` — **legacy** JSON demos from the old toolchain (not publishable to UI2V as-is)
 

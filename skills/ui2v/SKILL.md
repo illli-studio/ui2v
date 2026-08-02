@@ -28,16 +28,16 @@ Before publish/install/sync that depends on current CLI behavior:
 
 ```bash
 ui2v --cli-version
-npm view ui2v version
+npm view @ui2v/cli version
 ```
 
-- Missing CLI → install: `npm install -g ui2v@latest` (or `bun install -g ui2v`)
-- Behind latest → `ui2v upgrade` (alias `self-update`), or `npm install -g ui2v@latest`
+- Missing CLI → install: `npm install -g @ui2v/cli@latest` (or `bun install -g @ui2v/cli`)
+- Behind latest → `ui2v upgrade` (alias `self-update`), or `npm install -g @ui2v/cli@latest`
 - Under `--no-input`, `ui2v upgrade` only prints the install command and exits non-zero when outdated
 
 `npm view` is metadata only. Do not upgrade as a routine first step unless the CLI is missing, too old for the task, broken, or the user asks for latest.
 
-From this monorepo before `ui2v` is on npm:
+From this monorepo before publishing:
 
 ```bash
 cd packages/ui2v && bun run build && node bin/ui2v.js --cli-version

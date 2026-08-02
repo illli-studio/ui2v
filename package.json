@@ -7,9 +7,9 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "bun run --filter ui2v build",
-    "dev": "bun run --filter ui2v dev",
-    "test": "bun run --filter ui2v test",
+    "build": "bun run --filter @ui2v/cli build",
+    "dev": "bun run --filter @ui2v/cli dev",
+    "test": "bun run --filter @ui2v/cli test",
     "ui2v": "node packages/ui2v/bin/ui2v.js",
     "cli": "node packages/ui2v/bin/ui2v.js"
   },
