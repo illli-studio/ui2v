@@ -9,7 +9,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/illli-studio/ui2v.git",
+    "url": "git+https://github.com/illli-studio/ui2v.git",
     "directory": "packages/ui2v"
   },
   "bin": {
@@ -23,8 +23,7 @@
   ],
   "type": "module",
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "scripts": {
     "build": "node ./scripts/build.mjs",
