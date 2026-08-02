@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to publish, for example 1.0.2. package.json files must already use this version."
+        description: "Version to publish (must match package.json), e.g. 2.0.0"
         required: true
         type: string
 
 jobs:
   publish:
-    name: Publish npm packages
+    name: Publish ui2v to npm
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment: npm-publish
@@ -25,7 +25,6 @@ jobs:
         run: |
           VERSION="${{ inputs.version }}"
           VERSION="${VERSION#v}"
-
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "Resolved version=${VERSION}"
 
@@ -36,10 +35,12 @@ jobs:
 
       - name: Validate checkout
         run: |
-          pwd
-          ls -la
           test -f package.json || {
-            echo "::error::package.json was not found after checkout. Run this workflow from the branch that contains the npm workspace."
+            echo "::error::package.json missing after checkout"
+            exit 1
+          }
+          test -f packages/ui2v/package.json || {
+            echo "::error::packages/ui2v/package.json missing — expected registry CLI package"
             exit 1
           }
 
@@ -66,80 +67,88 @@ jobs:
           const path = require('path');
 
           const version = process.env.VERSION;
-          const root = process.cwd();
-          const packages = [
-            ['.', '@ui2v/workspace'],
-            ['packages/core', '@ui2v/core'],
-            ['packages/runtime-core', '@ui2v/runtime-core'],
-            ['packages/engine', '@ui2v/engine'],
-            ['packages/producer', '@ui2v/producer'],
-            ['packages/cli', '@ui2v/cli'],
-          ];
-          const localPackageNames = new Set(packages.slice(1).map(([, name]) => name));
+          const rootPkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          const cliPkg = JSON.parse(fs.readFileSync('packages/ui2v/package.json', 'utf8'));
           const failures = [];
 
-          for (const [dir, expectedName] of packages) {
-            const pkgPath = path.join(root, dir, 'package.json');
-            const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-            const label = dir === '.' ? 'package.json' : `${dir}/package.json`;
+          if (rootPkg.name !== '@ui2v/workspace') {
+            failures.push(`root package.json: expected @ui2v/workspace, got ${rootPkg.name}`);
+          }
+          if (cliPkg.name !== 'ui2v') {
+            failures.push(`packages/ui2v: expected name ui2v, got ${cliPkg.name}`);
+          }
+          if (rootPkg.version !== version) {
+            failures.push(`root package.json: expected version ${version}, got ${rootPkg.version}`);
+          }
+          if (cliPkg.version !== version) {
+            failures.push(`packages/ui2v: expected version ${version}, got ${cliPkg.version}`);
+          }
+          if (cliPkg.bin?.ui2v !== 'bin/ui2v.js') {
+            failures.push('packages/ui2v: bin.ui2v must be bin/ui2v.js');
+          }
 
-            if (pkg.name !== expectedName) {
-              failures.push(`${label}: expected name ${expectedName}, got ${pkg.name}`);
-            }
-
-            if (pkg.version !== version) {
-              failures.push(`${label}: expected version ${version}, got ${pkg.version}`);
-            }
-
-            for (const section of ['dependencies', 'optionalDependencies', 'peerDependencies']) {
-              for (const [name, range] of Object.entries(pkg[section] ?? {})) {
-                if (localPackageNames.has(name) && range !== version) {
-                  failures.push(`${label}: ${section}.${name} must be ${version}, got ${range}`);
-                }
-                if (typeof range === 'string' && range.startsWith('workspace:')) {
-                  failures.push(`${label}: ${section}.${name} uses workspace protocol, which cannot be published`);
-                }
-              }
+          for (const legacy of ['cli', 'core', 'engine', 'producer', 'runtime-core']) {
+            if (fs.existsSync(path.join('packages', legacy, 'package.json'))) {
+              failures.push(`packages/${legacy} must not exist (legacy @ui2v/* stack removed)`);
             }
           }
 
-          if (failures.length > 0) {
+          if (failures.length) {
             console.error(failures.join('\n'));
             process.exit(1);
           }
-
-          console.log(`Release version validation passed: ${version}`);
+          console.log(`Release version validation passed: ui2v@${version}`);
           NODE
 
-      - name: Run CI test suite
-        run: bun run test:ci
+      - name: Ensure npm version is free
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if npm view "ui2v@${VERSION}" version >/dev/null 2>&1; then
+            echo "::error::ui2v@${VERSION} already exists on npm — bump version before publishing"
+            exit 1
+          fi
+          LATEST="$(npm view ui2v version 2>/dev/null || true)"
+          export LATEST
+          if [[ -z "${LATEST}" ]]; then
+            echo "First publish: ui2v@${VERSION}"
+            exit 0
+          fi
+          echo "npm latest=${LATEST}, candidate=${VERSION}"
+          node -e '
+            const latest = process.env.LATEST;
+            const next = process.env.VERSION;
+            const parse = (v) => v.split(".").map((n) => Number.parseInt(n, 10));
+            const [la, lb, lc] = parse(latest);
+            const [na, nb, nc] = parse(next);
+            const cmp = na - la || nb - lb || nc - lc;
+            if (!(cmp > 0)) {
+              console.error("Refusing publish: " + next + " must be > npm latest " + latest);
+              process.exit(1);
+            }
+          '
 
-      - name: Publish packages
+      - name: Run tests
+        run: bun run test
+
+      - name: Build package
+        run: bun run build
+
+      - name: Publish ui2v
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           VERSION: ${{ steps.version.outputs.version }}
         shell: bash
         run: |
           set -euo pipefail
-
-          publish_pkg() {
-            local dir="$1"
-            local name="$2"
-
-            if npm view "${name}@${VERSION}" version >/dev/null 2>&1; then
-              echo "${name}@${VERSION} already exists, skipping"
-              return
-            fi
-
-            echo "Publishing ${name}@${VERSION}"
-            (cd "$dir" && npm publish --access public --provenance)
-          }
-
-          publish_pkg "packages/core" "@ui2v/core"
-          publish_pkg "packages/runtime-core" "@ui2v/runtime-core"
-          publish_pkg "packages/engine" "@ui2v/engine"
-          publish_pkg "packages/producer" "@ui2v/producer"
-          publish_pkg "packages/cli" "@ui2v/cli"
+          if npm view "ui2v@${VERSION}" version >/dev/null 2>&1; then
+            echo "::error::ui2v@${VERSION} appeared on npm before publish step"
+            exit 1
+          fi
+          echo "Publishing ui2v@${VERSION}"
+          (cd packages/ui2v && npm publish --access public --provenance)
 
       - name: Verify npm registry
         env:
@@ -147,30 +156,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
-          for name in \
-            "@ui2v/core" \
-            "@ui2v/runtime-core" \
-            "@ui2v/engine" \
-            "@ui2v/producer" \
-            "@ui2v/cli"
-          do
-            published=""
-            latest=""
-            for attempt in {1..12}; do
-              if published="$(npm view "${name}@${VERSION}" version 2>/dev/null)" &&
-                 latest="$(npm view "${name}@latest" version 2>/dev/null)"; then
-                break
-              fi
-
-              echo "Waiting for ${name}@${VERSION} to appear in npm registry (${attempt}/12)"
-              sleep 10
-            done
-
-            echo "${name}@${published} latest=${latest}"
-
-            if [ "$published" != "$VERSION" ]; then
-              echo "::error::Expected ${name}@${VERSION}, got ${published}"
-              exit 1
+          published=""
+          for attempt in {1..12}; do
+            if published="$(npm view "ui2v@${VERSION}" version 2>/dev/null)"; then
+              break
             fi
+            echo "Waiting for ui2v@${VERSION} (${attempt}/12)"
+            sleep 10
           done
+          echo "ui2v@${published}"
+          if [[ "${published}" != "${VERSION}" ]]; then
+            echo "::error::Expected ui2v@${VERSION}, got ${published}"
+            exit 1
+          fi

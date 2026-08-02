@@ -1,56 +1,33 @@
 {
   "name": "@ui2v/workspace",
-  "version": "1.2.0",
-  "description": "ui2v workspace for rendering animation JSON into MP4 video with Canvas and WebCodecs",
+  "version": "2.0.0",
+  "description": "UI2V workspace — HyperFrames motion registry CLI (replaces the old @ui2v/cli JSON toolchain)",
   "private": true,
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
-    "build": "bun run --filter '*' build",
-    "dev": "bun run --filter '*' dev",
-    "clean": "bun run --filter '*' clean",
-    "version:bump": "node scripts/bump-version.mjs",
-    "publish:packages": "bun run test && npm publish --workspaces --access public",
-    "test": "bun run build && bun run test:unit && bun run test:metadata && bun run test:surface && bun run test:pack && bun run test:examples && bun run test:docs && bun run test:validate && bun run test:cli-errors && bun run test:inspect-runtime && bun run test:preview-studio && bun run test:insert-beat && bun run test:lint-timeline && bun run test:smoke && bun run test:render-scale && bun run test:runtime-render && bun run test:render-failures && bun run test:init",
-    "test:ci": "bun run build && bun run test:unit && bun run test:metadata && bun run test:surface && bun run test:pack && bun run test:examples && bun run test:docs && bun run test:validate && bun run test:cli-errors && bun run test:inspect-runtime && bun run test:preview-studio && bun run test:insert-beat && bun run test:lint-timeline && bun run test:render-failures",
-    "test:unit": "bun run packages/core/test/parser.test.mjs && bun run packages/runtime-core/test/runtime-core.test.mjs && bun run packages/engine/test/canvas-draw-command-executor.test.mjs && bun run packages/engine/test/custom-code-runtime.test.mjs && bun run packages/producer/test/preview-studio.test.mjs && bun run packages/producer/test/preview-templates.test.mjs",
-    "test:metadata": "node scripts/validate-package-metadata.mjs",
-    "test:surface": "node scripts/validate-cli-surface.mjs",
-    "test:pack": "node scripts/validate-package-packs.mjs",
-    "test:examples": "node scripts/validate-examples.mjs",
-    "test:validate": "node scripts/smoke-validate.mjs",
-    "test:cli-errors": "node scripts/smoke-cli-errors.mjs",
-    "test:inspect-runtime": "node scripts/smoke-inspect-runtime.mjs",
-    "test:smoke": "node scripts/smoke-render.mjs",
-    "test:render-scale": "node scripts/smoke-render-scale.mjs",
-    "test:render-failures": "node scripts/smoke-render-failures.mjs",
-    "test:runtime-render": "node scripts/smoke-runtime-render.mjs",
-    "test:init": "node scripts/smoke-init.mjs",
-    "test:docs": "node scripts/validate-docs-assets.mjs",
-    "test:preview-studio": "node scripts/smoke-preview-studio.mjs",
-    "test:insert-beat": "node scripts/smoke-insert-beat.mjs",
-    "test:lint-timeline": "node scripts/smoke-lint-timeline.mjs"
+    "build": "bun run --filter ui2v build",
+    "dev": "bun run --filter ui2v dev",
+    "test": "bun run --filter ui2v test",
+    "ui2v": "node packages/ui2v/bin/ui2v.js",
+    "cli": "node packages/ui2v/bin/ui2v.js"
   },
   "keywords": [
-    "video",
-    "animation",
-    "rendering",
-    "mp4",
-    "canvas",
-    "webcodecs",
-    "puppeteer-core",
-    "generative-video"
+    "ui2v",
+    "hyperframes",
+    "motion",
+    "registry",
+    "cli"
   ],
   "author": "ui2v",
   "license": "MIT",
   "devDependencies": {
-    "typescript": "^5.8.3",
-    "tsup": "^8.0.0",
-    "rimraf": "^6.0.1"
+    "typescript": "^5.9.3",
+    "@types/node": "^25.5.0"
   },
   "engines": {
-    "node": ">=18",
+    "node": ">=20",
     "bun": ">=1.0"
   }
 }
