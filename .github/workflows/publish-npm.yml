@@ -8,6 +8,15 @@ on:
         required: true
         type: string
 
+# npm Trusted Publishing (OIDC) — configure on https://www.npmjs.com/package/@ui2v/cli → Settings:
+#   Organization or user: illli-studio
+#   Repository: ui2v
+#   Workflow filename: publish-npm.yml
+#   Environment name: npm-publish
+#
+# Do NOT pass NODE_AUTH_TOKEN for publish — setup-node registry-url + token breaks OIDC
+# and surfaces as a misleading E404 on PUT.
+
 jobs:
   publish:
     name: Publish @ui2v/cli to npm
@@ -53,8 +62,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "24"
-          registry-url: "https://registry.npmjs.org"
-          scope: "@ui2v"
+          # Intentionally NO registry-url: it writes _authToken=${NODE_AUTH_TOKEN} and
+          # prevents npm Trusted Publisher OIDC from working (false E404 on publish).
+
+      - name: Upgrade npm for Trusted Publishing
+        run: npm install -g npm@latest
+
+      - name: Show toolchain
+        run: |
+          node -v
+          npm -v
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -86,6 +103,10 @@ jobs:
           }
           if (cliPkg.bin?.ui2v !== 'bin/ui2v.js') {
             failures.push('packages/ui2v: bin.ui2v must be bin/ui2v.js');
+          }
+          const repoUrl = cliPkg.repository?.url;
+          if (repoUrl !== 'https://github.com/illli-studio/ui2v.git') {
+            failures.push(`packages/ui2v repository.url must be https://github.com/illli-studio/ui2v.git, got ${repoUrl}`);
           }
 
           for (const legacy of ['cli', 'core', 'engine', 'producer', 'runtime-core']) {
@@ -139,11 +160,30 @@ jobs:
       - name: Build package
         run: bun run build
 
-      - name: Publish @ui2v/cli
+      - name: Clear token auth that blocks OIDC
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Ensure publish uses Trusted Publishing OIDC, not a restricted classic token.
+          unset NODE_AUTH_TOKEN || true
+          unset NPM_TOKEN || true
+          if [[ -f "$HOME/.npmrc" ]]; then
+            sed -i '/_authToken/d' "$HOME/.npmrc" || true
+            sed -i '/\/\/registry.npmjs.org\/:_authToken/d' "$HOME/.npmrc" || true
+          fi
+          if [[ -f .npmrc ]]; then
+            sed -i '/_authToken/d' .npmrc || true
+          fi
+          echo "npmrc auth tokens cleared for OIDC publish"
+
+      - name: Publish @ui2v/cli via OIDC
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           VERSION: ${{ steps.version.outputs.version }}
           PKG: "@ui2v/cli"
+          # Force-empty so Actions does not inject a placeholder token into the environment.
+          NODE_AUTH_TOKEN: ""
+          NPM_TOKEN: ""
+          NPM_CONFIG_PROVENANCE: "true"
         shell: bash
         run: |
           set -euo pipefail
@@ -151,8 +191,10 @@ jobs:
             echo "::error::${PKG}@${VERSION} appeared on npm before publish step"
             exit 1
           fi
-          echo "Publishing ${PKG}@${VERSION}"
-          (cd packages/ui2v && npm publish --access public --provenance)
+          echo "Publishing ${PKG}@${VERSION} with Trusted Publishing (OIDC)"
+          echo "ACTIONS_ID_TOKEN_REQUEST_URL set: ${ACTIONS_ID_TOKEN_REQUEST_URL:+yes}"
+          cd packages/ui2v
+          npm publish --access public
 
       - name: Verify npm registry
         env:
@@ -172,6 +214,8 @@ jobs:
           echo "${PKG}@${published}"
           if [[ "${published}" != "${VERSION}" ]]; then
             echo "::error::Expected ${PKG}@${VERSION}, got ${published}"
+            echo "::error::If OIDC failed, verify Trusted Publisher on npmjs.com matches:"
+            echo "::error::  org=illli-studio repo=ui2v workflow=publish-npm.yml env=npm-publish"
             exit 1
           fi
           latest="$(npm view "${PKG}" version)"
