@@ -1,28 +1,29 @@
-# Publishing @ui2v/cli
+# Publishing @ui2v/cli (token route)
 
-Use GitHub Actions workflow **Publish to npm** (`publish-npm.yml`).
+Workflow: **Publish to npm** (`.github/workflows/publish-npm.yml`).
 
-## Why classic `NPM_TOKEN` failed
+## GitHub secret
 
-npm returned a misleading `E404` on `PUT @ui2v/cli` while provenance signed successfully. That usually means the CLI used a restricted/bypass-2FA token (or an empty `_authToken` from `setup-node` `registry-url`) instead of Trusted Publishing OIDC.
+Set `NPM_TOKEN` on the repo or on the `npm-publish` environment.
 
-## Required: Trusted Publisher on npmjs.com
+## Create a working npm token
 
-Open https://www.npmjs.com/package/@ui2v/cli → **Settings** → **Trusted Publisher**:
+The previous E404 on `PUT @ui2v/cli` with a token almost always means **auth/permission**, not “package missing”:
 
-| Field | Value |
-| --- | --- |
-| Organization or user | `illli-studio` |
-| Repository | `ui2v` |
-| Workflow filename | `publish-npm.yml` |
-| Environment name | `npm-publish` |
+1. npmjs.com → Access Tokens → **Granular Access Token**
+2. Permissions: **Read and write**
+3. Select package **`@ui2v/cli`** (or all `@ui2v/*`)
+4. Allow publishing / automation (2FA bypass for publish if prompted)
+5. Token owner must be an **owner/publisher** of `@ui2v/cli`
 
-Save, then re-run the workflow with version `2.0.0`.
+## Package publishing access
 
-## Local smoke (optional)
+On https://www.npmjs.com/package/@ui2v/cli → Settings → Publishing access:
 
-```bash
-bun install
-bun run build
-bun run ui2v --cli-version
-```
+- Must **allow tokens** (do **not** choose “Require two-factor authentication and disallow tokens”)
+
+## Run
+
+Actions → Publish to npm → version `2.0.0`
+
+The workflow prints `npm whoami` before publish so you can confirm the token identity.
