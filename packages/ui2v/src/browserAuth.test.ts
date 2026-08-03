@@ -61,6 +61,7 @@ describe("browserAuth", () => {
     expect(response.status).toBe(200);
     const text = await response.text();
     expect(text).toContain("UI2V CLI Login");
+    expect(text).toContain("<h1 style=\"margin: 0 0 10px; font-size: 18px;\">Completing login...</h1>");
     server.close();
   });
 

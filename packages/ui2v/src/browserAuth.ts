@@ -136,7 +136,7 @@ const CALLBACK_HTML = `<!doctype html>
   </style>
   <body>
     <div class="card">
-      <h1 style="margin: 0 0 10px; font-size: 18px;">Completing login閳�?/h1>
+      <h1 style="margin: 0 0 10px; font-size: 18px;">Completing login...</h1>
       <p id="status" style="margin: 0; opacity: .8;">Waiting for token.</p>
     </div>
     <script>

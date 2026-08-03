@@ -44,11 +44,15 @@ export async function promptConfirm(prompt: string) {
 }
 
 export function openInBrowser(url: string) {
+  // Windows: do not use `explorer` — it cannot open URLs with query strings
+  // (`?` / `&`) and often falls back to opening the Documents folder instead.
+  // `rundll32 url.dll,FileProtocolHandler` opens the default browser with the
+  // full URL intact (no cmd.exe `&` splitting).
   const args =
     process.platform === "darwin"
       ? ["open", url]
       : process.platform === "win32"
-        ? ["explorer", url]
+        ? ["rundll32", "url.dll,FileProtocolHandler", url]
         : ["xdg-open", url];
   const [command, ...commandArgs] = args;
   if (!command) return;

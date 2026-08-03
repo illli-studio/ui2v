@@ -27,11 +27,11 @@ function createMockChild() {
 }
 
 describe("openInBrowser", () => {
-  it("uses explorer on Windows and preserves query params in the URL argument", () => {
+  it("uses rundll32 on Windows and preserves query params in the URL argument", () => {
     const child = createMockChild();
     mockSpawn.mockReturnValueOnce(child);
     const url =
-      "https://ui2v.com/auth?redirect_uri=http%3A%2F%2F127.0.0.1%3A43123%2Fcallback&state=abc123";
+      "https://ui2v.com/cli/auth?redirect_uri=http%3A%2F%2F127.0.0.1%3A43123%2Fcallback&state=abc123";
 
     try {
       Object.defineProperty(process, "platform", { value: "win32" });
@@ -40,10 +40,14 @@ describe("openInBrowser", () => {
       Object.defineProperty(process, "platform", { value: originalPlatform });
     }
 
-    expect(mockSpawn).toHaveBeenCalledWith("explorer", [url], {
-      stdio: "ignore",
-      detached: true,
-    });
+    expect(mockSpawn).toHaveBeenCalledWith(
+      "rundll32",
+      ["url.dll,FileProtocolHandler", url],
+      {
+        stdio: "ignore",
+        detached: true,
+      },
+    );
     expect(child.unref).toHaveBeenCalledOnce();
   });
 

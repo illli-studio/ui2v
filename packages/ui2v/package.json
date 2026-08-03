@@ -1,6 +1,6 @@
 {
   "name": "@ui2v/cli",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "UI2V CLI — install, update, search, and publish HyperFrames motions (replaces the old JSON toolchain).",
   "homepage": "https://ui2v.com",
   "bugs": {
