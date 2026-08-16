@@ -1,92 +1,70 @@
-# Contributing to ui2v
+# Contributing to UI2V
 
 [中文](CONTRIBUTING_zh.md)
 
-Thank you for helping improve ui2v. This repository focuses on the open CLI renderer, runtime packages, examples, documentation, and local Codex skills that help agents create better ui2v projects.
+Thank you for helping improve UI2V. This repository focuses on the registry CLI
+for HyperFrames motion packages, plus the Codex skill that helps agents publish,
+install, and describe those packages.
 
 ## Development Setup
 
 Requirements:
 
-- Node.js 18 or newer
+- Node.js 20 or newer
 - Bun 1.0 or newer
-- A locally installed Chrome, Edge, or Chromium browser
 
-Install and build:
+Install and verify:
 
 ```bash
 bun install
 bun run build
-node packages/cli/dist/cli.js doctor
-```
-
-ui2v uses `puppeteer-core`, so dependency install does not download a bundled Chromium. If browser auto-detection fails, set `PUPPETEER_EXECUTABLE_PATH`, `CHROME_PATH`, `CHROMIUM_PATH`, or `EDGE_PATH`.
-
-## Useful Checks
-
-Run the same fast checks used by CI:
-
-```bash
-bun run test:ci
-```
-
-Run the full local suite, including render smoke tests:
-
-```bash
 bun run test
+node packages/ui2v/bin/ui2v.js --help
 ```
 
-Focused checks:
+For release readiness:
 
 ```bash
-bun run test:unit
-bun run test:metadata
-bun run test:surface
-bun run test:pack
-bun run test:examples
-bun run test:validate
-bun run test:inspect-runtime
-```
-
-CLI smoke checks:
-
-```bash
-node packages/cli/dist/cli.js doctor
-node packages/cli/dist/cli.js validate examples/library-timeline/animation.json --verbose
-node packages/cli/dist/cli.js preview examples/library-timeline/animation.json --pixel-ratio 2
-node packages/cli/dist/cli.js render examples/library-timeline/animation.json -o .tmp/examples/library-timeline.mp4 --quality high
+bun run --filter "@ui2v/cli" verify
 ```
 
 ## Project Layout
 
 ```text
-packages/core          JSON parsing, validation, and shared types
-packages/runtime-core  scene graph, timeline, frame plans, adapter contracts
-packages/engine        browser Canvas renderer, custom code, and WebCodecs export
-packages/producer      puppeteer-core preview/render pipeline and local browser discovery
-packages/cli           command-line interface
-examples               featured demos, utility examples, and runtime-core projects
-assets/showcase        committed GIF/JPG preview assets for README galleries
-docs                   documentation
-scripts                validation, smoke-test, and example refresh scripts
-.agents/skills         repo-local skills for ai-assisted example/render workflows
+packages/ui2v/   active CLI package, npm @ui2v/cli, bin ui2v
+skills/ui2v/     Codex skill for registry install, publish, and positioning
+docs/            product, package, and legacy migration documentation
+scripts/         maintenance scripts
 ```
 
-## Example Guidelines
+## Current Scope
 
-- Keep examples small, maintained, and directly runnable.
-- Keep `basic-smoke`, `library-timeline`, `access-media`, and `runtime-storyboard` valid after renderer or CLI changes.
-- Add new examples only when they demonstrate a distinct supported workflow.
-- Render MP4 files into `.tmp/examples` and commit only lightweight previews under `assets/showcase`.
-- Keep README GIFs short, readable, and preferably under 3 MB.
+UI2V handles registry workflows:
+
+- auth, search, install, update, list, inspect
+- motion publish and sync
+- package ownership, moderation, transfer, stars
+- CLI upgrade and release support
+
+HyperFrames handles composition authoring, preview, rendering, and export. Do
+not reintroduce the removed JSON renderer stack in this repository.
 
 ## Code Guidelines
 
-- Keep package boundaries clear.
-- Prefer runtime-core contracts over one-off rendering logic.
-- Add focused tests for runtime, rendering, CLI, package metadata, and examples when behavior changes.
+- Keep `@ui2v/cli` focused on registry operations.
+- Keep npm naming clear: package `@ui2v/cli`, binary `ui2v`.
+- Add focused tests for CLI command behavior, schema handling, auth, registry
+  HTTP behavior, and publish/sync package scanning.
 - Update English and Chinese docs together.
-- Do not commit `.tmp/`, `out/`, full MP4 exports, or build output directories.
+- Update `skills/ui2v` when behavior, positioning, or publish/install guidance
+  changes.
+- Do not commit `.tmp/`, `out/`, generated archives, build output, or media
+  exports.
+
+## Legacy Material
+
+The old JSON-to-MP4 renderer examples and smoke scripts were removed. Migration
+notes live in [docs/legacy-json-toolchain.md](docs/legacy-json-toolchain.md).
 
 ## Commit Messages
 

@@ -2,91 +2,86 @@
 
 [English](getting-started.md)
 
-ui2v 会通过真实浏览器渲染结构化动画 JSON。本指南介绍
-`@ui2v/cli` 的基本工作流、项目结构和常见排查方式。
+UI2V 是 HyperFrames motion package 的公共注册表。当前 `@ui2v/cli` 包是注册表
+客户端：负责搜索、安装、更新、同步和发布 motion。它不再渲染 `animation.json`
+项目。
 
 ## 工作流
 
-1. 编写或生成一个 `animation.json` 项目。
-2. 用 `ui2v validate` 校验项目。
-3. 用 `ui2v preview` 在浏览器中预览。
-4. 用 `ui2v render` 导出 MP4。
-5. 调试时用 `ui2v inspect-runtime` 检查时间线状态。
+1. 用 HyperFrames 创作并预览 composition。
+2. 打包成包含 `registry-item.json` 和入口 HTML 的 motion 文件夹。
+3. 本地检查 package。
+4. 用 `ui2v login` 登录。
+5. 用 `ui2v motion publish ./package --version 1.0.0` 发布。
+6. 分享 ui2v.com 页面或安装命令。
 
-## 最小项目
+## Package 结构
 
-```json
-{
-  "id": "basic-smoke",
-  "mode": "template",
-  "duration": 2,
-  "fps": 30,
-  "resolution": { "width": 1920, "height": 1080 },
-  "template": {
-    "layers": [
-      {
-        "id": "text-layer",
-        "type": "custom-code",
-        "startTime": 0,
-        "endTime": 2,
-        "properties": {
-          "code": "function createRenderer() { return { render(t, context) { const ctx = context.mainContext; ctx.fillStyle = '#101820'; ctx.fillRect(0, 0, context.width, context.height); ctx.fillStyle = '#fff'; ctx.fillText('ui2v', 40, 80); } }; }"
-        }
-      }
-    ]
-  }
-}
+```text
+my-motion/
+├── registry-item.json
+├── index.html
+└── assets/
 ```
 
-`custom-code` 图层可以暴露 `createRenderer()`、独立的 render 函数、带
-`render` 方法的对象，或运行时支持的模块/类形态。
+`registry-item.json` 必填字段：
 
-## 校验
+- `name`
+- `type: "hyperframes:block"`
+- `title`
+- `description`
+- `dimensions.width` 和 `dimensions.height`
+- `duration`
+- `files`
+
+版本号通过 CLI 的 `--version` 传入，不写在 `registry-item.json` 里。
+
+## 发布
 
 ```bash
-ui2v validate animation.json --verbose
+ui2v login
+ui2v motion publish ./my-motion --version 1.0.0
+ui2v motion publish ./my-motion --version 1.0.1 --changelog "Fix timing"
 ```
 
-校验会在浏览器渲染器启动前检查项目顶层结构、时间、分辨率和图层结构。
+发布后：
 
-## 预览
+- 页面：`https://ui2v.com/<owner>/<slug>`
+- 安装：`npx @ui2v/cli@latest install <slug>`
+
+## 安装和更新
 
 ```bash
-ui2v preview animation.json --pixel-ratio 2
+ui2v search "logo"
+ui2v install <slug>
+ui2v list
+ui2v update --all
+ui2v inspect <slug>
 ```
-
-预览页面包含可搜索的项目列表、当前 JSON 文件实时重载、播放、暂停、重新开始、
-逐帧拖动、响应式项目抽屉，以及用 `d` 切换的 debug overlay。
-
-## 渲染
-
-```bash
-ui2v render animation.json -o output.mp4 --quality high --codec avc
-ui2v render animation.json -o output.mp4 --quality low|medium|high|ultra|cinema
-ui2v render animation.json -o output.mp4 --render-scale 2
-```
-
-默认生产输出是 AVC/H.264 编码的 MP4。只有本地浏览器支持时才可以请求 HEVC。
-
-## 检查 Runtime
-
-```bash
-ui2v inspect-runtime animation.json --time 0 --time 1 --json
-```
-
-检查命令会输出归一化 composition、采样帧状态、依赖信息、路由元数据和绘制命令摘要。
 
 ## 排查
 
-优先运行 `ui2v doctor`。多数环境问题来自浏览器发现、WebCodecs 支持或编码器协商。
+当行为依赖最新 CLI 时，用 `ui2v --cli-version` 和
+`npm view @ui2v/cli version` 检查版本。
 
-ui2v 使用 `puppeteer-core`，安装依赖时不会下载内置 Chromium。如果 `doctor`
-找不到浏览器，请安装 Chrome、Edge 或 Chromium，或者设置
-`PUPPETEER_EXECUTABLE_PATH`、`CHROME_PATH`、`CHROMIUM_PATH`、`EDGE_PATH`。
+常见问题：
+
+- CLI 缺失：安装 `npm install -g @ui2v/cli@latest`。
+- 登录失败：重新运行 `ui2v login`。
+- 版本非法：用 `--version` 传入 semver。
+- 入口文件缺失：检查 `index.html` 或 `registry-item.json.files[]`。
+- manifest 被拒绝：确认 `type`、尺寸、时长和 composition 文件。
+
+## 旧 JSON 工具链
+
+旧的 `@ui2v/cli@1.x` JSON render/preview 命令已经移除。不要把 `doctor`、
+`validate`、`preview`、`render`、`animation.json`、`@ui2v/core`、
+`@ui2v/engine` 或 `@ui2v/producer` 当作当前 UI2V 工作流。请在 HyperFrames
+中创作，再用这个 CLI 发布。
 
 ## 相关文档
 
 - [快速开始](quick-start.zh.md)
 - [架构](architecture.zh.md)
-- [Runtime Core](runtime-core.zh.md)
 - [路线图](roadmap.zh.md)
+- [旧 JSON 工具链](legacy-json-toolchain.zh.md)

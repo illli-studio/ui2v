@@ -2,97 +2,87 @@
 
 [中文](getting-started.zh.md)
 
-ui2v renders structured animation JSON through a real browser. This guide
-explains the `@ui2v/cli` workflow, project shape, and common troubleshooting
-steps.
+UI2V is the public registry for HyperFrames motion packages. The current
+`@ui2v/cli` package is a registry client: it searches, installs, updates, syncs,
+and publishes motions. It does not render `animation.json` projects.
 
 ## Workflow
 
-1. Write or generate an `animation.json` project.
-2. Validate it with `ui2v validate`.
-3. Preview it in a browser with `ui2v preview`.
-4. Render MP4 with `ui2v render`.
-5. Inspect timeline state with `ui2v inspect-runtime` when debugging.
+1. Author and preview a composition with HyperFrames.
+2. Package it as a motion folder with `registry-item.json` and entry HTML.
+3. Check the package locally.
+4. Log in with `ui2v login`.
+5. Publish with `ui2v motion publish ./package --version 1.0.0`.
+6. Share the ui2v.com page or install command.
 
-## Minimal Project
+## Package Shape
 
-```json
-{
-  "id": "basic-smoke",
-  "mode": "template",
-  "duration": 2,
-  "fps": 30,
-  "resolution": { "width": 1920, "height": 1080 },
-  "template": {
-    "layers": [
-      {
-        "id": "text-layer",
-        "type": "custom-code",
-        "startTime": 0,
-        "endTime": 2,
-        "properties": {
-          "code": "function createRenderer() { return { render(t, context) { const ctx = context.mainContext; ctx.fillStyle = '#101820'; ctx.fillRect(0, 0, context.width, context.height); ctx.fillStyle = '#fff'; ctx.fillText('ui2v', 40, 80); } }; }"
-        }
-      }
-    ]
-  }
-}
+```text
+my-motion/
+├── registry-item.json
+├── index.html
+└── assets/
 ```
 
-`custom-code` layers can expose `createRenderer()`, a render function, an object
-with `render`, or compatible module/class shapes handled by the runtime.
+Required `registry-item.json` fields:
 
-## Validation
+- `name`
+- `type: "hyperframes:block"`
+- `title`
+- `description`
+- `dimensions.width` and `dimensions.height`
+- `duration`
+- `files`
+
+Versioning is passed to the CLI with `--version`; it is not stored in
+`registry-item.json`.
+
+## Publish
 
 ```bash
-ui2v validate animation.json --verbose
+ui2v login
+ui2v motion publish ./my-motion --version 1.0.0
+ui2v motion publish ./my-motion --version 1.0.1 --changelog "Fix timing"
 ```
 
-Validation checks the top-level project shape, timing, resolution, and layer
-structure before the browser renderer starts.
+After publish:
 
-## Preview
+- Page: `https://ui2v.com/<owner>/<slug>`
+- Install: `npx @ui2v/cli@latest install <slug>`
+
+## Install And Update
 
 ```bash
-ui2v preview animation.json --pixel-ratio 2
+ui2v search "logo"
+ui2v install <slug>
+ui2v list
+ui2v update --all
+ui2v inspect <slug>
 ```
-
-The preview page includes a searchable project list, live reload for the current
-JSON file, play, pause, restart, scrubbing, a responsive project drawer, and a
-debug overlay toggled with `d`.
-
-## Render
-
-```bash
-ui2v render animation.json -o output.mp4 --quality high --codec avc
-ui2v render animation.json -o output.mp4 --quality low|medium|high|ultra|cinema
-ui2v render animation.json -o output.mp4 --render-scale 2
-```
-
-MP4 with AVC/H.264 is the default production target. HEVC is available only when
-the launched browser supports it.
-
-## Inspect Runtime
-
-```bash
-ui2v inspect-runtime animation.json --time 0 --time 1 --json
-```
-
-Inspection prints normalized composition data, sampled frame state, dependency
-information, routing metadata, and draw command summaries.
 
 ## Troubleshooting
 
-Use `ui2v doctor` first. Most setup problems are browser discovery,
-WebCodecs support, or codec negotiation issues.
+Use `ui2v --cli-version` and `npm view @ui2v/cli version` when behavior depends
+on the latest CLI.
 
-ui2v uses `puppeteer-core`, so dependency install does not download a bundled
-Chromium. If `doctor` cannot find a browser, install Chrome/Edge/Chromium or set
-`PUPPETEER_EXECUTABLE_PATH`, `CHROME_PATH`, `CHROMIUM_PATH`, or `EDGE_PATH`.
+Common failures:
+
+- Missing CLI: install `npm install -g @ui2v/cli@latest`.
+- Auth failure: run `ui2v login` again.
+- Invalid version: pass a semver value with `--version`.
+- Entry file missing: check `index.html` or `registry-item.json.files[]`.
+- Manifest rejection: confirm `type`, dimensions, duration, and composition files.
+
+## Legacy JSON Toolchain
+
+The old `@ui2v/cli@1.x` JSON render/preview commands are removed. Do not use
+`doctor`, `validate`, `preview`, `render`, `animation.json`, `@ui2v/core`,
+`@ui2v/engine`, or `@ui2v/producer` as the current UI2V workflow. Author in
+HyperFrames, then publish with this CLI.
 
 ## Related Docs
 
 - [Quick Start](quick-start.md)
 - [Architecture](architecture.md)
-- [Runtime Core](runtime-core.md)
 - [Roadmap](roadmap.md)
+- [Legacy JSON Toolchain](legacy-json-toolchain.md)

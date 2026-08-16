@@ -2,46 +2,37 @@
 
 [English](roadmap.md)
 
-这份路线图描述当前仓库里的开源渲染栈，不承诺完整桌面应用。
+这份路线图描述当前 UI2V 注册表 CLI。渲染和 composition 创作由 HyperFrames
+负责。
 
 ## 已完成
 
 - Bun workspace monorepo。
-- `@ui2v/core` 解析器、校验器和共享项目类型。
-- `@ui2v/runtime-core` 场景图、时间线、帧计划、依赖元数据、适配器路由和绘制命令。
-- `@ui2v/engine` 浏览器渲染器，支持 template canvas、custom-code 图层和 WebCodecs 导出。
-- `@ui2v/producer` 基于 Puppeteer 的预览和 MP4 渲染管线。
-- `@ui2v/cli` 命令：`doctor`、`init`、`validate`、`preview`、`render`、
-  `inspect-runtime` 和 `info`。
-- workspace 构建和示例渲染 smoke test。
+- 带 `ui2v` bin 的 `@ui2v/cli` 包。
+- 注册表命令：auth、search、install、list、update、inspect、publish、
+  sync、ownership、moderation、stars、transfer 和 CLI upgrade。
+- HyperFrames package 扫描和本地发布检查。
+- CLI command、schema、registry HTTP、auth 和 artifact command flow 测试。
+- 从当前工作流中移除旧 JSON render/preview 工具链。
 
 ## 近期目标
 
-- 改进浏览器依赖诊断。
-- 为已安装 Chrome 或 Edge 的环境提供更清晰的安装指引。
-- 将生成产物统一放到 `.tmp/`。
-- 扩展 runtime JSON 和 custom-code 入口形式的示例覆盖。
+- 让 README、docs、skill 文件和 ui2v.com 上的安装/发布文案保持一致。
+- 改进入口文件缺失、manifest 结构和服务端校验失败时的发布诊断。
+- 优化大型 workspace 下的 sync dry-run 摘要。
+- 扩充有效 HyperFrames package 文件夹示例。
 
-## 渲染可靠性
+## 注册表可靠性
 
-- 为浏览器端 ESM 依赖增加离线/vendor 模式。
-- 将浏览器到 Node 的 base64 传输替换为流式或分块输出。
-- 针对更多项目结构增加 fixture 渲染测试。
-- 在 smoke test 中探测生成 MP4 的元数据。
-
-## 功能扩展
-
-- 在浏览器支持和 muxing 足够可靠时支持 WebM 输出。
-- 批量渲染。
-- 音频混合。
-- 模板库。
-- 插件系统。
-- 更多适配器后端：Three.js、Pixi、Lottie、DOM 和 headless 渲染。
+- 让本地和自动化场景的 auth token 处理更清晰。
+- 保留对临时 registry/network 失败有帮助的 retry 行为。
+- 让 upgrade 提醒足够准确，同时避免普通命令太吵。
+- 为发布时常见失败的 package 边界情况增加 fixtures。
 
 ## 生态
 
 - 文档站。
-- 在线 playground。
-- 社区模板。
-- VS Code 扩展。
-- 分布式或云渲染集成。
+- ui2v.com 上更好的 package preview。
+- 社区 motion templates。
+- HyperFrames 到 UI2V 的发布示例。
+- 改进用于发现和安装判断的 registry metadata。

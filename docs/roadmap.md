@@ -2,50 +2,40 @@
 
 [中文](roadmap.zh.md)
 
-This roadmap describes the open renderer stack in this repository. It does not
-promise a full desktop application.
+This roadmap describes the current UI2V registry CLI. Rendering and composition
+authoring are owned by HyperFrames.
 
 ## Completed
 
 - Bun workspace monorepo.
-- `@ui2v/core` parser, validator, and shared project types.
-- `@ui2v/runtime-core` scene graph, timeline, frame plans, dependency metadata,
-  adapter routing, and draw commands.
-- `@ui2v/engine` browser renderer with template canvas, custom-code layers, and
-  WebCodecs export.
-- `@ui2v/producer` Puppeteer-backed preview and MP4 render pipeline.
-- `@ui2v/cli` commands: `doctor`, `init`, `validate`, `preview`, `render`,
-  `inspect-runtime`, and `info`.
-- Workspace build and smoke-test coverage for example renders.
+- `@ui2v/cli` package with `ui2v` bin.
+- Registry commands for auth, search, install, list, update, inspect, publish,
+  sync, ownership, moderation, stars, transfer, and CLI upgrade.
+- HyperFrames package scanning and local publish checks.
+- Tests for CLI commands, schema handling, registry HTTP behavior, auth, and
+  artifact-level command flows.
+- Removal of the old JSON render/preview toolchain from the active workflow.
 
 ## Near Term
 
-- Improve browser dependency diagnostics.
-- Make install guidance clearer for environments that already have Chrome or
-  Edge installed.
-- Keep generated outputs under `.tmp/`.
-- Expand example coverage for runtime JSON and custom-code entrypoints.
+- Keep install and publish copy consistent across README, docs, skill files, and
+  ui2v.com.
+- Improve publish diagnostics for missing entry files, manifest shape, and
+  server-side validation errors.
+- Tighten sync dry-run summaries for workspaces with many packages.
+- Expand examples for valid HyperFrames package folders.
 
-## Rendering Reliability
+## Registry Reliability
 
-- Add offline/vendor mode for browser ESM dependencies.
-- Replace browser-to-Node base64 transfer with streamed or chunked output.
-- Add fixture-based render tests across more project shapes.
-- Probe generated MP4 metadata in smoke tests.
-
-## Feature Expansion
-
-- WebM output when browser support and muxing are reliable.
-- Batch rendering.
-- Audio mixing.
-- Template library.
-- Plugin system.
-- More adapter backends for Three.js, Pixi, Lottie, DOM, and headless rendering.
+- Make auth token handling clearer for local use and automation.
+- Preserve useful retry behavior around transient registry/network failures.
+- Keep upgrade warnings precise without making routine commands noisy.
+- Add fixtures for package edge cases that commonly fail at publish time.
 
 ## Ecosystem
 
 - Documentation site.
-- Online playground.
-- Community templates.
-- VS Code extension.
-- Distributed or cloud rendering integrations.
+- Better package previews on ui2v.com.
+- Community motion templates.
+- HyperFrames-to-UI2V publishing examples.
+- Registry metadata improvements for discovery and install confidence.

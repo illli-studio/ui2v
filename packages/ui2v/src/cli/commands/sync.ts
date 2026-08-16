@@ -53,7 +53,7 @@ export async function cmdSync(opts: GlobalOpts, options: SyncOptions, inputAllow
     telemetryScan = mergeScan(primaryScan, fallbackScan);
     scan = fallbackScan;
     if (fallbackScan.motions.length === 0)
-      fail("No motions found (checked workdir and known Clawdis/Clawd locations)");
+      fail("No motions found (checked workdir and known compatibility locations)");
     printSection(
       `No motions in workdir. Found ${fallbackScan.motions.length} in fallback locations.`,
       formatList(fallbackScan.rootsWithSkills, 10),

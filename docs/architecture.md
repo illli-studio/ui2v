@@ -2,68 +2,61 @@
 
 [中文](architecture.zh.md)
 
-ui2v is organized as a browser-backed rendering pipeline with a reusable
-runtime core. Node.js owns orchestration and file output; the browser owns
-Canvas rendering and WebCodecs encoding.
+UI2V is organized as a focused registry CLI. The active package is
+`@ui2v/cli`, which installs the `ui2v` command. HyperFrames owns authoring,
+preview, and rendering.
 
-## Packages
-
-```text
-@ui2v/core          Project types, parsing, validation, shared helpers
-@ui2v/runtime-core  Scene graph, timeline, frame plans, adapter contracts
-@ui2v/engine        Browser Canvas rendering, custom code, WebCodecs export
-@ui2v/producer      puppeteer-core preview/render pipeline and local static server
-@ui2v/cli           User-facing command-line interface
-```
-
-## Render Flow
+## Package
 
 ```text
-JSON project
-  -> CLI reads and validates input
-  -> producer starts a localhost static server
-  -> puppeteer-core launches local Chrome, Edge, or Chromium
-  -> browser loads core/runtime/engine bundles
-  -> runtime evaluates deterministic frame state
-  -> engine renders the frame to Canvas
-  -> WebCodecs encodes MP4 in the browser
-  -> producer receives the encoded data and writes the file
+packages/ui2v
+  bin/ui2v.js               CLI executable
+  src/cli.ts                command registration
+  src/cli/commands          registry command implementations
+  src/schema                package and registry schemas
+  src/http.ts               registry HTTP client
+  src/browserAuth.ts        browser login helpers
 ```
 
-## Runtime Boundary
+## Registry Flow
 
-`@ui2v/runtime-core` does not render pixels. It normalizes projects, evaluates
-timeline state, builds render plans, routes work to adapters, and can lower a
-frame into renderer-neutral draw commands.
+```text
+HyperFrames package folder
+  -> registry-item.json + entry HTML
+  -> ui2v command
+  -> local package checks
+  -> authenticated registry request
+  -> ui2v.com page and install command
+```
 
-This separation keeps preview, inspection, and export on one timing model.
+## Command Boundaries
 
-## Browser Boundary
+- Auth commands manage browser login and token storage.
+- Search/install/list/update/inspect commands consume registry metadata.
+- Publish/sync commands scan local HyperFrames package folders and upload
+  validated package archives.
+- Upgrade commands compare the installed CLI with the latest npm package.
+- Ownership, transfer, moderation, star, and unstar commands operate on registry
+  records.
 
-`@ui2v/engine` expects browser APIs: DOM, Canvas, OffscreenCanvas where
-available, and WebCodecs for export. It hosts template layers, custom-code
-layers, canvas command execution, and video encoding.
+## Package Boundary
 
-## Producer Boundary
+UI2V package validation is about registry readiness, not video rendering. Local
+checks confirm folder shape, `registry-item.json`, entry HTML, semver, and files.
+Server-side validation still decides whether a package can be published.
 
-`@ui2v/producer` is the bridge between Node.js and the browser. It starts the
-local server, launches the browser, exposes progress callbacks, collects
-diagnostics, and writes the resulting MP4.
+## Legacy Boundary
+
+The old JSON renderer packages and commands are no longer part of the current
+architecture. Do not route new work through `@ui2v/core`, `@ui2v/runtime-core`,
+`@ui2v/engine`, `@ui2v/producer`, `animation.json`, `validate`, `preview`, or
+`render`. Rebuild old motions as HyperFrames packages, then publish with the
+current CLI.
 
 ## Design Principles
 
-1. Browser-native rendering for browser-native animation libraries.
-2. Deterministic runtime timing shared by preview, inspect, and render.
-3. Clear package boundaries for parsing, runtime, rendering, production, and
-   CLI concerns.
-4. Portable setup without Electron, FFmpeg, or native canvas in the primary
-   path.
-5. Adapter-friendly runtime contracts for future Canvas, WebGL, DOM, Lottie,
-   Pixi, Three.js, and headless backends.
-
-## Known Constraints
-
-- MP4 is the primary output.
-- AVC/H.264 is the default codec; HEVC depends on local browser support.
-- Browser ESM dependencies are currently loaded through pinned CDN URLs.
-- Large renders still transfer encoded video from browser to Node as base64.
+1. Keep UI2V small: registry client, not renderer.
+2. Keep npm package naming explicit: package `@ui2v/cli`, bin `ui2v`.
+3. Keep package format checks close to schema and command tests.
+4. Keep install/publish copy consistent across docs, skill files, README, and
+   ui2v.com.

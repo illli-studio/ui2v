@@ -53,7 +53,7 @@ const program = new Command()
   .name("ui2v")
   .description(
     `${styleTitle(`UI2V CLI ${getCliBuildLabel()}`)}\n${styleEnvBlock(
-      "install, update, search, and publish motions plus OpenClaw packages.",
+      "search, install, publish, and sync HyperFrames motions and compatible packages.",
     )}`,
   )
   .version(getCliVersion(), "-V, --cli-version", "Show CLI version")
@@ -368,7 +368,9 @@ motion
     await cmdPublish(opts, folder, options);
   });
 
-const packageCmd = program.command("package").description("Browse and publish OpenClaw packages");
+const packageCmd = program
+  .command("package")
+  .description("Browse and publish compatible registry packages");
 
 packageCmd
   .command("explore")

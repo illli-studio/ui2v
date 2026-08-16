@@ -1,13 +1,17 @@
 # Scripts
 
-Most scripts under this folder belonged to the removed `@ui2v/cli` JSON → MP4 toolchain (`smoke-validate`, `smoke-render`, …).
+This folder contains maintenance scripts for the current UI2V registry CLI
+workspace.
 
-They are **obsolete** and will fail against the current workspace (only `packages/ui2v` remains).
-
-Use:
+Use the package scripts for ordinary verification:
 
 ```bash
 bun run build
 bun run test
 bun run ui2v --help
 ```
+
+Available scripts:
+
+- `bump-version.mjs` — update the root workspace and `packages/ui2v` versions
+  together.

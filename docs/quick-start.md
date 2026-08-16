@@ -2,84 +2,87 @@
 
 [中文](quick-start.zh.md)
 
-This guide gets a ui2v JSON project rendered from either the published CLI or a
-local workspace build.
+UI2V is now the registry CLI for HyperFrames motion packages. It installs,
+updates, searches, and publishes motions on ui2v.com. Authoring, preview, and
+rendering belong to HyperFrames.
 
 ## Requirements
 
-- Node.js 18 or newer
+- Node.js 20 or newer
 - Bun 1.0 or newer for local workspace development
-- A locally installed Chrome, Edge, or Chromium executable
+- A HyperFrames package folder when publishing a motion
 
-The primary render path uses `puppeteer-core`, Canvas, and WebCodecs. It does
-not download a bundled Chromium and does not require Electron, FFmpeg, or
-`node-canvas`.
+## Install The CLI
 
-## Published CLI
-
-Install the scoped CLI package. It still exposes the `ui2v` command after
-installation.
+Install the scoped npm package. It exposes the `ui2v` command after installation.
 
 ```bash
-npm install -g @ui2v/cli
+npm install -g @ui2v/cli@latest
 # or: bun install -g @ui2v/cli
-ui2v doctor
-ui2v validate examples/library-timeline/animation.json --verbose
-ui2v preview examples/library-timeline/animation.json --pixel-ratio 2
-ui2v render examples/library-timeline/animation.json -o .tmp/examples/library-timeline.mp4 --quality high
+ui2v --cli-version
+ui2v --help
 ```
 
 Run without a global install:
 
 ```bash
-npx @ui2v/cli --version
-npx @ui2v/cli render examples/library-timeline/animation.json -o library-timeline.mp4 --quality high
+npx @ui2v/cli@latest --cli-version
+npx @ui2v/cli@latest search "logo sting"
+npx @ui2v/cli@latest install <slug>
 ```
+
+## Common Registry Commands
+
+```bash
+ui2v search "lower third"
+ui2v install <slug>
+ui2v list
+ui2v update --all
+ui2v explore
+ui2v inspect <slug>
+ui2v upgrade
+```
+
+## Publish A Motion
+
+A publishable motion is a HyperFrames package folder with `registry-item.json`
+and an entry HTML file.
+
+```bash
+ui2v login
+ui2v motion publish ./path/to/package --version 1.0.0
+```
+
+Bulk workspace scan:
+
+```bash
+ui2v sync --dry-run
+ui2v sync
+```
+
+See [Getting Started](getting-started.md) for package shape and troubleshooting.
 
 ## Local Workspace
 
 ```bash
 bun install
 bun run build
-node packages/cli/dist/cli.js doctor
-node packages/cli/dist/cli.js preview examples/library-timeline/animation.json --pixel-ratio 2
-node packages/cli/dist/cli.js render examples/library-timeline/animation.json -o .tmp/examples/library-timeline.mp4 --quality high
+bun run test
+node packages/ui2v/bin/ui2v.js --cli-version
+node packages/ui2v/bin/ui2v.js --help
 ```
 
-No browser is downloaded during install. `ui2v` uses your local Chrome, Edge, or
-Chromium installation through `puppeteer-core`.
-
-## Browser Setup
-
-If `doctor` cannot find a browser, install Chrome/Edge/Chromium or set one of
-these environment variables: `PUPPETEER_EXECUTABLE_PATH`, `CHROME_PATH`,
-`CHROMIUM_PATH`, or `EDGE_PATH`.
-
-## Useful Render Options
+For CLI changes, run the package verification before publishing npm releases:
 
 ```bash
-ui2v render animation.json -o output.mp4 --quality high --fps 60
-ui2v render animation.json -o output.mp4 --quality low|medium|high|ultra|cinema
-ui2v render animation.json -o output.mp4 --width 1920 --height 1080 --render-scale 2
-ui2v render animation.json -o output.mp4 --codec avc --bitrate 8000000
-ui2v render animation.json -o output.mp4 --timeout 300 --no-headless
-ui2v preview animation.json --pixel-ratio 2
+bun run --filter "@ui2v/cli" verify
 ```
-
-`--render-scale` supersamples frames before encoding. For example,
-`--width 1920 --height 1080 --render-scale 2` renders internally at 3840x2160
-and then downsamples to 1920x1080.
-
-## Choose An Example
-
-- Start with [`examples/library-timeline`](../examples/library-timeline/README.md) to verify real browser/npm libraries on a timeline.
-- Use [`examples/access-media`](../examples/access-media/README.md) to test local photos, videos, waveform display, and muxed audio.
-- Use [`examples/runtime-storyboard`](../examples/runtime-storyboard/README.md) to inspect runtime segments, dependencies, transitions, and camera metadata.
-- Use [`examples/basic-smoke`](../examples/basic-smoke/README.md) only when you need the smallest sanity check.
 
 ## Next Steps
 
 - [Getting Started](getting-started.md)
 - [Architecture](architecture.md)
-- [Runtime Core](runtime-core.md)
-- [CLI Reference](../packages/cli/README.md)
+- [Roadmap](roadmap.md)
+- [Legacy JSON Toolchain](legacy-json-toolchain.md)
+- [Naming Migration](naming-migration.md)
+- [Compatible Package Registry](package-registry.md)

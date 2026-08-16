@@ -49,6 +49,6 @@ Entry resolution: `index.html` → first composition in `files[]` → `{name}.ht
 
 ## Abandoned formats
 
-UI2V rejects legacy `@ui2v/core` JSON projects (`project.json`, `animation.json`, `MOTION.json`). Author in HyperFrames, then publish with `ui2v`.
+UI2V rejects legacy `@ui2v/core` / `@ui2v/cli@1.x` JSON projects (`project.json`, `animation.json`, `MOTION.json`). Author in HyperFrames, then publish with the current `ui2v` registry CLI.
 
-Canonical docs in the registry repo: `docs/motion-format.md`.
+Canonical format details live with the registry/CLI schema in `packages/ui2v/src/schema`.

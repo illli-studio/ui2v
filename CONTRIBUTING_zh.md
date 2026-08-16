@@ -1,92 +1,67 @@
-# 贡献指南
+# UI2V 贡献指南
 
 [English](CONTRIBUTING.md)
 
-感谢你帮助改进 ui2v。这个仓库关注开源 CLI 渲染器、runtime packages、示例、文档，以及帮助 AI agent 更好创建 ui2v 项目的本地 Codex skills。
+感谢你帮助改进 UI2V。这个仓库聚焦 HyperFrames motion package 的注册表 CLI，
+以及帮助 agent 发布、安装和介绍这些 package 的 Codex skill。
 
 ## 开发环境
 
 要求：
 
-- Node.js 18 或更新版本
+- Node.js 20 或更新版本
 - Bun 1.0 或更新版本
-- 本机已安装 Chrome、Edge 或 Chromium
 
-安装并构建：
+安装并验证：
 
 ```bash
 bun install
 bun run build
-node packages/cli/dist/cli.js doctor
-```
-
-ui2v 使用 `puppeteer-core`，安装依赖时不会下载内置 Chromium。如果浏览器自动检测失败，可以设置 `PUPPETEER_EXECUTABLE_PATH`、`CHROME_PATH`、`CHROMIUM_PATH` 或 `EDGE_PATH`。
-
-## 常用检查
-
-运行和 CI 一致的快速检查：
-
-```bash
-bun run test:ci
-```
-
-运行完整本地测试，包括渲染 smoke tests：
-
-```bash
 bun run test
+node packages/ui2v/bin/ui2v.js --help
 ```
 
-专项检查：
+发布前验证：
 
 ```bash
-bun run test:unit
-bun run test:metadata
-bun run test:surface
-bun run test:pack
-bun run test:examples
-bun run test:validate
-bun run test:inspect-runtime
-```
-
-CLI smoke checks：
-
-```bash
-node packages/cli/dist/cli.js doctor
-node packages/cli/dist/cli.js validate examples/library-timeline/animation.json --verbose
-node packages/cli/dist/cli.js preview examples/library-timeline/animation.json --pixel-ratio 2
-node packages/cli/dist/cli.js render examples/library-timeline/animation.json -o .tmp/examples/library-timeline.mp4 --quality high
+bun run --filter "@ui2v/cli" verify
 ```
 
 ## 项目结构
 
 ```text
-packages/core          JSON 解析、校验和共享类型
-packages/runtime-core  场景图、时间线、帧计划和适配器契约
-packages/engine        浏览器 Canvas 渲染、自定义代码和 WebCodecs 导出
-packages/producer      puppeteer-core 预览/渲染管线和本机浏览器发现
-packages/cli           命令行入口
-examples               精选 demo、工具型示例和 runtime-core 项目
-assets/showcase        提交到仓库的 README GIF/JPG 预览素材
-docs                   文档
-scripts                校验、smoke test 和示例刷新脚本
-.agents/skills         面向 AI 辅助示例/渲染工作流的仓库本地 skills
+packages/ui2v/   active CLI package, npm @ui2v/cli, bin ui2v
+skills/ui2v/     Codex skill for registry install, publish, and positioning
+docs/            product, package, and legacy migration documentation
+scripts/         maintenance scripts
 ```
 
-## 示例准则
+## 当前范围
 
-- 让示例保持少量、维护良好、可以直接运行。
-- 保持 `basic-smoke`、`library-timeline`、`access-media` 和 `runtime-storyboard` 在 renderer 或 CLI 变化后仍然有效。
-- 只有当新示例展示了明确不同的受支持工作流时，才添加新的 example。
-- MP4 渲染到 `.tmp/examples`，仓库只提交 `assets/showcase` 下的轻量预览素材。
-- README GIF 要短、清晰，最好控制在 3 MB 以下。
+UI2V 负责注册表工作流：
+
+- auth、search、install、update、list、inspect
+- motion publish 和 sync
+- package ownership、moderation、transfer、stars
+- CLI upgrade 和 release support
+
+HyperFrames 负责 composition 创作、预览、渲染和导出。不要在这个仓库里重新引入
+已经移除的 JSON renderer 工具链。
 
 ## 代码准则
 
-- 保持 package 边界清晰。
-- 优先使用 runtime-core 契约，而不是一次性渲染逻辑。
-- 行为变化时，为 runtime、rendering、CLI、package metadata 和 examples 添加聚焦测试。
-- 同步更新英文和中文文档。
-- 不要提交 `.tmp/`、`out/`、完整 MP4 导出或构建输出目录。
+- 让 `@ui2v/cli` 保持聚焦：只做 registry operations。
+- 保持 npm 命名清晰：package 是 `@ui2v/cli`，binary 是 `ui2v`。
+- 行为变化时，为 CLI command、schema、auth、registry HTTP、publish/sync package
+  scanning 添加聚焦测试。
+- 英文和中文文档同步更新。
+- 行为、定位、发布/安装指引变化时，同步更新 `skills/ui2v`。
+- 不要提交 `.tmp/`、`out/`、生成的 archives、build output 或 media exports。
+
+## 旧内容
+
+旧 JSON-to-MP4 renderer examples 和 smoke scripts 已删除。迁移说明见
+[docs/legacy-json-toolchain.zh.md](docs/legacy-json-toolchain.zh.md)。
 
 ## Commit Message
 
