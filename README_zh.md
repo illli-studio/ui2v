@@ -33,8 +33,8 @@
 很多动效作品最后都困在文件夹、demo 和一次性导出里。UI2V 给它一个真正的
 资源库：可以发现、安装、发布、同步，也能分享给更多人。
 
-它刻意只做一件事。HyperFrames 负责 composition 创作、预览和渲染；UI2V 负责
-完成后的 motion package 注册表工作流。
+HyperFrames 负责 composition 创作、预览和渲染；UI2V 帮助 AI 工作流发现、安装、
+发布、同步和分享完成后的动效包。
 
 ```bash
 npm install -g @ui2v/cli@latest

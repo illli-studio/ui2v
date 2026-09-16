@@ -33,8 +33,8 @@
 Motion work gets trapped in folders, demos, and one-off exports. UI2V gives it a
 home: searchable, installable, publishable, and easy to share.
 
-It does one job on purpose. HyperFrames owns composition authoring, preview, and
-rendering. UI2V owns the registry workflow around finished motion packages.
+HyperFrames owns composition authoring, preview, and rendering. UI2V helps AI
+workflows discover, install, publish, sync, and share finished motion packages.
 
 ```bash
 npm install -g @ui2v/cli@latest
