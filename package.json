@@ -21,7 +21,7 @@
     "cli"
   ],
   "author": "ui2v",
-  "license": "MIT",
+  "license": "GPL-3.0-only",
   "devDependencies": {
     "typescript": "^5.9.3",
     "@types/node": "^25.5.0"

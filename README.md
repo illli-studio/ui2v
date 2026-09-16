@@ -21,7 +21,7 @@
 <p align="center">
   <img alt="Node.js 20+" src="https://img.shields.io/badge/node-%3E%3D20-111827?labelColor=0f172a" />
   <img alt="npm package" src="https://img.shields.io/badge/npm-%40ui2v%2Fcli-111827?labelColor=0f172a" />
-  <img alt="license MIT" src="https://img.shields.io/badge/license-MIT-111827?labelColor=0f172a" />
+  <img alt="license GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-111827?labelColor=0f172a" />
 </p>
 
 <p align="center">
@@ -30,11 +30,13 @@
 
 ---
 
-Motion work gets trapped in folders, demos, and one-off exports. UI2V gives it a
-home: searchable, installable, publishable, and easy to share.
+Motion work should be as reusable as UI work. UI2V gives finished HyperFrames
+motion packages a searchable home, a versioned release path, and a simple way
+for people and AI tools to pull them into a workspace.
 
-HyperFrames owns composition authoring, preview, and rendering. UI2V helps AI
-workflows discover, install, publish, sync, and share finished motion packages.
+HyperFrames creates, previews, and renders the motion. UI2V distributes the
+finished package through discovery, installation, publishing, syncing, and
+updates.
 
 ```bash
 npm install -g @ui2v/cli@latest
@@ -43,11 +45,14 @@ ui2v install <slug>            # pull it into your workspace
 ui2v motion publish ./motion --version 1.0.0
 ```
 
-## Why UI2V Exists
+## The library workflow
 
-UI2V is a video motion asset library for HyperFrames packages. Use it to
-discover, install, publish, update, sync, and share reusable motion on
-[ui2v.com](https://ui2v.com).
+| Move | What you get | Command |
+| --- | --- | --- |
+| Discover | Find reusable motion packages | `ui2v search`, `ui2v explore` |
+| Install | Pull a package into your workspace | `ui2v install`, `ui2v update` |
+| Publish | Share an original HyperFrames package | `ui2v motion publish` |
+| Maintain | Keep local and registry state aligned | `ui2v sync`, `ui2v inspect` |
 
 ```text
 HyperFrames authoring
@@ -60,44 +65,7 @@ HyperFrames authoring
 The goal is to make motion components feel as reusable as UI components: named,
 versioned, documented, and easy to pull into a workspace.
 
-## Built For Distribution
-
-| For | Value |
-| --- | --- |
-| Motion designers | Package polished HyperFrames compositions instead of handing off loose files. |
-| Frontend teams | Install reusable motion the same way you install UI building blocks. |
-| Design systems | Treat animation patterns as shared assets with names, versions, and docs. |
-| Agents | Give Codex and other tooling a stable publish/install workflow for motion packages. |
-
-## The Pitch
-
-UI2V turns motion into something teams can actually circulate:
-
-- a discoverable registry page
-- a copyable install command
-- a versioned publish workflow
-- a package format agents can inspect
-- a clean boundary between creation and distribution
-
-## The Loop
-
-| Stage | What happens | Command surface |
-| --- | --- | --- |
-| Discover | Find motion packages worth reusing | `ui2v search`, `ui2v explore` |
-| Install | Pull a package into your workspace | `ui2v install`, `ui2v update` |
-| Publish | Release a HyperFrames package | `ui2v motion publish` |
-| Maintain | Keep local and registry state aligned | `ui2v sync`, `ui2v inspect` |
-
-## Before / After
-
-| Before UI2V | With UI2V |
-| --- | --- |
-| Motion lives in ad-hoc folders | Motion has a registry page |
-| Sharing means sending files around | Sharing means one install command |
-| Updates are manual and unclear | Releases are versioned |
-| Agents infer project shape from loose files | Agents inspect `registry-item.json` and entry HTML |
-
-## Publish Your First Motion
+## Publish a package
 
 ```bash
 ui2v login
@@ -145,7 +113,7 @@ ui2v sync --dry-run
 ui2v upgrade
 ```
 
-## Product Boundary
+## Product boundary
 
 | UI2V handles | HyperFrames handles |
 | --- | --- |
@@ -154,25 +122,7 @@ ui2v upgrade
 | Publish and sync workflows | Rendering and export |
 | CLI auth and ownership flows | Timeline and animation logic |
 
-## Motion Package Shape
-
-A publishable motion is a HyperFrames package folder with registry metadata and
-an entry composition HTML file.
-
-```text
-my-motion/
-├── registry-item.json   # type: "hyperframes:block"
-├── index.html           # entry composition
-└── assets/              # optional media and support files
-```
-
-Versioning is provided at publish time with `--version`; it is not stored in
-`registry-item.json`.
-
-See [package-format.md](./skills/ui2v/references/package-format.md) for the
-agent-facing checklist and schema expectations.
-
-## Local Development
+## Documentation and development
 
 ```bash
 bun install
@@ -187,26 +137,22 @@ For release readiness:
 bun run --filter "@ui2v/cli" verify
 ```
 
-## Repository Map
+- [Quick Start](./docs/quick-start.md) — install the CLI and run the first search.
+- [Getting Started](./docs/getting-started.md) — publish and maintain packages.
+- [Package Registry](./docs/package-registry.md) — advanced compatible package workflows.
+- [Contributing](./CONTRIBUTING.md) — local development and repository conventions.
 
-```text
-packages/ui2v/   active CLI package, npm @ui2v/cli, bin ui2v
-skills/ui2v/     Codex skill for registry install and publish workflows
-docs/            product, package, and migration documentation
-```
+## Legacy JSON projects
 
-## Legacy Renderer Stack
+<details>
+<summary>Migrating from the old JSON renderer</summary>
 
-This workspace previously shipped a JSON-to-MP4 toolchain through
-`@ui2v/cli@1.x`, `@ui2v/core`, `@ui2v/engine`, and `@ui2v/producer`. That stack
-has been removed from the active product direction. Rebuild old JSON projects as
-HyperFrames packages, then publish them with the current `ui2v` registry CLI.
+The old `@ui2v/cli@1.x` JSON-to-MP4 workflow has been removed from the active
+product. Rebuild those projects as HyperFrames packages, then publish them with
+the current `ui2v` workflow. See the [migration notes](./docs/legacy-json-toolchain.md).
 
-See [Legacy JSON Toolchain](./docs/legacy-json-toolchain.md) for migration notes.
-See [Naming Migration](./docs/naming-migration.md) for compatibility naming notes.
-See [Compatible Package Registry](./docs/package-registry.md) for advanced
-`ui2v package` commands.
+</details>
 
 ## License
 
-MIT
+[GPL-3.0-only](https://github.com/illli-studio/ui2v/tree/main#GPL-3.0-1-ov-file)

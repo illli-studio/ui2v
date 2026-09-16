@@ -21,7 +21,7 @@
 <p align="center">
   <img alt="Node.js 20+" src="https://img.shields.io/badge/node-%3E%3D20-111827?labelColor=0f172a" />
   <img alt="npm package" src="https://img.shields.io/badge/npm-%40ui2v%2Fcli-111827?labelColor=0f172a" />
-  <img alt="license MIT" src="https://img.shields.io/badge/license-MIT-111827?labelColor=0f172a" />
+  <img alt="license GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-111827?labelColor=0f172a" />
 </p>
 
 <p align="center">
@@ -30,11 +30,10 @@
 
 ---
 
-很多动效作品最后都困在文件夹、demo 和一次性导出里。UI2V 给它一个真正的
-资源库：可以发现、安装、发布、同步，也能分享给更多人。
+动效作品也应该像 UI 组件一样可复用。UI2V 为完成的 HyperFrames 动效包提供一个
+可发现、可安装、可发布、可同步的资源库，让人和 AI 工具都能快速复用。
 
-HyperFrames 负责 composition 创作、预览和渲染；UI2V 帮助 AI 工作流发现、安装、
-发布、同步和分享完成后的动效包。
+HyperFrames 负责创作、预览和渲染；UI2V 负责完成后的动效包分发、版本和协作。
 
 ```bash
 npm install -g @ui2v/cli@latest
@@ -43,11 +42,14 @@ ui2v install <slug>            # pull it into your workspace
 ui2v motion publish ./motion --version 1.0.0
 ```
 
-## 为什么需要 UI2V
+## 资源库工作流
 
-UI2V 是面向 AI 工作流的视频动效资源库。你可以用它在
-[ui2v.com](https://ui2v.com) 上发现、安装、发布、更新、同步和分享可复用的
-HyperFrames 动效包。
+| 动作 | 结果 | 命令 |
+| --- | --- | --- |
+| 发现 | 找到可复用的动效包 | `ui2v search`, `ui2v explore` |
+| 安装 | 拉取到当前 workspace | `ui2v install`, `ui2v update` |
+| 发布 | 分享原创 HyperFrames 动效 | `ui2v motion publish` |
+| 维护 | 保持本地与资源库同步 | `ui2v sync`, `ui2v inspect` |
 
 ```text
 HyperFrames authoring
@@ -57,47 +59,10 @@ HyperFrames authoring
   -> ui2v.com
 ```
 
-目标是让 motion component 像 UI component 一样可复用：有名称、有版本、有文档，
+目标是让 motion component 像 UI component 一样有名称、有版本、有文档，
 也能被轻松拉进 workspace。
 
-## 为分发而生
-
-| 面向谁 | 价值 |
-| --- | --- |
-| Motion designers | 把打磨好的 HyperFrames composition 打包，而不是交付一堆散文件。 |
-| Frontend teams | 像安装 UI building blocks 一样安装可复用 motion。 |
-| Design systems | 让 animation pattern 也拥有名称、版本和文档。 |
-| Agents | 给 Codex 和其他工具一个稳定的 motion package 发布/安装工作流。 |
-
-## 推广点
-
-UI2V 把 motion 变成团队真的能流通的东西：
-
-- 一个可被发现的 registry page
-- 一条可以复制的 install command
-- 一个 versioned publish workflow
-- 一个 agent 可以检查的 package format
-- 一个清晰的 creation / distribution 边界
-
-## 工作闭环
-
-| 阶段 | 做什么 | 命令 |
-| --- | --- | --- |
-| Discover | 找到值得复用的 motion package | `ui2v search`, `ui2v explore` |
-| Install | 拉取 package 到本地 workspace | `ui2v install`, `ui2v update` |
-| Publish | 发布 HyperFrames package | `ui2v motion publish` |
-| Maintain | 让本地和 registry 状态保持一致 | `ui2v sync`, `ui2v inspect` |
-
-## Before / After
-
-| 没有 UI2V | 使用 UI2V |
-| --- | --- |
-| Motion 困在零散文件夹里 | Motion 有 registry page |
-| 分享靠传文件 | 分享靠一条 install command |
-| 更新方式模糊 | 发布有明确版本 |
-| Agent 只能猜项目结构 | Agent 可以检查 `registry-item.json` 和入口 HTML |
-
-## 发布第一个 Motion
+## 发布一个动效包
 
 ```bash
 ui2v login
@@ -154,24 +119,7 @@ ui2v upgrade
 | Publish and sync workflows | Rendering and export |
 | CLI auth and ownership flows | Timeline and animation logic |
 
-## Motion Package 结构
-
-可发布的 motion 是一个 HyperFrames package 文件夹，包含 registry metadata 和
-入口 composition HTML。
-
-```text
-my-motion/
-├── registry-item.json   # type: "hyperframes:block"
-├── index.html           # entry composition
-└── assets/              # optional media and support files
-```
-
-版本号在发布时通过 `--version` 传入，不写在 `registry-item.json` 里。
-
-Agent-facing checklist 和 schema 期望见
-[package-format.md](./skills/ui2v/references/package-format.md)。
-
-## 本地开发
+## 文档与开发
 
 ```bash
 bun install
@@ -186,24 +134,22 @@ node packages/ui2v/bin/ui2v.js --help
 bun run --filter "@ui2v/cli" verify
 ```
 
-## 仓库结构
+- [快速开始](./docs/quick-start.zh.md) — 安装 CLI 并完成第一次搜索。
+- [入门指南](./docs/getting-started.zh.md) — 发布和维护动效包。
+- [Package Registry](./docs/package-registry.zh.md) — 兼容包和高级工作流。
+- [贡献指南](./CONTRIBUTING.md) — 本地开发和仓库约定。
 
-```text
-packages/ui2v/   active CLI package, npm @ui2v/cli, bin ui2v
-skills/ui2v/     Codex skill for registry install and publish workflows
-docs/            product, package, and migration documentation
-```
+## 旧 JSON 项目
 
-## 旧 Renderer 工具链
+<details>
+<summary>从旧版 JSON renderer 迁移</summary>
 
-本仓库以前通过 `@ui2v/cli@1.x`、`@ui2v/core`、`@ui2v/engine` 和
-`@ui2v/producer` 提供 JSON-to-MP4 工具链。那套已经从当前产品方向中移除。
-请把旧 JSON 项目重建为 HyperFrames package，再用当前 `ui2v` 注册表 CLI 发布。
+旧的 `@ui2v/cli@1.x` JSON-to-MP4 工作流已从当前产品方向移除。请把旧项目重建为
+HyperFrames package，再用当前 `ui2v` 注册表 CLI 发布。详见
+[旧 JSON 工具链](./docs/legacy-json-toolchain.zh.md)。
 
-迁移说明见 [旧 JSON 工具链](./docs/legacy-json-toolchain.zh.md)。
-兼容命名说明见 [命名迁移](./docs/naming-migration.zh.md)。
-高级 `ui2v package` 命令见 [兼容 Package Registry](./docs/package-registry.zh.md)。
+</details>
 
 ## License
 
-MIT
+[GPL-3.0-only](https://github.com/illli-studio/ui2v/tree/main#GPL-3.0-1-ov-file)
