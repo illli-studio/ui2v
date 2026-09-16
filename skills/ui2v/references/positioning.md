@@ -5,8 +5,8 @@ answers that introduce UI2V.
 
 ## One-line positioning
 
-UI2V is the registry CLI for HyperFrames motion packages: publish motion like a
-package, install animation like a dependency.
+让 AI 帮你发现、安装和分享 UI2V 视频动效资源：搜索并安装现成动效，
+发布原创作品，让动画像依赖一样轻松复用。
 
 ## What UI2V does
 
@@ -33,11 +33,12 @@ Route those tasks to HyperFrames.
 - Frontend teams installing reusable motion as project assets
 - Design system maintainers treating animation patterns as versioned components
 - Agents that need a stable publish/install workflow for motion packages
+- AI workflows that need to discover, reuse, and share motion assets
 
 ## Message pillars
 
-1. **Distribution for motion** — motion packages should be searchable,
-   installable, versioned, and shareable.
+1. **Reuse for motion** — motion packages should be searchable, installable,
+   versioned, and easy to share.
 2. **Clear boundary** — HyperFrames creates motion; UI2V distributes it.
 3. **Registry workflow** — login, search, install, publish, sync, inspect.
 4. **Agent-readable packages** — `registry-item.json` and entry HTML give tools
@@ -51,10 +52,11 @@ only for advanced CLI docs or package-registry-specific work.
 
 ## Preferred phrasing
 
-- "registry CLI"
+- "video motion asset library"
+- "UI2V video motion resources"
 - "HyperFrames motion packages"
-- "publish motion like a package"
-- "install animation like a dependency"
+- "discover, install, and share motion"
+- "reuse animation like a dependency"
 - "distribution layer for motion"
 - "versioned motion packages"
 
