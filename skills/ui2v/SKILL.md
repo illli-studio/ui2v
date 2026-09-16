@@ -1,18 +1,18 @@
 ---
 name: ui2v
-version: 2.0.1
+version: 2.1.0
 display_name: UI2V视频动效资源库
 display_name_en: UI2V Video Motion Asset Library
-description_zh: 用于发布、安装、搜索、同步、升级和检查 UI2V HyperFrames 视频动效资源，也适用于维护 ui2v CLI、资源包格式及相关文档。
-description_en: Use when publishing, installing, searching, syncing, upgrading, or inspecting UI2V HyperFrames video motion assets, or maintaining the ui2v CLI, package format, and related docs.
-description: Use when publishing, installing, searching, syncing, upgrading, or describing UI2V registry motions (HyperFrames composition packages on ui2v.com). Also use when the user mentions ui2v CLI, motion publish, registry-item.json, README/npm/website copy for UI2V, or replacing the abandoned @ui2v/cli@1.x JSON render/preview toolchain.
+description_zh: 让 AI 帮你发现、安装和分享 UI2V 视频动效资源。支持 HyperFrames 动效包的搜索、安装、发布、同步与更新，让已有动效轻松复用，也让原创作品更容易被发现。
+description_en: Let AI help you discover, install, and share UI2V video motion assets. Search, install, publish, sync, and update HyperFrames motion packages so existing animations are easy to reuse and original work can reach more people.
+description: Use when helping users discover, install, publish, share, sync, or update UI2V video motion assets and HyperFrames motion packages. Route video creation, preview, and rendering to HyperFrames skills.
 metadata:
-  short-description: UI2V HyperFrames registry CLI
+  short-description: AI 驱动的 UI2V 视频动效资源库
 ---
 
 # ui2v Skill
 
-UI2V is the **public registry** for HyperFrames composition packages. This skill covers the **registry CLI** (`ui2v`), not video authoring.
+UI2V 是面向 AI 工作流的 **视频动效资源库**。它帮助用户发现、安装、复用和分享 HyperFrames 动效包；实际的视频创作、预览和渲染由 HyperFrames 完成。
 
 For project positioning, README copy, npm copy, website copy, or launch/promo
 text, read `references/positioning.md`.
@@ -104,8 +104,8 @@ Details: `references/package-format.md`.
 When introducing the project, use this core message:
 
 ```text
-UI2V is the registry CLI for HyperFrames motion packages:
-publish motion like a package, install animation like a dependency.
+让 AI 帮你发现、安装和分享 UI2V 视频动效资源：
+搜索并安装现成动效，发布原创作品，让动画像依赖一样轻松复用。
 ```
 
 Do not call UI2V a renderer. Keep the boundary crisp:
