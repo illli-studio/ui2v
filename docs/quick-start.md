@@ -2,9 +2,9 @@
 
 [中文](quick-start.zh.md)
 
-UI2V is now the registry CLI for HyperFrames motion packages. It installs,
-updates, searches, and publishes motions on ui2v.com. Authoring, preview, and
-rendering belong to HyperFrames.
+UI2V is a video motion asset library for HyperFrames packages. It helps you
+discover, install, update, sync, and publish motions on ui2v.com. Authoring,
+preview, and rendering belong to HyperFrames.
 
 ## Requirements
 

@@ -1,6 +1,7 @@
 # @ui2v/cli
 
-Registry CLI for HyperFrames motion packages on [ui2v.com](https://ui2v.com).
+AI-ready video motion asset library for discovering, installing, publishing,
+syncing, and sharing HyperFrames packages on [ui2v.com](https://ui2v.com).
 
 The npm package is `@ui2v/cli`; the installed command is `ui2v`.
 
@@ -48,7 +49,8 @@ my-motion/
 └── assets/
 ```
 
-## Legacy Note
+## Migration note
 
 `@ui2v/cli@1.x` exposed JSON validate/preview/render commands. That surface has
-been removed. The current CLI is the registry client for HyperFrames packages.
+been removed. The current CLI distributes HyperFrames video motion packages;
+authoring, preview, and rendering stay in HyperFrames.

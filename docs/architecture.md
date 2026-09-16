@@ -2,9 +2,9 @@
 
 [中文](architecture.zh.md)
 
-UI2V is organized as a focused registry CLI. The active package is
-`@ui2v/cli`, which installs the `ui2v` command. HyperFrames owns authoring,
-preview, and rendering.
+UI2V is organized as a video motion asset library for HyperFrames packages. The
+active package is `@ui2v/cli`, which installs the `ui2v` command. HyperFrames
+owns authoring, preview, and rendering.
 
 ## Package
 

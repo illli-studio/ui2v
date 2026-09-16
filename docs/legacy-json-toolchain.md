@@ -5,7 +5,7 @@ packages such as `@ui2v/core`, `@ui2v/runtime-core`, `@ui2v/engine`, and
 `@ui2v/producer`.
 
 That stack is no longer part of this repository's active product direction.
-Current UI2V is the registry CLI for HyperFrames motion packages.
+Current UI2V is the video motion asset library for HyperFrames packages.
 
 ## What Was Removed
 

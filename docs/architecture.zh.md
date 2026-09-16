@@ -2,8 +2,8 @@
 
 [English](architecture.md)
 
-UI2V 现在是一个聚焦的注册表 CLI。当前活跃包是 `@ui2v/cli`，安装后提供
-`ui2v` 命令。创作、预览和渲染由 HyperFrames 负责。
+UI2V 现在是面向 AI 工作流的 HyperFrames 视频动效资源库。当前活跃包是
+`@ui2v/cli`，安装后提供 `ui2v` 命令。创作、预览和渲染由 HyperFrames 负责。
 
 ## Package
 

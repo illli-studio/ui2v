@@ -5,7 +5,7 @@
 <h1 align="center">UI2V</h1>
 
 <p align="center">
-  Publish motion like a package. Install animation like a dependency.
+  Let AI help you discover, install, and share video motion assets.
 </p>
 
 <p align="center">
@@ -27,8 +27,7 @@
 ---
 
 Motion work gets trapped in folders, demos, and one-off exports. UI2V gives it a
-home: searchable, installable, publishable, and maintainable from the command
-line.
+home: searchable, installable, publishable, and easy to share.
 
 It does one job on purpose. HyperFrames owns composition authoring, preview, and
 rendering. UI2V owns the registry workflow around finished motion packages.
@@ -42,8 +41,8 @@ ui2v motion publish ./motion --version 1.0.0
 
 ## Why UI2V Exists
 
-UI2V is the public registry client for HyperFrames composition packages. Use it
-to search, install, publish, update, and sync reusable motion packages on
+UI2V is a video motion asset library for HyperFrames packages. Use it to
+discover, install, publish, update, sync, and share reusable motion on
 [ui2v.com](https://ui2v.com).
 
 ```text

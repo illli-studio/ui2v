@@ -1,7 +1,7 @@
 {
   "name": "@ui2v/workspace",
-  "version": "2.0.1",
-  "description": "UI2V workspace — HyperFrames motion registry CLI (replaces the old @ui2v/cli JSON toolchain)",
+  "version": "2.0.2",
+  "description": "UI2V video motion asset library for discovering, installing, publishing, syncing, and sharing HyperFrames packages.",
   "private": true,
   "workspaces": [
     "packages/*"

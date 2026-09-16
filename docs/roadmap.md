@@ -2,8 +2,8 @@
 
 [中文](roadmap.zh.md)
 
-This roadmap describes the current UI2V registry CLI. Rendering and composition
-authoring are owned by HyperFrames.
+This roadmap describes the current UI2V video motion asset library. Rendering
+and composition authoring are owned by HyperFrames.
 
 ## Completed
 

@@ -5,7 +5,7 @@
 <h1 align="center">UI2V</h1>
 
 <p align="center">
-  像发布 package 一样发布 motion，像安装 dependency 一样安装 animation。
+  让 AI 帮你发现、安装和分享视频动效资源。
 </p>
 
 <p align="center">
@@ -26,8 +26,8 @@
 
 ---
 
-很多 motion work 最后都困在文件夹、demo 和一次性导出里。UI2V 给它一个真正的
-家：可以搜索、安装、发布，并且能通过命令行维护。
+很多动效作品最后都困在文件夹、demo 和一次性导出里。UI2V 给它一个真正的
+资源库：可以发现、安装、发布、同步，也能分享给更多人。
 
 它刻意只做一件事。HyperFrames 负责 composition 创作、预览和渲染；UI2V 负责
 完成后的 motion package 注册表工作流。
@@ -41,9 +41,9 @@ ui2v motion publish ./motion --version 1.0.0
 
 ## 为什么需要 UI2V
 
-UI2V 是 HyperFrames composition package 的公共注册表客户端。你可以用它在
-[ui2v.com](https://ui2v.com) 上搜索、安装、发布、更新和同步可复用的 motion
-package。
+UI2V 是面向 AI 工作流的视频动效资源库。你可以用它在
+[ui2v.com](https://ui2v.com) 上发现、安装、发布、更新、同步和分享可复用的
+HyperFrames 动效包。
 
 ```text
 HyperFrames authoring

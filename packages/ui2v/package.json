@@ -1,7 +1,18 @@
 {
   "name": "@ui2v/cli",
-  "version": "2.0.1",
-  "description": "UI2V CLI — install, update, search, and publish HyperFrames motions (replaces the old JSON toolchain).",
+  "version": "2.0.2",
+  "description": "AI-ready video motion asset library for discovering, installing, publishing, syncing, and sharing HyperFrames packages.",
+  "keywords": [
+    "ui2v",
+    "hyperframes",
+    "video",
+    "motion",
+    "motion-assets",
+    "animation",
+    "registry",
+    "cli",
+    "ai"
+  ],
   "homepage": "https://ui2v.com",
   "bugs": {
     "url": "https://github.com/illli-studio/ui2v/issues"

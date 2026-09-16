@@ -2,8 +2,8 @@
 
 [English](roadmap.md)
 
-这份路线图描述当前 UI2V 注册表 CLI。渲染和 composition 创作由 HyperFrames
-负责。
+这份路线图描述当前 UI2V 视频动效资源库。渲染和 composition 创作由
+HyperFrames 负责。
 
 ## 已完成
 

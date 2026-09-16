@@ -2,8 +2,8 @@
 
 [English](quick-start.md)
 
-UI2V 现在是 HyperFrames motion package 的注册表 CLI。它负责在 ui2v.com 上
-安装、更新、搜索和发布 motion；创作、预览和渲染请使用 HyperFrames。
+UI2V 是面向 AI 工作流的视频动效资源库。它负责在 ui2v.com 上发现、安装、
+更新、同步和发布 HyperFrames 动效包；创作、预览和渲染请使用 HyperFrames。
 
 ## 环境要求
 

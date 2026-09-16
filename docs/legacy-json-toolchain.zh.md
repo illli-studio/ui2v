@@ -3,8 +3,8 @@
 UI2V 以前包含一套围绕 `animation.json` 的 JSON-to-MP4 renderer，相关包包括
 `@ui2v/core`、`@ui2v/runtime-core`、`@ui2v/engine` 和 `@ui2v/producer`。
 
-这套工具链已经不属于当前仓库的产品方向。现在的 UI2V 是 HyperFrames motion
-package 的注册表 CLI。
+这套工具链已经不属于当前仓库的产品方向。现在的 UI2V 是面向 AI 工作流的
+HyperFrames 视频动效资源库。
 
 ## 已移除内容
 
