@@ -1,10 +1,10 @@
 ---
 name: ui2v
 version: 2.0.1
-display_name: UI2V 动效注册表 CLI
-display_name_en: UI2V Motion Registry CLI
-description_zh: 用于发布、安装、搜索、同步、升级和检查 UI2V HyperFrames 动效包，也适用于维护 ui2v CLI、注册表包格式及相关文档。
-description_en: Use when publishing, installing, searching, syncing, upgrading, or inspecting UI2V HyperFrames motion packages, or maintaining the ui2v CLI, registry package format, and related docs.
+display_name: UI2V视频动效资源库
+display_name_en: UI2V Video Motion Asset Library
+description_zh: 用于发布、安装、搜索、同步、升级和检查 UI2V HyperFrames 视频动效资源，也适用于维护 ui2v CLI、资源包格式及相关文档。
+description_en: Use when publishing, installing, searching, syncing, upgrading, or inspecting UI2V HyperFrames video motion assets, or maintaining the ui2v CLI, package format, and related docs.
 description: Use when publishing, installing, searching, syncing, upgrading, or describing UI2V registry motions (HyperFrames composition packages on ui2v.com). Also use when the user mentions ui2v CLI, motion publish, registry-item.json, README/npm/website copy for UI2V, or replacing the abandoned @ui2v/cli@1.x JSON render/preview toolchain.
 metadata:
   short-description: UI2V HyperFrames registry CLI
