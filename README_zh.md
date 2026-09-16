@@ -24,6 +24,10 @@
   <img alt="license MIT" src="https://img.shields.io/badge/license-MIT-111827?labelColor=0f172a" />
 </p>
 
+<p align="center">
+  <img src="./assets/readme/hero-zh.svg" width="100%" alt="UI2V 视频动效资源库：发现、安装、发布和分享 HyperFrames 动效包" />
+</p>
+
 ---
 
 很多动效作品最后都困在文件夹、demo 和一次性导出里。UI2V 给它一个真正的

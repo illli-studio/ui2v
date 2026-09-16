@@ -24,6 +24,10 @@
   <img alt="license MIT" src="https://img.shields.io/badge/license-MIT-111827?labelColor=0f172a" />
 </p>
 
+<p align="center">
+  <img src="./assets/readme/hero.svg" width="100%" alt="UI2V video motion asset library: discover, install, publish, and share HyperFrames motion packages" />
+</p>
+
 ---
 
 Motion work gets trapped in folders, demos, and one-off exports. UI2V gives it a
