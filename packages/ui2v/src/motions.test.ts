@@ -112,7 +112,7 @@ describe("motions", () => {
     expect(fingerprint).toBe(expected);
   });
 
-  it("hashes text files inside a downloaded zip deterministically", () => {
+  it("hashes source assets inside a downloaded zip deterministically", () => {
     const zip = zipSync({
       "SKILL.md": strToU8("hello"),
       "notes.md": strToU8("world"),
@@ -122,17 +122,19 @@ describe("motions", () => {
     const expected = buildSkillFingerprint([
       { path: "SKILL.md", sha256: sha256Hex(strToU8("hello")) },
       { path: "notes.md", sha256: sha256Hex(strToU8("world")) },
+      { path: "image.png", sha256: sha256Hex(strToU8("nope")) },
     ]);
     expect(fingerprint).toBe(expected);
   });
 
-  it("ignores unsafe or non-text entries when hashing zips", () => {
+  it("ignores unsafe paths and generated covers when hashing zips", () => {
     const zip = zipSync({
       "SKILL.md": strToU8("hello"),
       "folder/": strToU8(""),
       "../evil.txt": strToU8("nope"),
       "bad\\path.txt": strToU8("nope"),
-      "image.png": strToU8("nope"),
+      "ui2v-cover.webp": strToU8("generated"),
+      "binary.exe": strToU8("nope"),
     });
     const { files } = hashSkillZip(new Uint8Array(zip));
     expect(files).toEqual([{ path: "SKILL.md", sha256: sha256Hex(strToU8("hello")), size: 5 }]);

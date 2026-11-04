@@ -41,6 +41,12 @@ Example:
 
 Versioning uses the CLI/web `--version` (semver). It is not stored inside `registry-item.json`.
 
+Every publish requires an uploaded animation cover. Optional manifest field
+`thumbnail: "assets/thumbnail.png"` selects an existing local PNG/JPEG/WebP image.
+Otherwise the CLI finds a root thumbnail/cover image or captures an actual frame.
+See `publish.md` for caching and browser setup. `ui2v-cover.webp` is reserved for
+the generated upload artifact; keep source artwork under other names.
+
 ## Entry HTML
 
 Prefer a root with `data-composition-id`, `data-duration`, `data-width`, `data-height`, at least one `class="clip"`, and a paused GSAP timeline on `window.__timelines`.

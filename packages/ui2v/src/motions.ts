@@ -59,6 +59,8 @@ async function listPackageFiles(root: string, allowedExtensions: Set<string>) {
   await walk(absRoot, async (absPath) => {
     const relPath = normalizePath(relative(absRoot, absPath));
     if (!relPath) return;
+    // Publisher-generated artifact; not a source edit and never a stale input cover.
+    if (/^ui2v-cover\.(webp|png|jpe?g)$/.test(relPath)) return;
     if (ig.ignores(relPath)) return;
     const ext = relPath.split(".").at(-1)?.toLowerCase() ?? "";
     if (!ext || !allowedExtensions.has(ext)) return;
@@ -101,8 +103,9 @@ export function hashSkillZip(zipBytes: Uint8Array) {
     .map(([rawPath, bytes]) => {
       const safePath = sanitizeZipPath(rawPath);
       if (!safePath) return null;
+      if (/^ui2v-cover\.(webp|png|jpe?g)$/.test(safePath)) return null;
       const ext = safePath.split(".").at(-1)?.toLowerCase() ?? "";
-      if (!ext || !TEXT_FILE_EXTENSION_SET.has(ext)) return null;
+      if (!ext || !MOTION_PACKAGE_FILE_EXTENSION_SET.has(ext)) return null;
       return { path: safePath, sha256: sha256Hex(bytes), size: bytes.byteLength };
     })
     .filter(Boolean) as SkillFileHash[];

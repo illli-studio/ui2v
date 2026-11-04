@@ -1,12 +1,12 @@
 ---
 name: ui2v
-version: 2.1.0
-display_name: UI2V视频动效资源库
-display_name_en: UI2V Video Motion Asset Library
-description_zh: 让 AI 帮你发现、安装和分享 UI2V 视频动效资源。支持 HyperFrames 动效包的搜索、安装、发布、同步与更新，让已有动效轻松复用，也让原创作品更容易被发现。
-description_en: Let AI help you discover, install, and share UI2V video motion assets. Search, install, publish, sync, and update HyperFrames motion packages so existing animations are easy to reuse and original work can reach more people.
 description: Use when helping users discover, install, publish, share, sync, or update UI2V video motion assets and HyperFrames motion packages. Route video creation, preview, and rendering to HyperFrames skills.
 metadata:
+  version: "2.2.0"
+  display_name: UI2V视频动效资源库
+  display_name_en: UI2V Video Motion Asset Library
+  description_zh: 发现、安装和发布 HyperFrames 动效包，发布必须上传真实动画封面。
+  description_en: Discover, install and publish HyperFrames packages with a required animation cover.
   short-description: AI 驱动的 UI2V 视频动效资源库
 ---
 
@@ -95,7 +95,7 @@ A motion folder must include:
 
 - `registry-item.json` with `type: "hyperframes:block"`
 - Entry composition HTML (`index.html` or listed composition file)
-- Optional `assets/`, `README.md`, thumbnail
+- Optional `assets/`, `README.md`; a real animation cover is required for publishing
 
 Details: `references/package-format.md`.
 
@@ -123,6 +123,12 @@ ui2v motion publish ./my-motion --version 1.0.0
 ```
 
 Aliases: `ui2v skill publish`, legacy `ui2v publish`.
+
+Publishing (including `sync`) requires an uploaded animation cover: reuse a local image or
+capture one still with the HyperFrames player. A failed capture stops publishing;
+fix the composition or pass `--cover thumbnail.png`. There is no bypass and no
+placeholder cover. No video export or resident screenshot service is needed.
+Read `references/publish.md` for image priority, caching, browser setup, and the API contract.
 
 Full checklist: `references/publish.md`.
 

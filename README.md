@@ -75,6 +75,11 @@ npx @ui2v/cli@latest install <slug>
 
 Minimal package:
 
+Every publish requires an animation cover. The CLI uploads a local thumbnail or
+captures one actual frame, cached until package contents change. Pass
+`--cover assets/thumbnail.png` to choose an image. No video export or running
+service is required. See [cover setup and API](./docs/publish-covers.md).
+
 ```text
 my-motion/
 ├── registry-item.json

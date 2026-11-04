@@ -47,6 +47,11 @@ ui2v motion publish ./my-motion --version 1.0.1 --changelog "Fix timing"
 
 After publish:
 
+Every publish requires an uploaded animation cover. The CLI uses a local image
+or captures and caches an actual frame; use `--cover assets/thumbnail.png` to
+select an image. A missing/failed cover blocks publishing.
+See [cover setup and API](publish-covers.md).
+
 - Page: `https://ui2v.com/<owner>/<slug>`
 - Install: `npx @ui2v/cli@latest install <slug>`
 

@@ -3,6 +3,7 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import sharp from "sharp";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   createAuthTokenModuleMocks,
@@ -64,6 +65,7 @@ describe("cmdPublish", () => {
       await writeFile(join(folder, "registry-item.json"), JSON.stringify(SAMPLE_ITEM), "utf8");
       await writeFile(join(folder, "index.html"), SAMPLE_HTML, "utf8");
       await writeFile(join(folder, "notes.md"), "notes\n", "utf8");
+      await writeFile(join(folder, "thumbnail.png"), await sharp({ create: { width: 16, height: 16, channels: 3, background: "red" } }).png().toBuffer());
 
       httpMocks.apiRequestForm.mockResolvedValueOnce({
         ok: true,
@@ -93,12 +95,15 @@ describe("cmdPublish", () => {
       expect(payload.version).toBe("1.0.0");
       expect(payload.acceptLicenseTerms).toBe(true);
       expect(payload.tags).toEqual(["latest"]);
+      expect(payload.thumbnailPath).toBe("ui2v-cover.webp");
 
       const files = publishForm.getAll("files");
       expect(files.map((file) => (file as File).name ?? "").sort()).toEqual([
         "index.html",
         "notes.md",
         "registry-item.json",
+        "thumbnail.png",
+        "ui2v-cover.webp",
       ]);
     } finally {
       await rm(workdir, { recursive: true, force: true });

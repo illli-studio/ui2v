@@ -49,6 +49,16 @@ my-motion/
 └── assets/
 ```
 
+## Animation covers
+
+Publishing requires an animation cover. The CLI reuses a local thumbnail or
+captures a real frame and caches it by package contents. Use
+`--cover assets/thumbnail.png` to select an image, or `--cover-time 1.5` to select
+a frame. Capture failures block publishing; there is no skip-cover option.
+Covers upload as WebP (640px maximum edge, up to 512000 bytes).
+For screenshots, use installed Chrome/Edge/Chromium, set `UI2V_COVER_BROWSER`,
+or install Chromium with `npx playwright@1.64.1 install chromium`.
+
 ## Migration note
 
 `@ui2v/cli@1.x` exposed JSON validate/preview/render commands. That surface has

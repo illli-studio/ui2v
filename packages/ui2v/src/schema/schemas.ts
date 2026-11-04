@@ -78,6 +78,7 @@ export const PublishSourceSchema = type({
 });
 
 export const CliPublishRequestSchema = type({
+  thumbnailPath: "string?",
   slug: "string",
   displayName: "string",
   version: "string",

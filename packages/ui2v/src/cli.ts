@@ -297,6 +297,9 @@ program
 program
   .command("publish")
   .description("Legacy alias: publish a motion from folder")
+  .option("--cover <path>", "Use a local cover image (PNG, JPEG or WebP)")
+  .option("--cover-time <seconds>", "Screenshot timestamp (default: midpoint, capped at 3s)", Number)
+  .option("--refresh-cover", "Regenerate the cached screenshot")
   .argument("<path>", "Motion folder path")
   .option("--slug <slug>", "Motion slug")
   .option("--name <name>", "Display name")
@@ -356,6 +359,9 @@ const motion = program
 motion
   .command("publish")
   .description("Publish a motion from folder")
+  .option("--cover <path>", "Use a local cover image (PNG, JPEG or WebP)")
+  .option("--cover-time <seconds>", "Screenshot timestamp (default: midpoint, capped at 3s)", Number)
+  .option("--refresh-cover", "Regenerate the cached screenshot")
   .argument("<path>", "Motion folder path")
   .option("--slug <slug>", "Motion slug")
   .option("--name <name>", "Display name")

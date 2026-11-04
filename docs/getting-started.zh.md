@@ -46,6 +46,10 @@ ui2v motion publish ./my-motion --version 1.0.1 --changelog "Fix timing"
 
 发布后：
 
+发布必须携带真实动画封面。CLI 会上传现有图片，或截取动画的一帧并缓存复用；
+也可用 `--cover assets/thumbnail.png` 指定。没有有效封面则发布失败。
+详见[封面上传与 API](publish-covers.md)。
+
 - 页面：`https://ui2v.com/<owner>/<slug>`
 - 安装：`npx @ui2v/cli@latest install <slug>`
 

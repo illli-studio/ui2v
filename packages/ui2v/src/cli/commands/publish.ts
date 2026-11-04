@@ -9,11 +9,12 @@ import { getRegistry } from "../registry.js";
 import { sanitizeSlug, titleCase } from "../slug.js";
 import type { GlobalOpts } from "../types.js";
 import { createSpinner, fail, formatError } from "../ui.js";
+import { prepareMotionCover, type CoverOptions } from "../motionCover.js";
 
 export async function cmdPublish(
   opts: GlobalOpts,
   folderArg: string,
-  options: {
+  options: CoverOptions & {
     slug?: string;
     name?: string;
     version?: string;
@@ -66,6 +67,9 @@ export async function cmdPublish(
       fail("Entry composition HTML required (index.html or *.html)");
     }
 
+    spinner.text = "Preparing cover (reusing an image or capturing one frame)";
+    const cover = await prepareMotionCover(folder, filesOnDisk, options);
+    if (cover) filesOnDisk.push(cover);
     const form = new FormData();
     form.set(
       "payload",
@@ -76,6 +80,7 @@ export async function cmdPublish(
         changelog,
         acceptLicenseTerms: true,
         tags,
+        ...(cover ? { thumbnailPath: cover.relPath } : {}),
         ...(forkOf ? { forkOf } : {}),
       }),
     );

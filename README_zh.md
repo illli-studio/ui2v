@@ -72,6 +72,10 @@ npx @ui2v/cli@latest install <slug>
 
 最小 package：
 
+发布必须上传动画封面。CLI 会上传已有图片，或截取动画真实画面并缓存复用。
+可用 `--cover assets/thumbnail.png` 指定图片；没有有效封面就不能发布。
+详见[封面上传与 API](./docs/publish-covers.md)。
+
 ```text
 my-motion/
 ├── registry-item.json

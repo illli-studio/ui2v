@@ -32,6 +32,50 @@ ui2v sync --all --bump patch
 
 Server-side validation still runs on upload (duration ≥ 1s, manifest shape, etc.).
 
+## Required animation cover
+
+`motion publish`, `skill publish`, legacy `publish`, and `sync` attach a cover.
+Priority: explicit `--cover <path>` (relative to the package folder), manifest
+`thumbnail` (a local uploaded path), root `thumbnail.webp/png/jpg`, root
+`cover.webp/png/jpg`, then a screenshot. Manifest `thumbnail` is a string, for
+example `"thumbnail": "assets/thumbnail.png"`; remote URLs are not fetched.
+
+Screenshot time defaults to `min(3, duration / 2)` seconds. Set `--cover-time 1.5`
+to select another frame; it must be >= 0 and < duration. Screenshots are cached
+in `.ui2v/cover.png`, keyed by package file contents and timestamp. Changes to
+HTML, scripts, images, fonts, media or manifest invalidate the cache;
+`--refresh-cover` forces a new screenshot. Title/version flags do not invalidate
+the cache. Remote asset changes require `--refresh-cover` because their contents
+are not part of the package hash.
+
+Existing Chrome/Edge/Chromium is used, or set `UI2V_COVER_BROWSER` to a browser
+executable. On a Linux CI host without one, install it first:
+
+```bash
+npx playwright@1.64.1 install --with-deps chromium
+ui2v motion publish ./my-motion --version 1.0.0
+ui2v motion publish ./my-motion --version 1.0.1 --cover assets/thumbnail.png
+```
+
+Covers must show the animation itself (an actual frame or authored cover), never
+a generic placeholder. Covers become WebP with a maximum edge of 640px and a 512000 byte limit, uploaded
+as the reserved generated file `ui2v-cover.webp`. Do not author a source file with
+that name. This file does not affect sync fingerprints. Screenshot failures stop
+the upload and explain how to supply a cover. There is no `--no-cover` escape.
+
+### Direct API clients
+
+POST `/api/v1/motions` with your normal bearer API token, not an admin key.
+For multipart requests, include the image in the `files` parts and set
+`payload.thumbnailPath` to its exact uploaded filename, e.g. `"thumbnail.png"`.
+For JSON requests, upload the image through the normal storage upload endpoint,
+include its descriptor in `files[]`, and set the same `thumbnailPath`.
+The backend checks that this is exactly one supplied PNG/JPEG/WebP image within
+the size limit, then persists its storage URL as the motion thumbnail.
+The API rejects publishing without a valid uploaded cover. Older clients must
+upgrade or send `thumbnailPath` and an image. The API does not render arbitrary
+HTML inside a Vercel request. The web upload form also requires a cover file.
+
 ## After publish
 
 - Page: `https://ui2v.com/<owner>/<slug>`
